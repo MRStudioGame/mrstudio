@@ -1,0 +1,189 @@
+/* ============================================================
+   MR工作室官网 — 现代简洁企业风
+   用心做游戏
+   ============================================================ */
+
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f7f8fa;
+  --text: #1a1a1a;
+  --text-soft: #666;
+  --text-faint: #999;
+  --accent: #d43c2a;
+  --accent-dark: #b5321f;
+  --border: #e6e6e6;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-dark); }
+
+/* ============ 顶部导航 ============ */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1080px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; height: 62px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+.nav-name { font-size: 1.15rem; font-weight: 600; color: var(--text); }
+.nav-links { display: flex; gap: 28px; }
+.nav-links a { color: var(--text-soft); font-size: 0.92rem; transition: color 0.2s; }
+.nav-links a:hover { color: var(--accent); }
+@media (max-width: 640px) { .nav-links { display: none; } }
+
+/* ============ Hero ============ */
+.hero {
+  padding: 96px 24px 84px;
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(212, 60, 42, 0.06), transparent 60%),
+    radial-gradient(900px 400px at 10% 110%, rgba(212, 60, 42, 0.05), transparent 60%),
+    var(--bg);
+  text-align: center;
+}
+.hero-logo {
+  width: 96px; height: 96px; border-radius: 24px; object-fit: cover;
+  box-shadow: var(--shadow-hover); margin-bottom: 20px;
+}
+.hero-title { font-size: 2.8rem; font-weight: 700; letter-spacing: 0.04em; }
+.hero-email { margin-top: 8px; font-size: 0.8rem; color: var(--text-faint); letter-spacing: 0.05em; }
+.hero-slogan {
+  margin-top: 18px; font-size: 1.5rem; font-weight: 600; color: var(--accent);
+  letter-spacing: 0.3em;
+}
+.hero-desc { margin-top: 14px; color: var(--text-soft); font-size: 0.98rem; }
+.hero-cta {
+  display: inline-block; margin-top: 30px; padding: 13px 34px;
+  background: var(--accent); color: #fff; border-radius: 999px;
+  font-size: 0.98rem; font-weight: 500;
+  box-shadow: 0 6px 18px rgba(212, 60, 42, 0.28);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.hero-cta:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(212, 60, 42, 0.32); color: #fff; }
+
+/* ============ 通用区块 ============ */
+.section { max-width: 1080px; margin: 0 auto; padding: 72px 24px; }
+.section-alt { background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); max-width: none; }
+.section-alt > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+.section-head { text-align: center; margin-bottom: 40px; }
+.section-head h2 { font-size: 1.9rem; font-weight: 700; }
+.section-head p { margin-top: 8px; color: var(--text-soft); font-size: 0.95rem; }
+
+/* ============ 软件卡片 ============ */
+.soft-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+@media (max-width: 860px) { .soft-grid { grid-template-columns: 1fr; } }
+.soft-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px; box-shadow: var(--shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.soft-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.soft-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.soft-icon { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.soft-tags { display: flex; gap: 8px; }
+.tag {
+  font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; font-weight: 500;
+}
+.tag-pc { background: #eef3fa; color: #2f6fb3; }
+.tag-android { background: #eaf7ec; color: #2e9e4f; }
+.soft-card h3 { margin-top: 18px; font-size: 1.25rem; font-weight: 600; }
+.soft-desc { margin-top: 8px; color: var(--text-soft); font-size: 0.92rem; min-height: 3.2em; }
+.soft-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+.btn {
+  display: inline-block; padding: 10px 18px; border-radius: 8px;
+  font-size: 0.9rem; font-weight: 500; transition: background 0.2s, transform 0.2s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-pc { background: #2f6fb3; color: #fff; }
+.btn-pc:hover { background: #275e99; color: #fff; }
+.btn-android { background: #2e9e4f; color: #fff; }
+.btn-android:hover { background: #268743; color: #fff; }
+.btn-ghost { border: 1px solid var(--accent); color: var(--accent); }
+.btn-ghost:hover { background: rgba(212, 60, 42, 0.06); }
+
+/* ============ 游戏介绍 ============ */
+.game-rows { display: flex; flex-direction: column; gap: 44px; }
+.game-row { display: flex; align-items: center; gap: 40px; }
+.game-row:nth-child(even) { flex-direction: row-reverse; }
+@media (max-width: 860px) { .game-row, .game-row:nth-child(even) { flex-direction: column; } }
+.game-text h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+.game-text p { color: var(--text-soft); font-size: 0.96rem; margin-bottom: 18px; }
+.game-shot {
+  width: 46%; border-radius: var(--radius); box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border);
+}
+@media (max-width: 860px) { .game-shot { width: 100%; } }
+
+/* ============ 关于 ============ */
+.about-box { text-align: center; max-width: 640px; margin: 0 auto; }
+.about-box h2 { font-size: 1.9rem; font-weight: 700; }
+.about-slogan { margin-top: 14px; font-size: 1.3rem; font-weight: 600; color: var(--accent); letter-spacing: 0.2em; }
+.about-box p { margin-top: 14px; color: var(--text-soft); }
+.about-contact { margin-top: 22px !important; font-size: 0.92rem; }
+
+/* ============ 页脚 ============ */
+.footer {
+  border-top: 1px solid var(--border); text-align: center;
+  padding: 36px 24px; color: var(--text-faint); font-size: 0.88rem;
+}
+.footer-mail { margin-top: 6px; font-size: 0.78rem; }
+
+/* ============ 为爱发电（右侧悬浮） ============ */
+.donate-tab {
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+  z-index: 60; cursor: pointer; border: none;
+  writing-mode: vertical-rl; letter-spacing: 0.35em;
+  padding: 22px 10px; font-size: 0.95rem; font-weight: 600;
+  background: var(--accent); color: #fff;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.18);
+  transition: background 0.2s, right 0.3s;
+}
+.donate-tab:hover { background: var(--accent-dark); }
+
+.donate-panel {
+  position: fixed; right: 0; top: 0; bottom: 0; z-index: 70;
+  width: 340px; max-width: 86vw;
+  background: #fff; box-shadow: -8px 0 30px rgba(0, 0, 0, 0.14);
+  padding: 48px 28px 30px; text-align: center;
+  overflow-y: auto;
+  animation: slide-in 0.3s ease both;
+}
+@keyframes slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.donate-close {
+  position: absolute; top: 12px; right: 16px; border: none; background: none;
+  font-size: 1.5rem; color: var(--text-soft); cursor: pointer; line-height: 1;
+}
+.donate-close:hover { color: var(--accent); }
+.donate-panel h3 { font-size: 1.3rem; color: var(--accent); }
+.donate-panel p { margin-top: 12px; color: var(--text-soft); font-size: 0.9rem; }
+.donate-qr {
+  width: 220px; height: 220px; object-fit: contain; margin-top: 18px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #fff;
+}
+.donate-tip { color: var(--accent) !important; font-weight: 500; }
+
+/* ============ 滚动显现 ============ */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
