@@ -172,7 +172,23 @@
   <p class="donate-tip">长按识别 / 扫码 · 谢谢老板！</p>
 </div>
 
-<!-- 维护模式检测 -->
+<!-- 在线人数统计（隐藏徽章） -->
+<script id="_waumr1">var _wau = _wau || []; _wau.push(["dynamic", "rzd2eghzxx", "mr1", "c4302bffffff", "small"]);</script><script async src="//waust.at/d.js"></script><!-- 网易云音乐播放器 -->
+<div id="siteMusic" style="position:fixed;left:14px;bottom:14px;z-index:9000;background:rgba(255,255,255,.92);border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:6px;">
+  <iframe id="musicFrame" src="about:blank" style="width:300px;height:66px;border:none;border-radius:6px;" allow="autoplay"></iframe>
+</div>
+<script>
+(function () {
+  fetch("music.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var id = d && d.song_id ? d.song_id : "3332771263";
+      var f = document.getElementById("musicFrame");
+      if (f) f.src = "https://music.163.com/outchain/player?type=2&id=" + id + "&auto=1&height=66";
+    })
+    .catch(function () {});
+})();
+</script><!-- 维护模式检测 -->
 <script>
 (function () {
   fetch("maintenance.json?t=" + Date.now())
