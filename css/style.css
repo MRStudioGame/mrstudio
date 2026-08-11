@@ -225,3 +225,6 @@ a:hover { color: var(--accent-dark); }
 .help-box { max-width: 760px; margin: 0 auto; }
 .help-box h3 { margin: 18px 0 6px; font-size: 1.05rem; color: var(--text); }
 .help-box p { font-size: 0.94rem; color: var(--text-soft); }
+
+/* 隐藏 amung 徽章（仅后台统计） */
+a[href*="whos.amung.us"] { display: none !important; }
