@@ -18,14 +18,6 @@
     reveals.forEach(function (el) { el.classList.add("visible"); });
   }
 
-  // 帮助与教程弹窗
-  var helpOpen = document.getElementById("helpOpen");
-  var helpClose = document.getElementById("helpClose");
-  var helpMask = document.getElementById("helpMask");
-  var helpTriggers = document.querySelectorAll(".help-open");
-  if (helpTriggers.length) helpTriggers.forEach(function (el) { el.addEventListener("click", function (e) { e.preventDefault(); if (helpMask) helpMask.hidden = false; }); });
-  if (helpClose) helpClose.addEventListener("click", function () { if (helpMask) helpMask.hidden = true; });
-  if (helpMask) helpMask.addEventListener("click", function (e) { if (e.target === helpMask) helpMask.hidden = true; });
   // 为爱发电：右侧悬浮按钮 → 滑出收款码面板
   var donateOpen = document.getElementById("donateOpen");
   var donateClose = document.getElementById("donateClose");
