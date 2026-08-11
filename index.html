@@ -21,6 +21,7 @@
       <a href="#software">软件下载</a>
       <a href="#games">游戏介绍</a>
       <a href="#about">关于我们</a>
+      <a href="#" id="helpOpen">帮助与教程</a>
     </nav>
   </div>
 </header>
@@ -145,6 +146,26 @@
   <p class="donate-tip">长按识别 / 扫码 · 谢谢老板！</p>
 </div>
 
-<script src="js/main.js"></script>
+<!-- 帮助与教程弹窗 -->
+<div class="modal-mask" id="helpMask" hidden>
+  <div class="modal help-modal">
+    <button class="modal-close" id="helpClose" aria-label="关闭">×</button>
+    <h2>帮助与教程</h2>
+    <h3>1. Windows 绿色版（zip）怎么玩</h3>
+    <p>① 点击「Windows下载」下载 zip 文件。<br>② 下载完成后，右键点击文件 → 选择「全部解压缩」。<br>③ 打开解压出的文件夹 → 双击 renpy.exe（老蒋/上位）或 鹦鹉物语.exe 即可游玩。<br>④ 首次启动可能需要几秒钟，请耐心等待。</p>
+    <h3>2. Windows 安装版（exe）怎么装</h3>
+    <p>① 下载 exe 后双击运行。<br>② 若弹出「Windows 已保护你的电脑」→ 点「更多信息」→「仍要运行」（未签名应用属正常提示）。<br>③ 点「安装」，选择位置（默认即可），完成后自动启动游戏。</p>
+    <h3>3. 安卓版（APK）怎么装</h3>
+    <p>① 点击「下载安卓版」下载 apk 文件。<br>② 打开文件，若提示「未知来源」→ 点「设置」允许 → 返回安装。<br>③ 安装完成后，桌面出现游戏图标，点击即玩。</p>
+    <h3>4. 下载慢或失败怎么办</h3>
+    <p>① 网站下载已走国内加速通道，仍慢可尝试切换网络（WiFi/手机流量）或稍后再试。<br>② 也可以电脑上下载后，通过微信文件传输助手或数据线传到手机。</p>
+    <h3>5. 游戏闪退 / 黑屏</h3>
+    <p>① 更新显卡驱动。<br>② 若杀毒软件误报，请将游戏加入白名单或暂时关闭后重试。<br>③ Windows 7 系统建议升级到 Windows 10/11。</p>
+    <h3>6. 存档在哪里</h3>
+    <p>① Windows：%APPDATA%\RenPy\（对应游戏目录）。<br>② 安卓：手机内部存储 → Android/data/（对应包名）。</p>
+    <h3>7. 其他问题</h3>
+    <p>联系 MR工作室：<a href="mailto:abcdefg1230852@qq.com">abcdefg1230852@qq.com</a>，我们会尽快回复。</p>
+  </div>
+</div><script src="js/main.js"></script>
 </body>
 </html>
