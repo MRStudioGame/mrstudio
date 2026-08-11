@@ -180,25 +180,14 @@
 </div>
 <script>
 (function () {
-  var curId = "3332771263";
-  function loadMusic() {
-    fetch("music.json?t=" + Date.now())
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d && d.song_id) curId = d.song_id;
-        setFrame(true);
-      })
-      .catch(function () { setFrame(true); });
-  }
-  function setFrame(auto) {
-    var f = document.getElementById("musicFrame");
-    if (f) f.src = "https://music.163.com/outchain/player?type=2&id=" + curId + "&auto=" + (auto ? 1 : 0) + "&height=66";
-  }
-  loadMusic();
-  // 浏览器拦截自动播放时：首次点击/触摸页面任意位置后重新触发播放
-  var done = false;
-  document.addEventListener("click", function () { if (!done) { done = true; setFrame(true); } }, true);
-  document.addEventListener("touchstart", function () { if (!done) { done = true; setFrame(true); } }, true);
+  fetch("music.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var id = d && d.song_id ? d.song_id : "3332771263";
+      var f = document.getElementById("musicFrame");
+      if (f) f.src = "https://music.163.com/outchain/player?type=2&id=" + id + "&auto=0&height=66";
+    })
+    .catch(function () {});
 })();
 </script><!-- 维护模式检测 -->
 <script>
