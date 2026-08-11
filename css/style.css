@@ -49,7 +49,7 @@ a:hover { color: var(--accent-dark); }
 .nav-links { display: flex; gap: 28px; }
 .nav-links a { color: var(--text-soft); font-size: 0.92rem; transition: color 0.2s; }
 .nav-links a:hover { color: var(--accent); }
-@media (max-width: 640px) { .nav-links { display: none; } }
+@media (max-width: 640px) { .nav-inner { height: auto; flex-direction: column; padding: 10px 16px; gap: 8px; } .nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; font-size: 0.85rem; } }
 
 /* ============ Hero ============ */
 .hero {
@@ -190,7 +190,12 @@ a:hover { color: var(--accent-dark); }
 
 
 /* 帮助与教程弹窗 */
-.help-modal { max-width: 720px; }
+.help-modal { max-width: 720px; max-height: 92vh; }
 .help-modal h2 { color: var(--accent-dark); }
-.help-modal h3 { margin: 16px 0 6px; font-size: 1.05rem; color: var(--text); }
+.help-modal h3 { margin: 12px 0 4px; font-size: 1rem; color: var(--text); }
 .help-modal p { font-size: 0.92rem; color: var(--text-soft); margin-bottom: 8px; }
+
+/* 下载提示小字 */
+.help-tip { margin-top: 10px; font-size: 0.8rem; color: var(--text-faint); }
+.help-tip a.help-open, a.help-open { color: #1e90ff; text-decoration: none; }
+.help-tip a.help-open:hover, a.help-open:hover { color: #0066cc; text-decoration: underline; }
