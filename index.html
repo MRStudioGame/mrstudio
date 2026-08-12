@@ -10,6 +10,17 @@
 </head>
 <body>
 
+<!-- ============ 流动广播条（仅网站运行时显示） ============ -->
+<div id="broadcastBar" style="display:none;background:linear-gradient(90deg,#2f6fb3,#4a8fd6);color:#fff;overflow:hidden;white-space:nowrap;position:relative;z-index:50;font-size:14px;line-height:40px;">
+  <div id="broadcastText" style="display:inline-block;padding-left:100%;animation:mrMarquee 18s linear infinite;"></div>
+</div>
+<style>
+@keyframes mrMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100vw); }
+}
+</style>
+
 <!-- ============ 顶部导航 ============ -->
 <header class="nav">
   <div class="nav-inner">
@@ -215,6 +226,55 @@
       }
     })
     .catch(function () {});
+})();
+</script><!-- 流动广播 -->
+<script>
+(function () {
+  var bar = document.getElementById("broadcastBar");
+  var txt = document.getElementById("broadcastText");
+  if (!bar || !txt) return;
+
+  function showBroadcast(text) {
+    txt.textContent = text;
+    bar.style.display = "block";
+    // 重新触发滚动动画
+    var clone = txt.cloneNode(true);
+    txt.parentNode.replaceChild(clone, txt);
+    document.getElementById("broadcastText").style.animation = "none";
+    void document.getElementById("broadcastText").offsetWidth;
+    document.getElementById("broadcastText").style.animation = "mrMarquee 18s linear infinite";
+  }
+
+  function evalBroadcast() {
+    fetch("broadcast.json?t=" + Date.now())
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.text) return;
+        // 维护模式开启时，广播不显示（只读一次维护状态）
+        fetch("maintenance.json?t=" + Date.now())
+          .then(function (r) { return r.json(); })
+          .then(function (m) {
+            if (m && m.on) return;
+            // 手动开关
+            var on = !!d.enabled;
+            // 定时开关：开始/结束时间（ISO 本地时间）
+            if (d.schedule && d.schedule.enabled) {
+              var now = Date.now();
+              var start = d.schedule.start ? new Date(d.schedule.start).getTime() : 0;
+              var end = d.schedule.end ? new Date(d.schedule.end).getTime() : Infinity;
+              if (now >= start && now <= end) on = true;
+            }
+            if (on) showBroadcast(d.text);
+            else bar.style.display = "none";
+          })
+          .catch(function () {});
+      })
+      .catch(function () {});
+  }
+
+  // 立即检查 + 每分钟自动检查（支持定时开关）
+  evalBroadcast();
+  setInterval(evalBroadcast, 60000);
 })();
 </script><script src="js/main.js?v=3"></script>
 </body>
