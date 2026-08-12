@@ -84,6 +84,8 @@
     <li><span class="num">28</span>官网爬虫网站名称易与英语学习混淆——<span class="fix">已改名</span>：官网导航与卡片统一为「Python爬虫学习」与「英语学习」</li>
     <li><span class="num">29</span>英语网站页面仍显示 Python 爬虫内容——<span class="fix">已彻底修复</span>：模板继承路径改为独立的英语模板（en/base.html），清除全部爬虫残留，英语站所有页面恢复正常</li>
     <li><span class="num">30</span>控制台官网状态显示未知——<span class="fix">已修复 GitHub Token 注入</span>：Token 改为本地原生桥接提供，控制台官网状态、维护、音乐等功能恢复正常</li>
+    <li><span class="num">31</span>控制台连不上 pythonanywhere API（网络限制）——<span class="fix">已改用网站自身代理通道</span>：状态/CPU/重启走学习网站代理接口，不再依赖手机直连 pythonanywhere；英语站同步支持</li>
+    <li><span class="num">32</span>控制台无法感知版本更新——<span class="fix">已加入版本检测</span>：顶部检测按钮 + 启动自动检测，发现新版本弹窗询问是否更新</li>
   </ul>
 </main>
 
