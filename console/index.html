@@ -203,7 +203,14 @@
 <!-- ================= 用户管理 ================= -->
 <div class="page" id="pageUsers">
   <div class="card">
-    <h2>爬虫站用户统计</h2>
+    <h2>站点切换</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-blue" id="usSiteCrawler" style="flex:1;padding:10px;font-size:14px;margin:0" onclick="usSetSite('crawler')">🐍 爬虫站</button>
+      <button class="btn btn-gray" id="usSiteEn" style="flex:1;padding:10px;font-size:14px;margin:0" onclick="usSetSite('en')">🇬🇧 英语站</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>用户统计</h2>
     <div class="status"><span class="dot dot-on" id="usDot"></span><span id="usSt">加载中...</span></div>
     <div class="stats" id="usStats" style="margin-top:8px">加载中...</div>
     <button class="btn btn-gray" onclick="usLoad()" style="margin-top:10px">刷新统计与用户列表</button>
@@ -215,7 +222,7 @@
   </div>
 </div>
 
-<!-- ================= 英语用户管理 ================= -->
+<!-- ================= 英语用户管理（独立页保留） ================= -->
 <div class="page" id="pageUsersEn">
   <div class="card">
     <h2>英语站用户统计</h2>
@@ -311,7 +318,16 @@ function switchPage(name) {
 
 /* ===== 学习网站用户管理 ===== */
 var PA_ADMIN = "111011";
-var US_BASE = "https://mrstudio.pythonanywhere.com"; // 爬虫站
+var US_SITE = "crawler";
+
+function usSetSite(site) {
+  US_SITE = site;
+  var cb = document.getElementById("usSiteCrawler");
+  var eb = document.getElementById("usSiteEn");
+  if (cb) cb.className = "btn btn-" + (site === "crawler" ? "blue" : "gray");
+  if (eb) eb.className = "btn btn-" + (site === "en" ? "blue" : "gray");
+  usLoad();
+}
 
 function usApi(path, method, data, done) {
   var opt = { method: method || "GET", headers: { "X-Admin-Pass": PA_ADMIN } };
@@ -319,7 +335,8 @@ function usApi(path, method, data, done) {
     opt.headers["Content-Type"] = "application/json";
     opt.body = JSON.stringify(data);
   }
-  fetch(US_BASE + path, opt)
+  var base = US_SITE === "en" ? "https://mrstudio.pythonanywhere.com/english" : "https://mrstudio.pythonanywhere.com";
+  fetch(base + path, opt)
     .then(function (r) { return r.json(); })
     .then(done)
     .catch(function (e) { done({ error: String(e) }); });
