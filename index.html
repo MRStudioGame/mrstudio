@@ -10,14 +10,16 @@
 </head>
 <body>
 
-<!-- ============ 流动广播条（仅网站运行时显示） ============ -->
+<!-- ============ 流动广播条（仅网站运行时显示，无缝循环） ============ -->
 <div id="broadcastBar" style="display:none;background:linear-gradient(90deg,#2f6fb3,#4a8fd6);color:#fff;overflow:hidden;white-space:nowrap;position:relative;z-index:50;font-size:14px;line-height:40px;">
-  <div id="broadcastText" style="display:inline-block;padding-left:100%;animation:mrMarquee 18s linear infinite;"></div>
+  <div id="broadcastText" style="display:inline-block;animation:mrMarquee 10s linear infinite;">
+    <span class="bcast-item" style="display:inline-block;"></span><span class="bcast-item" style="display:inline-block;"></span>
+  </div>
 </div>
 <style>
 @keyframes mrMarquee {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-100vw); }
+  100% { transform: translateX(-50%); }
 }
 </style>
 
@@ -235,9 +237,11 @@
   if (!bar || !txt) return;
 
   function showBroadcast(text, speed) {
-    txt.textContent = text;
+    // 填充两份相同内容（无缝循环需要）
+    var items = document.querySelectorAll("#broadcastText .bcast-item");
+    items.forEach(function (it) { it.textContent = text; });
     bar.style.display = "block";
-    // 速度 → 动画时长：speed=1 约 30 秒，speed=10 约 3 秒
+    // 速度 → 动画时长：speed=1 约 30 秒，speed=10 约 3 秒（一份内容走完的时间）
     var dur = 30 / (speed || 3);
     var el = document.getElementById("broadcastText");
     // 重新触发滚动动画
