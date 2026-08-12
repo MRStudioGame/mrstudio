@@ -301,7 +301,9 @@ function b64dec(s) { return decodeURIComponent(escape(atob(s))); }
 
 /* ===== Tab 切换 ===== */
 /* ===== 版本检测 ===== */
-var CUR_VER = "3.0"; // 本 APK 内置版本
+var CUR_VER = "3.0"; // 本 APK 内置版本（仅本地回退时生效）
+var IS_REMOTE = location.hostname.indexOf("github") >= 0; // 当前是否加载的是远程最新页面
+
 function checkVersion(manual) {
   var btn = document.getElementById("verCheckBtn");
   var tag = document.getElementById("verTag");
@@ -312,16 +314,19 @@ function checkVersion(manual) {
       var remote = d.version || "?";
       if (tag) tag.textContent = "v" + remote;
       if (btn) btn.textContent = "🔄 检测版本";
-      var noted = localStorage.getItem("mr_ver_noted");
-      var isNew = remote !== CUR_VER;
-      if (isNew && (manual || noted !== remote)) {
-        localStorage.setItem("mr_ver_noted", remote);
-        dlgConfirm("📦 检测到新版本", "当前版本 v" + CUR_VER + "，最新版本 v" + remote +
+      if (IS_REMOTE) {
+        // 已加载远程最新页面 = 已是最新，不弹更新
+        if (manual) dlgAlert("版本信息", "✅ 当前已是最新版本 v" + remote);
+        return;
+      }
+      // 本地回退模式：远程有新版本才提示
+      if (remote !== CUR_VER) {
+        dlgConfirm("📦 检测到新版本", "当前为内置旧版 v" + CUR_VER + "，最新版本 v" + remote +
           "\n\n" + (d.note || "") + "\n\n是否立即更新？", function () {
-          location.reload();
+          location.href = "https://mrstudiogame.github.io/mrstudio/console/index.html";
         });
       } else if (manual) {
-        dlgAlert("版本信息", "当前版本 v" + CUR_VER + "，最新版本 v" + remote + "（已是最新）");
+        dlgAlert("版本信息", "当前版本 v" + CUR_VER + "，已是最新");
       }
     })
     .catch(function (e) {
@@ -329,7 +334,7 @@ function checkVersion(manual) {
       if (manual) dlgAlert("检测失败", "无法连接更新服务器：" + String(e));
     });
 }
-// 自动检测（启动时）
+// 自动检测（启动时，仅本地回退模式提示）
 setTimeout(function () { checkVersion(false); }, 3000);
 
 function switchPage(name) {
