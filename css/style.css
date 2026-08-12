@@ -228,3 +228,9 @@ a:hover { color: var(--accent-dark); }
 
 /* 隐藏 amung 徽章（仅后台统计） */
 a[href*="whos.amung.us"] { display: none !important; }
+
+/* 在线学习标签 */
+.tag-web {
+  background: #2e74b5;
+  color: #fff;
+}
