@@ -456,7 +456,7 @@ function renderUsList(users) {
     var tags = "";
     if (u.banned) tags += "<span style='background:#d43c2a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>封禁中</span>";
     if (u.deleted_at) tags += "<span style='background:#8a8f98;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>已注销</span>";
-    if (u.last_active) tags += "<span style='background:#2e9e4f;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>活跃</span>";
+    if (u.online) tags += "<span style='background:#2e9e4f;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>在线</span>";
     html += "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
       "<div style='font-size:15px;font-weight:bold'>" + u.nickname + tags + "</div>" +
       "<div class='stats'>账号：" + u.username + " ｜ ID：" + u.id + "</div>" +
@@ -722,6 +722,7 @@ function renderUsEnList(users) {
     var tags = "";
     if (u.banned) tags += "<span style='background:#d43c2a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>封禁中</span>";
     if (u.deleted_at) tags += "<span style='background:#8a8f98;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>已注销</span>";
+    if (u.online) tags += "<span style='background:#2e9e4f;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>在线</span>";
     html += "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
       "<div style='font-size:15px;font-weight:bold'>" + u.nickname + tags + "</div>" +
       "<div class='stats'>账号：" + u.username + " ｜ ID：" + u.id + "</div>" +
