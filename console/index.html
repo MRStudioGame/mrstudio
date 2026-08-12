@@ -48,7 +48,10 @@
   </div>
 </div>
 
-<h1>MR网站控制台</h1>
+<h1>MR网站控制台 <span id="verTag" style="font-size:12px;color:#888;font-weight:normal">v?</span></h1>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+  <button class="btn btn-gray" id="verCheckBtn" style="flex:1;padding:9px;font-size:13px;margin:0" onclick="checkVersion(true)">🔄 检测版本</button>
+</div>
 <p class="sub">管理 MR工作室 旗下网站</p>
 
 <div class="tabs">
@@ -297,6 +300,38 @@ function b64enc(s) { return btoa(unescape(encodeURIComponent(s))); }
 function b64dec(s) { return decodeURIComponent(escape(atob(s))); }
 
 /* ===== Tab 切换 ===== */
+/* ===== 版本检测 ===== */
+var CUR_VER = "3.0"; // 本 APK 内置版本
+function checkVersion(manual) {
+  var btn = document.getElementById("verCheckBtn");
+  var tag = document.getElementById("verTag");
+  if (btn) btn.textContent = "检测中...";
+  fetch("https://mrstudiogame.github.io/mrstudio/console/version.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var remote = d.version || "?";
+      if (tag) tag.textContent = "v" + remote;
+      if (btn) btn.textContent = "🔄 检测版本";
+      var noted = localStorage.getItem("mr_ver_noted");
+      var isNew = remote !== CUR_VER;
+      if (isNew && (manual || noted !== remote)) {
+        localStorage.setItem("mr_ver_noted", remote);
+        dlgConfirm("📦 检测到新版本", "当前版本 v" + CUR_VER + "，最新版本 v" + remote +
+          "\n\n" + (d.note || "") + "\n\n是否立即更新？", function () {
+          location.reload();
+        });
+      } else if (manual) {
+        dlgAlert("版本信息", "当前版本 v" + CUR_VER + "，最新版本 v" + remote + "（已是最新）");
+      }
+    })
+    .catch(function (e) {
+      if (btn) btn.textContent = "🔄 检测版本";
+      if (manual) dlgAlert("检测失败", "无法连接更新服务器：" + String(e));
+    });
+}
+// 自动检测（启动时）
+setTimeout(function () { checkVersion(false); }, 3000);
+
 function switchPage(name) {
   document.getElementById("tabSite").className = "tab" + (name === "site" ? " active" : "");
   document.getElementById("tabLearn").className = "tab" + (name === "learn" ? " active" : "");
@@ -898,26 +933,32 @@ function paLoadStatus() {
 }
 
 function paLoadDetail() {
-  // 方式二：PA API 读取详细配置（到期时间/版本/CPU）
-  paApi("GET", "/webapps/mrstudio.pythonanywhere.com/", function (res) {
-    if (res.code === 200) {
-      var info = {};
-      try { info = JSON.parse(res.body); } catch (e) {}
+  // 方式二：走学习网站自带的代理接口（无需直连 pythonanywhere，手机可正常访问）
+  fetch("https://mrstudio.pythonanywhere.com/api/admin/status", {
+    headers: { "X-Admin-Pass": "111011" }
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.webapp && d.webapp_code === 200) {
+      var info = d.webapp;
+      var cpu = d.cpu || {};
       document.getElementById("paReport").innerHTML =
         "网站状态：在线 ✓<br>域名：" + (info.domain_name || "?") + "<br>" +
         "Python 版本：" + (info.python_version || "?") + "<br>" +
         "工作目录：" + (info.working_directory || "?") + "<br>" +
         "强制 HTTPS：" + (info.force_https ? "是" : "否") + "<br>" +
-        "到期时间：" + (info.expiry || "?") + "（到期需登录续期）";
-      paLog("详细配置已加载");
-      paLoadCpu();
+        "到期时间：" + (info.expiry || "?") + "（到期需登录续期）<br>" +
+        "今日 CPU：" + (cpu.daily_cpu_total_usage_seconds || 0).toFixed(1) + " / " + (cpu.daily_cpu_limit_seconds || 100) + " 秒";
+      paLog("详细配置已加载（代理通道）");
     } else {
       var rep = document.getElementById("paReport").innerHTML;
       document.getElementById("paReport").innerHTML =
-        rep + "<br>详细配置读取失败：" + res.code + " " + String(res.body || "").slice(0, 120) +
-        "<br><span class='warn'>网站在线，但控制台连不上 pythonanywhere API（可能网络限制），重启/日志功能暂不可用</span>";
-      paLog("PA API 读取失败：" + res.code);
+        rep + "<br>详细配置读取失败：" + (d.error || ("webapp_code=" + d.webapp_code)) +
+        "<br><span class='warn'>提示：请检查手机网络能否访问 mrstudio.pythonanywhere.com</span>";
+      paLog("代理读取失败");
     }
+  }).catch(function (e) {
+    var rep = document.getElementById("paReport").innerHTML;
+    document.getElementById("paReport").innerHTML = rep + "<br>代理请求失败：" + String(e);
+    paLog("代理请求失败：" + String(e));
   });
 }
 
