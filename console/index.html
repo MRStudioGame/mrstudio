@@ -340,6 +340,36 @@ function checkVersion(manual) {
 // 自动检测（启动时）
 setTimeout(function () { checkVersion(false); }, 3000);
 
+// ===== 更新通知检查（官网/学习网站更新或修复后提醒） =====
+function checkNotices() {
+  fetch("https://mrstudiogame.github.io/mrstudio/console/notify.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var msgs = d.messages || [];
+      if (!msgs.length) return;
+      var seen = localStorage.getItem("mr_notices_seen") || "";
+      var newMsgs = msgs.filter(function (m) {
+        return seen.indexOf("|" + m.id + "|") < 0;
+      });
+      if (!newMsgs.length) return;
+      // 记录已读
+      var ids = msgs.map(function (m) { return "|" + m.id + "|"; }).join("");
+      localStorage.setItem("mr_notices_seen", ids);
+      // 系统通知（App 内）
+      newMsgs.forEach(function (m) {
+        if (window.AndroidBridge && typeof AndroidBridge.notify === "function") {
+          AndroidBridge.notify("MR工作室：" + m.title, m.content);
+        }
+      });
+      // 页面弹窗展示最新一条
+      var last = newMsgs[newMsgs.length - 1];
+      dlgAlert("📢 " + last.title, last.content + "\n\n（" + (last.time || "") + "）");
+    })
+    .catch(function () {});
+}
+setTimeout(checkNotices, 6000);
+
+
 function switchPage(name) {
   document.getElementById("tabSite").className = "tab" + (name === "site" ? " active" : "");
   document.getElementById("tabLearn").className = "tab" + (name === "learn" ? " active" : "");
