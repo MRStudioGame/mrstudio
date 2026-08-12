@@ -1,6 +1,6 @@
 {
-  "enabled": false,
-  "text": "🎉 欢迎来到 MR工作室官网！",
+  "enabled": true,
+  "text": "🎉 MR工作室官网 · 无缝滚动广播测试 · 履带式循环",
   "speed": 3,
   "schedule": {
     "enabled": false,
