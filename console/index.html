@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR网站控制台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f4f5f7; color: #1a1a1a; padding: 16px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: #888; font-size: 12px; margin-bottom: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .card h2 { font-size: 15px; margin-bottom: 10px; }
+  input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 8px; box-sizing: border-box; }
+  textarea { min-height: 70px; }
+  .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 8px; }
+  .btn-green { background: #2e9e4f; }
+  .btn-red { background: #d43c2a; }
+  .btn-blue { background: #2f6fb3; }
+  .btn-gray { background: #8a8f98; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .dot-on { background: #2e9e4f; }
+  .dot-off { background: #d43c2a; }
+  .log { background: #1e1e24; color: #9fe0a0; border-radius: 8px; padding: 10px; font-size: 12px; font-family: monospace; max-height: 150px; overflow-y: auto; }
+  .stats p { font-size: 13px; color: #555; margin: 4px 0; }
+  .warn { font-size: 12px; color: #b03a2e; margin-top: 8px; }
+  .rep { font-size: 13px; color: #333; line-height: 1.8; margin-top: 8px; }
+  /* 顶部 Tab 切换 */
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { flex: 1; text-align: center; padding: 12px 0; border-radius: 12px; font-size: 15px; font-weight: bold; background: #e6e8ec; color: #666; }
+  .tab.active { background: #2f6fb3; color: #fff; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .link-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; text-decoration: none; color: #fff; background: #2e9e4f; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div id="loginScreen" style="position:fixed;inset:0;z-index:10000;background:#1e1e24;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:#fff;border-radius:14px;padding:28px 24px;width:100%;max-width:320px;text-align:center">
+    <div style="font-size:34px;margin-bottom:8px">🔐</div>
+    <h2 style="margin:0 0 6px;color:#1a1a1a">MR网站控制台</h2>
+    <p style="color:#888;font-size:12px;margin:0 0 16px">请输入密码进入</p>
+    <input type="password" id="pwd" placeholder="输入密码" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box">
+    <button class="btn btn-blue" onclick="unlock()" style="width:100%;padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:bold;color:#fff;background:#2f6fb3;margin-top:12px">进 入</button>
+    <p id="pwdErr" style="color:#d43c2a;font-size:12px;margin:10px 0 0;min-height:16px"></p>
+  </div>
+</div>
+
+<h1>MR网站控制台</h1>
+<p class="sub">管理 MR工作室 旗下网站</p>
+
+<div class="tabs">
+  <div class="tab active" id="tabSite" onclick="switchPage('site')">🌐 官网</div>
+  <div class="tab" id="tabLearn" onclick="switchPage('learn')">🐍 爬虫站</div>
+  <div class="tab" id="tabEn" onclick="switchPage('en')">🇬🇧 英语站</div>
+  <div class="tab" id="tabUsers" onclick="switchPage('users')">👥 用户管理</div>
+  <div class="tab" id="tabGames" onclick="switchPage('games')">⚔️ 对局管理</div>
+</div>
+
+<!-- ================= 官网控制 ================= -->
+<div class="page active" id="pageSite">
+  <div class="card">
+    <h2>网站状态</h2>
+    <div class="status"><span class="dot dot-on" id="dot"></span><span id="stText">未知</span></div>
+    <div class="rep" id="stReport">点「刷新网站状态」查看报告</div>
+    <button class="btn btn-gray" onclick="loadStatus()" style="margin-top:10px">刷新网站状态</button>
+  </div>
+
+  <div class="card">
+    <h2>网站音乐</h2>
+    <p class="stats" id="nowMusic">当前：读取中...</p>
+    <button class="btn btn-green" onclick="playUnhappy()">▶ 一键播放 unhappy</button>
+    <input type="text" id="musicUrl" placeholder="或粘贴网易云歌曲链接，如 https://music.163.com/#/song?id=123456">
+    <button class="btn btn-blue" onclick="saveMusic()">切换其他音乐（约1分钟生效）</button>
+  </div>
+
+  <div class="card">
+    <h2>停服公告内容（可自定义）</h2>
+    <textarea id="msg" placeholder="输入停服时显示的文字"></textarea>
+    <button class="btn btn-blue" onclick="saveMsg()">保存公告内容</button>
+  </div>
+
+  <div class="card">
+    <h2>一键切换</h2>
+    <button class="btn btn-red" onclick="setMaint(true)">🔴 开启维护（网站显示修复中）</button>
+    <button class="btn btn-green" onclick="setMaint(false)">🟢 关闭维护（网站恢复正常）</button>
+  </div>
+
+  <div class="card">
+    <h2>流动广播（官网顶部滚动条）</h2>
+    <input type="text" id="bcastText" placeholder="广播内容，如：🎉 新游戏《上位的代价》已上线！">
+    <p class="stats" style="margin:4px 0">流动速度（1~10，越大越快，默认 3）：</p>
+    <input type="number" id="bcastSpeed" min="1" max="10" value="3" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:8px;box-sizing:border-box">
+    <button class="btn btn-blue" onclick="saveBcast()">💾 保存广播内容</button>
+    <button class="btn btn-gray" onclick="demoBcastSpeed()">🎬 演示当前速度</button>
+    <div style="margin:10px 0;background:linear-gradient(90deg,#2f6fb3,#4a8fd6);color:#fff;overflow:hidden;white-space:nowrap;border-radius:6px;font-size:13px;line-height:32px;">
+      <div id="bcastDemoText" style="display:inline-block;padding-left:100%;animation:demoMarquee 10s linear infinite;">🎬 速度演示：这就是当前速度的效果</div>
+    </div>
+    <div class="status" style="margin:6px 0 10px"><span class="dot dot-off" id="bcastDot"></span><span id="bcastSt">未知</span></div>
+    <button class="btn btn-green" onclick="setBcastOn(true)">📢 直接开启广播</button>
+    <button class="btn btn-red" onclick="setBcastOn(false)">🔇 直接关闭广播</button>
+    <p class="stats" style="margin-top:8px">定时广播：
+      <input type="datetime-local" id="bcastStart" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin:6px 0;box-sizing:border-box">
+      <input type="datetime-local" id="bcastEnd" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin:6px 0;box-sizing:border-box">
+    </p>
+    <button class="btn btn-gray" onclick="setBcastSchedule(true)">⏰ 启用定时广播</button>
+    <button class="btn btn-gray" onclick="setBcastSchedule(false)">⏹ 停用定时广播</button>
+    <p class="warn">定时广播仅在设定时间段内自动显示；手动开关优先于定时。</p>
+  </div>
+
+  <style>
+  @keyframes demoMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100vw); }
+  }
+  </style>
+
+  <div class="card">
+    <h2>下载统计</h2>
+    <div class="stats" id="stats">点击刷新查看</div>
+    <button class="btn btn-gray" onclick="loadStats()">刷新统计</button>
+  </div>
+
+  <div class="card">
+    <h2>操作记录</h2>
+    <div class="log" id="log">就绪</div>
+  </div>
+</div>
+
+<!-- ================= 学习网站控制 ================= -->
+<div class="page" id="pageLearn">
+  <div class="card">
+    <h2>学习网站状态</h2>
+    <div class="status"><span class="dot dot-on" id="paDot"></span><span id="paStText">未知</span></div>
+    <div class="rep" id="paReport">点「刷新状态」查看详情</div>
+    <button class="btn btn-gray" onclick="paLoadStatus()" style="margin-top:10px">刷新状态</button>
+  </div>
+
+  <div class="card">
+    <h2>用户管理</h2>
+    <p class="stats">管理学习网站注册用户：封号、注销、发消息</p>
+    <button class="btn btn-blue" onclick="switchPage('users')">👥 进入用户管理</button>
+  </div>
+
+  <div class="card">
+    <h2>维护开关（自定义公告）</h2>
+    <textarea id="paMsg" placeholder="输入维护时显示的公告文字"></textarea>
+    <button class="btn btn-red" onclick="paSetMaint(true)">🔴 开启维护（网站显示维护页）</button>
+    <button class="btn btn-green" onclick="paSetMaint(false)">🟢 关闭维护（网站恢复正常）</button>
+  </div>
+
+  <div class="card">
+    <h2>快捷操作</h2>
+    <a class="link-btn" href="https://mrstudio.pythonanywhere.com/" target="_blank" rel="noopener">🌐 打开学习网站</a>
+    <button class="btn btn-blue" onclick="paReload()">🔄 一键重启网站（约 20 秒）</button>
+    <button class="btn btn-gray" onclick="paLoadLog()">📄 查看错误日志</button>
+  </div>
+
+  <div class="card">
+    <h2>错误日志</h2>
+    <div class="log" id="paLog" style="max-height:200px">点「查看错误日志」加载</div>
+  </div>
+
+  <div class="card">
+    <h2>学习网站操作记录</h2>
+    <div class="log" id="paOpLog">就绪</div>
+  </div>
+</div>
+
+<!-- ================= 英语网站控制 ================= -->
+<div class="page" id="pageEn">
+  <div class="card">
+    <h2>英语网站状态</h2>
+    <div class="status"><span class="dot dot-on" id="enDot"></span><span id="enStText">未知</span></div>
+    <div class="rep" id="enReport">点「刷新状态」查看详情</div>
+    <button class="btn btn-gray" onclick="enLoadStatus()" style="margin-top:10px">刷新状态</button>
+  </div>
+  <div class="card">
+    <h2>快捷操作</h2>
+    <a class="link-btn" href="https://mrstudio.pythonanywhere.com/english/" target="_blank" rel="noopener">🌐 打开英语网站</a>
+    <button class="btn btn-blue" onclick="enReload()">🔄 一键重启网站（约 20 秒）</button>
+    <button class="btn btn-gray" onclick="enLoadLog()">📄 查看错误日志</button>
+  </div>
+  <div class="card">
+    <h2>维护开关（自定义公告）</h2>
+    <textarea id="enMsg" placeholder="输入维护时显示的公告文字"></textarea>
+    <button class="btn btn-red" onclick="enSetMaint(true)">🔴 开启维护（网站显示维护页）</button>
+    <button class="btn btn-green" onclick="enSetMaint(false)">🟢 关闭维护（网站恢复正常）</button>
+  </div>
+  <div class="card">
+    <h2>用户管理</h2>
+    <p class="stats">管理英语网站注册用户：封号、注销、发消息</p>
+    <button class="btn btn-blue" onclick="switchPage('usersEn')">👥 进入英语用户管理</button>
+  </div>
+  <div class="card">
+    <h2>英语网站操作记录</h2>
+    <div class="log" id="enOpLog">就绪</div>
+  </div>
+</div>
+
+<!-- ================= 用户管理 ================= -->
+<div class="page" id="pageUsers">
+  <div class="card">
+    <h2>爬虫站用户统计</h2>
+    <div class="status"><span class="dot dot-on" id="usDot"></span><span id="usSt">加载中...</span></div>
+    <div class="stats" id="usStats" style="margin-top:8px">加载中...</div>
+    <button class="btn btn-gray" onclick="usLoad()" style="margin-top:10px">刷新统计与用户列表</button>
+  </div>
+  <div class="card">
+    <h2>用户列表</h2>
+    <input type="text" id="usSearch" placeholder="🔍 搜索用户：输入账号ID或账号名称" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;box-sizing:border-box" oninput="usRenderFiltered()">
+    <div id="usList">加载中...</div>
+  </div>
+</div>
+
+<!-- ================= 英语用户管理 ================= -->
+<div class="page" id="pageUsersEn">
+  <div class="card">
+    <h2>英语站用户统计</h2>
+    <div class="status"><span class="dot dot-on" id="usEnDot"></span><span id="usEnSt">加载中...</span></div>
+    <div class="stats" id="usEnStats" style="margin-top:8px">加载中...</div>
+    <button class="btn btn-gray" onclick="usEnLoad()" style="margin-top:10px">刷新统计与用户列表</button>
+  </div>
+  <div class="card">
+    <h2>用户列表</h2>
+    <input type="text" id="usEnSearch" placeholder="🔍 搜索用户：输入账号ID或账号名称" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;box-sizing:border-box" oninput="usEnRenderFiltered()">
+    <div id="usEnList">加载中...</div>
+  </div>
+</div>
+
+<!-- ================= 对局管理 ================= -->
+<div class="page" id="pageGames">
+  <div class="card">
+    <h2>站点切换</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-blue" id="gpSiteCrawler" style="flex:1;padding:10px;font-size:14px;margin:0" onclick="gpSetSite('crawler')">🐍 爬虫站</button>
+      <button class="btn btn-gray" id="gpSiteEn" style="flex:1;padding:10px;font-size:14px;margin:0" onclick="gpSetSite('en')">🇬🇧 英语站</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>搜索对局</h2>
+    <input type="text" id="gpSearch" placeholder="输入对局ID，如：1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:8px;box-sizing:border-box">
+    <button class="btn btn-blue" onclick="gpSearchGame()">🔍 搜索对局</button>
+    <div id="gpDetail" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>待处理举报</h2>
+    <div class="status"><span class="dot dot-off" id="gpDot"></span><span id="gpSt">加载中...</span></div>
+    <div id="gpReports" style="margin-top:10px">加载中...</div>
+  </div>
+</div>
+
+<!-- 自绘弹窗（WebView 不支持原生 prompt/confirm，用这个替代） -->
+<div id="dlgMask" style="display:none;position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div id="dlgTitle" style="font-size:16px;font-weight:bold;margin-bottom:12px;"></div>
+    <textarea id="dlgInput" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;min-height:70px;box-sizing:border-box;display:none;"></textarea>
+    <div id="dlgMsg" style="font-size:14px;color:#333;line-height:1.7;margin-bottom:4px;"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button id="dlgCancel" class="btn btn-gray" style="flex:1;padding:10px;font-size:14px;margin:0">取消</button>
+      <button id="dlgOk" class="btn btn-blue" style="flex:1;padding:10px;font-size:14px;margin:0">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var REPO = "MRStudioGame/mrstudio";
+var FILE = "maintenance.json";
+var FILE_MUSIC = "music.json";
+var PASSWORDS = ["111011", "15655889670liqin"];
+var TOKEN = (window.AndroidBridge && typeof AndroidBridge.githubToken === "function") ? AndroidBridge.githubToken() : "";
+var currentOn = false;
+var _online = "?";
+var _music = "?";
+var _st = "?";
+var _paCbSeq = 0;
+var _paCallbacks = {};
+
+function log(msg) {
+  var l = document.getElementById("log");
+  l.textContent = new Date().toLocaleTimeString() + " " + msg + "\n" + l.textContent;
+}
+function paLog(msg) {
+  var l = document.getElementById("paOpLog");
+  l.textContent = new Date().toLocaleTimeString() + " " + msg + "\n" + l.textContent;
+}
+function b64enc(s) { return btoa(unescape(encodeURIComponent(s))); }
+function b64dec(s) { return decodeURIComponent(escape(atob(s))); }
+
+/* ===== Tab 切换 ===== */
+function switchPage(name) {
+  document.getElementById("tabSite").className = "tab" + (name === "site" ? " active" : "");
+  document.getElementById("tabLearn").className = "tab" + (name === "learn" ? " active" : "");
+  document.getElementById("tabEn").className = "tab" + (name === "en" ? " active" : "");
+  document.getElementById("tabUsers").className = "tab" + (name === "users" || name === "usersEn" ? " active" : "");
+  document.getElementById("tabGames").className = "tab" + (name === "games" ? " active" : "");
+  document.getElementById("pageSite").className = "page" + (name === "site" ? " active" : "");
+  document.getElementById("pageLearn").className = "page" + (name === "learn" ? " active" : "");
+  document.getElementById("pageEn").className = "page" + (name === "en" ? " active" : "");
+  document.getElementById("pageUsers").className = "page" + (name === "users" ? " active" : "");
+  document.getElementById("pageUsersEn").className = "page" + (name === "usersEn" ? " active" : "");
+  document.getElementById("pageGames").className = "page" + (name === "games" ? " active" : "");
+  if (name === "learn") paLoadStatus();
+  if (name === "en") enLoadStatus();
+  if (name === "users") usLoad();
+  if (name === "usersEn") usEnLoad();
+  if (name === "games") gpLoad();
+}
+
+/* ===== 学习网站用户管理 ===== */
+var PA_ADMIN = "111011";
+var US_BASE = "https://mrstudio.pythonanywhere.com"; // 爬虫站
+
+function usApi(path, method, data, done) {
+  var opt = { method: method || "GET", headers: { "X-Admin-Pass": PA_ADMIN } };
+  if (data) {
+    opt.headers["Content-Type"] = "application/json";
+    opt.body = JSON.stringify(data);
+  }
+  fetch(US_BASE + path, opt)
+    .then(function (r) { return r.json(); })
+    .then(done)
+    .catch(function (e) { done({ error: String(e) }); });
+}
+
+function usLog(msg) {
+  var l = document.getElementById("paOpLog");
+  if (l) l.textContent = new Date().toLocaleTimeString() + " " + msg + "\n" + l.textContent;
+}
+
+var _usAllUsers = [];
+
+function usLoad() {
+  document.getElementById("usSt").textContent = "加载中...";
+  usApi("/api/admin/users", "GET", null, function (d) {
+    if (!d.success) { document.getElementById("usSt").textContent = "加载失败：" + (d.error || ""); return; }
+    var s = d.stats;
+    document.getElementById("usDot").className = "dot " + (s.online > 0 ? "dot-on" : "dot-off");
+    document.getElementById("usSt").textContent = s.online + " 人在线";
+    document.getElementById("usStats").innerHTML =
+      "总注册人数：<b>" + s.total + "</b> 人<br>当前在线：<b>" + s.online + "</b> 人<br>封禁中：<b>" + s.banned + "</b> 人<br>已注销：<b>" + s.deleted + "</b> 人";
+    _usAllUsers = d.users;
+    usRenderFiltered();
+    usLog("用户列表已刷新（共 " + s.total + " 人）");
+  });
+}
+
+function usRenderFiltered() {
+  var kw = (document.getElementById("usSearch").value || "").trim().toLowerCase();
+  var users = _usAllUsers;
+  if (kw) {
+    users = users.filter(function (u) {
+      return String(u.id).indexOf(kw) >= 0 || String(u.username).toLowerCase().indexOf(kw) >= 0 || String(u.nickname || "").toLowerCase().indexOf(kw) >= 0;
+    });
+  }
+  renderUsList(users);
+}
+
+function renderUsList(users) {
+  var box = document.getElementById("usList");
+  if (!users.length) { box.innerHTML = "<p class='stats'>暂无注册用户</p>"; return; }
+  var html = "";
+  users.forEach(function (u) {
+    var tags = "";
+    if (u.banned) tags += "<span style='background:#d43c2a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>封禁中</span>";
+    if (u.deleted_at) tags += "<span style='background:#8a8f98;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>已注销</span>";
+    if (u.last_active) tags += "<span style='background:#2e9e4f;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>活跃</span>";
+    html += "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
+      "<div style='font-size:15px;font-weight:bold'>" + u.nickname + tags + "</div>" +
+      "<div class='stats'>账号：" + u.username + " ｜ ID：" + u.id + "</div>" +
+      "<div class='stats'>密码：<b>" + (u.password || "（旧账号无明文记录）") + "</b></div>" +
+      "<div class='stats'>⚔️ PK战绩：胜 <b style='color:#2e9e4f'>" + (u.win_count || 0) + "</b> 局 ｜ 负 <b style='color:#d43c2a'>" + (u.lose_count || 0) + "</b> 局 ｜ 平 " + (u.draw_count || 0) + " 局</div>" +
+      "<div class='stats'>注册：" + (u.created_at || "?").slice(0, 16) + "</div>" +
+      "<div class='stats'>通关：" + (u.last_lesson_id ? u.last_lesson_id - 1 : 0) + "/12</div>" +
+      "<div style='display:flex;gap:6px;margin-top:8px;flex-wrap:wrap'>" +
+      "<button class='btn btn-blue' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usMsg(" + u.id + ",\"" + u.nickname + "\")'>💬 发消息</button>" +
+      (u.banned ?
+        "<button class='btn btn-green' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usUnban(" + u.id + ")'>🔓 解封</button>" :
+        "<button class='btn btn-red' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usBan(" + u.id + ",\"" + u.nickname + "\")'>⛔ 封号</button>") +
+      (u.deleted_at ?
+        "<button class='btn btn-green' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usUndelete(" + u.id + ")'>↩️ 恢复</button>" :
+        "<button class='btn btn-gray' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usDelete(" + u.id + ",\"" + u.nickname + "\")'>🗑 注销</button>") +
+      (u.deleted_at ?
+        "<button class='btn btn-red' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usPurge(" + u.id + ",\"" + u.nickname + "\")'>❌ 最终注销</button>" : "") +
+      "</div></div>";
+  });
+  box.innerHTML = html;
+}
+
+/* 自绘弹窗：输入框版 */
+var _dlgCb = null;
+function dlgPrompt(title, msg, placeholder, cb) {
+  _dlgCb = cb;
+  document.getElementById("dlgTitle").textContent = title;
+  document.getElementById("dlgMsg").textContent = msg || "";
+  var inp = document.getElementById("dlgInput");
+  inp.value = "";
+  inp.placeholder = placeholder || "";
+  inp.style.display = "block";
+  document.getElementById("dlgMask").style.display = "flex";
+  setTimeout(function () { inp.focus(); }, 100);
+}
+/* 自绘弹窗：确认版 */
+function dlgConfirm(title, msg, cb) {
+  _dlgCb = cb;
+  document.getElementById("dlgTitle").textContent = title;
+  document.getElementById("dlgMsg").textContent = msg || "";
+  document.getElementById("dlgInput").style.display = "none";
+  document.getElementById("dlgMask").style.display = "flex";
+}
+/* 自绘弹窗：纯提示版 */
+function dlgAlert(title, msg, cb) {
+  _dlgCb = cb || function () {};
+  document.getElementById("dlgTitle").textContent = title;
+  document.getElementById("dlgMsg").textContent = msg || "";
+  document.getElementById("dlgInput").style.display = "none";
+  document.getElementById("dlgMask").style.display = "flex";
+}
+document.getElementById("dlgOk").onclick = function () {
+  var cb = _dlgCb; _dlgCb = null;
+  document.getElementById("dlgMask").style.display = "none";
+  if (cb) cb(document.getElementById("dlgInput").value);
+};
+document.getElementById("dlgCancel").onclick = function () {
+  _dlgCb = null;
+  document.getElementById("dlgMask").style.display = "none";
+};
+
+function usMsg(uid, nick) {
+  dlgPrompt("💬 给「" + nick + "」发消息", "发送后玩家登录时会弹窗显示", "输入消息内容...", function (v) {
+    if (!v || !v.trim()) return;
+    usApi("/api/admin/user/" + uid + "/message", "POST", { content: v.trim() }, function (d) {
+      usLog(d.success ? "已给 " + nick + " 发消息" : "失败：" + (d.error || ""));
+      dlgAlert("发送结果", d.success ? "消息已发送，玩家登录时会看到" : "失败：" + (d.error || ""));
+    });
+  });
+}
+
+function usBan(uid, nick) {
+  dlgPrompt("⛔ 封「" + nick + "」", "请输入封号天数", "如：7", function (days) {
+    days = parseInt(days, 10);
+    if (!days) return;
+    dlgPrompt("⛔ 封号原因", "玩家登录时会看到：你因（原因）被封号 " + days + " 天", "如：恶意刷屏", function (reason) {
+      usApi("/api/admin/user/" + uid + "/ban", "POST", { days: days, reason: (reason || "").trim() || "违反社区规则" }, function (d) {
+        usLog(d.success ? "已封号 " + nick + " " + days + " 天" : "失败：" + (d.error || ""));
+        dlgAlert("封号结果", d.success ? "已封号 " + days + " 天" : "失败：" + (d.error || ""), usLoad);
+        if (d.success) usLoad();
+      });
+    });
+  });
+}
+
+function usUnban(uid) {
+  dlgConfirm("🔓 解封", "确定解封该账号？", function () {
+    usApi("/api/admin/user/" + uid + "/unban", "POST", {}, function (d) {
+      usLog(d.success ? "已解封" : "失败：" + (d.error || ""));
+      dlgAlert("解封结果", d.success ? "已解封" : "失败：" + (d.error || ""), usLoad);
+      if (d.success) usLoad();
+    });
+  });
+}
+
+function usDelete(uid, nick) {
+  dlgPrompt("🗑 注销「" + nick + "」", "请输入注销原因（玩家登录时会看到）", "如：违反社区规定", function (reason) {
+    dlgConfirm("确认注销", "确定注销该账号？玩家将无法继续学习", function () {
+      usApi("/api/admin/user/" + uid + "/delete", "POST", { reason: (reason || "").trim() || "账号已被注销" }, function (d) {
+        usLog(d.success ? "已注销 " + nick : "失败：" + (d.error || ""));
+        dlgAlert("注销结果", d.success ? "已注销该账号" : "失败：" + (d.error || ""), usLoad);
+        if (d.success) usLoad();
+      });
+    });
+  });
+}
+
+function usUndelete(uid) {
+  dlgConfirm("↩️ 恢复账号", "确定恢复该账号？", function () {
+    usApi("/api/admin/user/" + uid + "/undelete", "POST", {}, function (d) {
+      usLog(d.success ? "已恢复账号" : "失败：" + (d.error || ""));
+      dlgAlert("恢复结果", d.success ? "已恢复账号" : "失败：" + (d.error || ""), usLoad);
+      if (d.success) usLoad();
+    });
+  });
+}
+
+function usPurge(uid, nick) {
+  dlgConfirm("❌ 最终注销", "此操作将彻底删除「" + nick + "」的账号及全部数据（进度/积分/签到/消息），无法恢复！确定继续？", function () {
+    dlgConfirm("再次确认", "最终确认？删除后查不到该账号任何信息，且不可撤销。", function () {
+      usApi("/api/admin/user/" + uid + "/purge", "POST", {}, function (d) {
+        usLog(d.success ? "已最终注销 " + nick + "（数据已彻底删除）" : "失败：" + (d.error || ""));
+        dlgAlert("注销结果", d.success ? "该账号已彻底删除，用户列表中不再显示" : "失败：" + (d.error || ""), usLoad);
+        if (d.success) usLoad();
+      });
+    });
+  });
+}
+
+/* ===== 英语网站控制 ===== */
+var EN_BASE = "https://mrstudio.pythonanywhere.com/english";
+
+function enLog(msg) {
+  var l = document.getElementById("enOpLog");
+  if (l) l.textContent = new Date().toLocaleTimeString() + " " + msg + "\n" + l.textContent;
+}
+
+function enLoadStatus() {
+  enLog("正在检测英语网站...");
+  document.getElementById("enStText").textContent = "检测中...";
+  fetch(EN_BASE + "/api/health")
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById("enDot").className = "dot dot-on";
+      document.getElementById("enStText").textContent = "运行中";
+      document.getElementById("enReport").innerHTML = "网站状态：在线 ✓<br>健康检查：" + JSON.stringify(d);
+      enLog("健康检查通过，网站在线");
+      enLoadMaintState();
+    })
+    .catch(function (e) {
+      document.getElementById("enDot").className = "dot dot-off";
+      document.getElementById("enStText").textContent = "无法连接";
+      document.getElementById("enReport").innerHTML = "网站状态：无法连接 ✗<br>" + String(e);
+      enLog("无法连接英语网站：" + String(e));
+    });
+}
+
+function enLoadMaintState() {
+  fetch(EN_BASE + "/api/admin/maintenance", { headers: { "X-Admin-Pass": "111011" } })
+    .then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && d.maintenance && d.maintenance.on) {
+        document.getElementById("enDot").className = "dot dot-off";
+        document.getElementById("enStText").textContent = "维护中";
+        document.getElementById("enMsg").value = d.maintenance.message || "";
+        document.getElementById("enReport").innerHTML = "网站状态：维护中 🔧<br>公告：" + (d.maintenance.message || "");
+      } else if (d.success) {
+        document.getElementById("enMsg").value = "";
+      }
+    }).catch(function () {});
+}
+
+function enSetMaint(on) {
+  var msg = document.getElementById("enMsg").value.trim() || "网站维护中，请稍后再来试试吧";
+  fetch(EN_BASE + "/api/admin/maintenance", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Admin-Pass": "111011" },
+    body: JSON.stringify({ on: on, message: msg })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.success) {
+      enLog(on ? "已开启英语站维护，公告：" + msg : "已关闭英语站维护");
+      enLoadStatus();
+    } else enLog("操作失败：" + (d.error || ""));
+  }).catch(function (e) { enLog("操作失败：" + String(e)); });
+}
+
+function enReload() {
+  enLog("正在重启（爬虫站与英语站共用进程，一起重启）...");
+  if (window.AndroidBridge) {
+    AndroidBridge.paPost("/webapps/mrstudio.pythonanywhere.com/reload/", "enReload" + Date.now());
+    window.__paCb = function (id, res) {
+      if (id.indexOf("enReload") === 0) {
+        enLog("重启指令已发送，约 20 秒后生效");
+        setTimeout(enLoadStatus, 5000);
+      }
+    };
+  } else {
+    enLog("请在手机上操作重启（原生桥接）");
+  }
+}
+
+function enLoadLog() {
+  enLog("正在读取错误日志...");
+  if (window.AndroidBridge) {
+    AndroidBridge.paGet("/files/path/var/log/mrstudio.pythonanywhere.com.error.log", "enLog" + Date.now());
+    window.__paCb = function (id, res) {
+      if (id.indexOf("enLog") === 0) {
+        var body = String(res.body || "");
+        enLog(body ? body.slice(0, 300) : "（暂无错误日志，运行正常）");
+      }
+    };
+  } else {
+    enLog("请在手机上查看日志（原生桥接）");
+  }
+}
+
+/* 英语用户管理（复用爬虫逻辑，前缀 /english） */
+var _usEnAllUsers = [];
+
+function usEnApi(path, method, data, done) {
+  var opt = { method: method || "GET", headers: { "X-Admin-Pass": PA_ADMIN } };
+  if (data) {
+    opt.headers["Content-Type"] = "application/json";
+    opt.body = JSON.stringify(data);
+  }
+  fetch(EN_BASE + path, opt)
+    .then(function (r) { return r.json(); })
+    .then(done)
+    .catch(function (e) { done({ error: String(e) }); });
+}
+
+function usEnLog(msg) {
+  enLog(msg);
+}
+
+function usEnLoad() {
+  document.getElementById("usEnSt").textContent = "加载中...";
+  usEnApi("/api/admin/users", "GET", null, function (d) {
+    if (!d.success) { document.getElementById("usEnSt").textContent = "加载失败：" + (d.error || ""); return; }
+    var s = d.stats;
+    document.getElementById("usEnDot").className = "dot " + (s.online > 0 ? "dot-on" : "dot-off");
+    document.getElementById("usEnSt").textContent = s.online + " 人在线";
+    document.getElementById("usEnStats").innerHTML =
+      "总注册人数：<b>" + s.total + "</b> 人<br>当前在线：<b>" + s.online + "</b> 人<br>封禁中：<b>" + s.banned + "</b> 人<br>已注销：<b>" + s.deleted + "</b> 人";
+    _usEnAllUsers = d.users;
+    usEnRenderFiltered();
+  });
+}
+
+function usEnRenderFiltered() {
+  var kw = (document.getElementById("usEnSearch").value || "").trim().toLowerCase();
+  var users = _usEnAllUsers;
+  if (kw) users = users.filter(function (u) {
+    return String(u.id).indexOf(kw) >= 0 || String(u.username).toLowerCase().indexOf(kw) >= 0 || String(u.nickname || "").toLowerCase().indexOf(kw) >= 0;
+  });
+  renderUsEnList(users);
+}
+
+function renderUsEnList(users) {
+  var box = document.getElementById("usEnList");
+  if (!users.length) { box.innerHTML = "<p class='stats'>暂无注册用户</p>"; return; }
+  var html = "";
+  users.forEach(function (u) {
+    var tags = "";
+    if (u.banned) tags += "<span style='background:#d43c2a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>封禁中</span>";
+    if (u.deleted_at) tags += "<span style='background:#8a8f98;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>已注销</span>";
+    html += "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
+      "<div style='font-size:15px;font-weight:bold'>" + u.nickname + tags + "</div>" +
+      "<div class='stats'>账号：" + u.username + " ｜ ID：" + u.id + "</div>" +
+      "<div class='stats'>密码：<b>" + (u.password || "（旧账号无明文记录）") + "</b></div>" +
+      "<div class='stats'>⚔️ PK战绩：胜 <b style='color:#2e9e4f'>" + (u.win_count || 0) + "</b> 局 ｜ 负 <b style='color:#d43c2a'>" + (u.lose_count || 0) + "</b> 局 ｜ 平 " + (u.draw_count || 0) + " 局</div>" +
+      "<div style='display:flex;gap:6px;margin-top:8px;flex-wrap:wrap'>" +
+      "<button class='btn btn-blue' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnMsg(" + u.id + ",\"" + u.nickname + "\")'>💬 发消息</button>" +
+      (u.banned ?
+        "<button class='btn btn-green' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnUnban(" + u.id + ")'>🔓 解封</button>" :
+        "<button class='btn btn-red' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnBan(" + u.id + ",\"" + u.nickname + "\")'>⛔ 封号</button>") +
+      (u.deleted_at ?
+        "<button class='btn btn-green' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnUndelete(" + u.id + ")'>↩️ 恢复</button>" :
+        "<button class='btn btn-gray' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnDelete(" + u.id + ",\"" + u.nickname + "\")'>🗑 注销</button>") +
+      (u.deleted_at ?
+        "<button class='btn btn-red' style='flex:1;padding:8px;font-size:13px;margin:0' onclick='usEnPurge(" + u.id + ",\"" + u.nickname + "\")'>❌ 最终注销</button>" : "") +
+      "</div></div>";
+  });
+  box.innerHTML = html;
+}
+
+function usEnMsg(uid, nick) {
+  dlgPrompt("💬 给「" + nick + "」发消息", "发送后玩家登录时会弹窗显示", "输入消息内容...", function (v) {
+    if (!v || !v.trim()) return;
+    usEnApi("/api/admin/user/" + uid + "/message", "POST", { content: v.trim() }, function (d) {
+      usEnLog(d.success ? "已给 " + nick + " 发消息" : "失败：" + (d.error || ""));
+      dlgAlert("发送结果", d.success ? "消息已发送" : "失败：" + (d.error || ""));
+    });
+  });
+}
+function usEnBan(uid, nick) {
+  dlgPrompt("⛔ 封「" + nick + "」", "请输入封号天数", "如：7", function (days) {
+    days = parseInt(days, 10);
+    if (!days) return;
+    dlgPrompt("⛔ 封号原因", "玩家登录时会看到", "如：恶意刷屏", function (reason) {
+      usEnApi("/api/admin/user/" + uid + "/ban", "POST", { days: days, reason: (reason || "").trim() || "违反社区规则" }, function (d) {
+        usEnLog(d.success ? "已封号 " + nick + " " + days + " 天" : "失败：" + (d.error || ""));
+        dlgAlert("封号结果", d.success ? "已封号 " + days + " 天" : "失败：" + (d.error || ""), usEnLoad);
+        if (d.success) usEnLoad();
+      });
+    });
+  });
+}
+function usEnUnban(uid) {
+  dlgConfirm("🔓 解封", "确定解封该账号？", function () {
+    usEnApi("/api/admin/user/" + uid + "/unban", "POST", {}, function (d) {
+      usEnLog(d.success ? "已解封" : "失败：" + (d.error || ""));
+      dlgAlert("解封结果", d.success ? "已解封" : "失败：" + (d.error || ""), usEnLoad);
+      if (d.success) usEnLoad();
+    });
+  });
+}
+function usEnDelete(uid, nick) {
+  dlgPrompt("🗑 注销「" + nick + "」", "请输入注销原因", "如：违反社区规定", function (reason) {
+    dlgConfirm("确认注销", "确定注销该账号？", function () {
+      usEnApi("/api/admin/user/" + uid + "/delete", "POST", { reason: (reason || "").trim() || "账号已被注销" }, function (d) {
+        usEnLog(d.success ? "已注销 " + nick : "失败：" + (d.error || ""));
+        dlgAlert("注销结果", d.success ? "已注销该账号" : "失败：" + (d.error || ""), usEnLoad);
+        if (d.success) usEnLoad();
+      });
+    });
+  });
+}
+function usEnUndelete(uid) {
+  dlgConfirm("↩️ 恢复账号", "确定恢复该账号？", function () {
+    usEnApi("/api/admin/user/" + uid + "/undelete", "POST", {}, function (d) {
+      usEnLog(d.success ? "已恢复账号" : "失败：" + (d.error || ""));
+      dlgAlert("恢复结果", d.success ? "已恢复账号" : "失败：" + (d.error || ""), usEnLoad);
+      if (d.success) usEnLoad();
+    });
+  });
+}
+function usEnPurge(uid, nick) {
+  dlgConfirm("❌ 最终注销", "将彻底删除「" + nick + "」的账号及全部数据，无法恢复！确定？", function () {
+    dlgConfirm("再次确认", "最终确认？删除后不可撤销。", function () {
+      usEnApi("/api/admin/user/" + uid + "/purge", "POST", {}, function (d) {
+        usEnLog(d.success ? "已最终注销 " + nick : "失败：" + (d.error || ""));
+        dlgAlert("注销结果", d.success ? "该账号已彻底删除" : "失败：" + (d.error || ""), usEnLoad);
+        if (d.success) usEnLoad();
+      });
+    });
+  });
+}
+/* ===== 对局管理 ===== */
+var GP_SITE = "crawler";
+
+function gpSetSite(site) {
+  GP_SITE = site;
+  var cb = document.getElementById("gpSiteCrawler");
+  var eb = document.getElementById("gpSiteEn");
+  if (cb) cb.className = "btn btn-" + (site === "crawler" ? "blue" : "gray");
+  if (eb) eb.className = "btn btn-" + (site === "en" ? "blue" : "gray");
+  gpLoad();
+}
+
+function gpBase() {
+  return GP_SITE === "en" ? "https://mrstudio.pythonanywhere.com/english" : "https://mrstudio.pythonanywhere.com";
+}
+
+function gpApi(path, method, data, done) {
+  var opt = { method: method || "GET", headers: { "X-Admin-Pass": "111011" } };
+  if (data) {
+    opt.headers["Content-Type"] = "application/json";
+    opt.body = JSON.stringify(data);
+  }
+  fetch(gpBase() + path, opt)
+    .then(function (r) { return r.json(); })
+    .then(done)
+    .catch(function (e) { done({ error: String(e) }); });
+}
+
+function gpLog(msg) {
+  var l = document.getElementById("paOpLog");
+  if (l) l.textContent = new Date().toLocaleTimeString() + " " + msg + "\n" + l.textContent;
+}
+
+function gpLoad() {
+  document.getElementById("gpSt").textContent = "加载中...";
+  gpApi("/api/admin/pk/reports", "GET", null, function (d) {
+    if (!d.success) { document.getElementById("gpSt").textContent = "加载失败：" + (d.error || ""); return; }
+    document.getElementById("gpDot").className = "dot " + (d.pending > 0 ? "dot-off" : "dot-on");
+    document.getElementById("gpSt").textContent = d.pending > 0 ? "你有一个待处理的举报（" + d.pending + "）" : "暂无待处理举报";
+    var box = document.getElementById("gpReports");
+    if (!d.reports.length) { box.innerHTML = "<p class='stats'>暂无举报记录</p>"; return; }
+    var html = "";
+    d.reports.forEach(function (r) {
+      var tag = r.status === "pending" ? "<span style='background:#d43c2a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>待处理</span>" : "<span style='background:#8a8f98;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px'>已处理</span>";
+      var repName = r.reporter_nick ? r.reporter_nick + "（" + r.reporter_name + "）" : (r.reporter_name || ("用户" + r.reporter_id));
+      var tgtName = r.target_nick ? r.target_nick + "（" + r.target_name + "）" : (r.target_name || ("用户" + r.target_id));
+      html += "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
+        "<div style='font-size:14px;font-weight:bold'>举报 #" + r.id + tag + "</div>" +
+        "<div class='stats'>对局ID：<b>" + r.game_id + "</b></div>" +
+        "<div class='stats'>举报人：<b>" + repName + "</b>（ID " + r.reporter_id + "）</div>" +
+        "<div class='stats'>被举报人：<b>" + tgtName + "</b>（ID " + r.target_id + "）</div>" +
+        "<div class='stats' style='word-break:break-all'>理由：" + r.reason + "</div>" +
+        "<div class='stats'>时间：" + (r.created_at || "").slice(0, 16) + "</div>" +
+        (r.status === "pending" ? "<button class='btn btn-gray' style='padding:8px;font-size:13px;margin:6px 0 0' onclick='gpHandle(" + r.id + ")'>✅ 标记已处理</button>" : "") +
+        "</div>";
+    });
+    box.innerHTML = html;
+  });
+}
+
+function gpHandle(rid) {
+  gpApi("/api/admin/pk/reports/" + rid + "/handle", "POST", {}, function (d) {
+    gpLog(d.success ? "举报 #" + rid + " 已处理" : "失败：" + (d.error || ""));
+    gpLoad();
+  });
+}
+
+function gpSearchGame() {
+  var gid = (document.getElementById("gpSearch").value || "").trim();
+  if (!gid) { dlgAlert("提示", "请先输入对局ID"); return; }
+  gpApi("/api/admin/pk/game/" + gid, "GET", null, function (d) {
+    var box = document.getElementById("gpDetail");
+    if (!d.success) { box.innerHTML = "<p class='warn'>未找到对局：" + (d.error || "") + "</p>"; return; }
+    var g = d.game;
+    var w = g.winner === 0 ? "平局" : ("玩家" + g.winner + " 胜");
+    var p1name = g.p1_name || ("玩家" + g.player1_id);
+    var p2name = g.p2_name || ("玩家" + g.player2_id);
+    var html = "<div style='background:#f7f8fa;border-radius:10px;padding:12px;margin-bottom:10px'>" +
+      "<div style='font-size:15px;font-weight:bold'>对局 #" + g.id + "（" + (g.mode === "bot" ? "机器人" : "在线") + "）</div>" +
+      "<div class='stats'>玩家1：<b>" + p1name + "</b>（ID " + g.player1_id + "）" + g.player1_score + "分 " + g.player1_time + "s</div>" +
+      "<div class='stats'>玩家2：<b>" + p2name + "</b>（ID " + g.player2_id + "）" + g.player2_score + "分 " + g.player2_time + "s</div>" +
+      "<div class='stats'>结果：" + w + " ｜ 状态：" + g.status + "</div>" +
+      "<div class='stats'>时间：" + (g.created_at || "").slice(0, 16) + "</div></div>";
+    // 逐题详情
+    d.details.forEach(function (item, i) {
+      var qtext = item.question.replace(/\n/g, "<br>");
+      var optHtml = "";
+      if (item.type === "choice" && item.options.length) {
+        optHtml = "<div class='small text-muted' style='margin-top:2px'>选项：" + item.options.map(function (o, oi) {
+          return (oi + 1) + "." + o;
+        }).join(" ｜ ") + "</div>";
+      }
+      var p1pick = item.p1.answer === null || item.p1.answer === undefined ? "未答" : (item.type === "choice" ? (item.options[item.p1.answer] !== undefined ? "第" + (parseInt(item.p1.answer) + 1) + "项（" + item.options[item.p1.answer] + "）" : item.p1.answer) : "\"" + item.p1.answer + "\"");
+      var p2pick = item.p2.answer === null || item.p2.answer === undefined ? "未答" : (item.type === "choice" ? (item.options[item.p2.answer] !== undefined ? "第" + (parseInt(item.p2.answer) + 1) + "项（" + item.options[item.p2.answer] + "）" : item.p2.answer) : "\"" + item.p2.answer + "\"");
+      var correct = item.type === "choice" ? (item.options[item.answer] !== undefined ? "第" + (parseInt(item.answer) + 1) + "项（" + item.options[item.answer] + "）" : item.answer) : "\"" + item.answer + "\"";
+      html += "<div style='background:#fff;border:1px solid #eef0f4;border-radius:10px;padding:10px;margin-bottom:8px'>" +
+        "<div class='small text-muted'>第" + (i + 1) + "题" + (item.type === "final" ? " · 压轴题" : "") + "</div>" +
+        "<div class='small' style='margin:4px 0'>" + qtext + "</div>" +
+        optHtml +
+        "<div class='small'>玩家1（" + p1name + "）选择：" + p1pick + " ｜ 耗时 " + item.p1.time + "s " + (item.p1.score > 0 ? "✅" : "❌") + "</div>" +
+        "<div class='small'>玩家2（" + p2name + "）选择：" + p2pick + " ｜ 耗时 " + item.p2.time + "s " + (item.p2.score > 0 ? "✅" : "❌") + "</div>" +
+        "<div class='small text-muted'>正确答案：" + correct + "</div>" +
+        "</div>";
+    });
+    box.innerHTML = html;
+    gpLog("已查询对局 #" + gid);
+  });
+}
+
+function unlock() {
+  var p = document.getElementById("pwd").value.trim();
+  if (PASSWORDS.indexOf(p) >= 0) {
+    document.getElementById("loginScreen").style.display = "none";
+    loadStatus();
+    loadBcast();
+    log("欢迎使用 MR网站控制台");
+  } else {
+    document.getElementById("pwdErr").textContent = "密码错误，请重试";
+  }
+}
+
+/* ===== PythonAnywhere API（原生桥接，绕过 CORS） ===== */
+function paApi(method, apiPath, done) {
+  var cbId = "cb" + (++_paCbSeq);
+  _paCallbacks[cbId] = done;
+  window.__paCb = function (id, res) {
+    var fn = _paCallbacks[id];
+    if (fn) { delete _paCallbacks[id]; fn(res); }
+  };
+  if (window.AndroidBridge) {
+    if (method === "GET") AndroidBridge.paGet(apiPath, cbId);
+    else AndroidBridge.paPost(apiPath, cbId);
+  } else {
+    // 浏览器调试模式：直接 fetch（可能被 CORS 拦截）
+    fetch("https://www.pythonanywhere.com/api/v0/user/mrstudio" + apiPath, {
+      headers: { "Authorization": "Token 780c2c2854cf94b4b6b8e8e9f016ac1cdc3f8e9b" }
+    }).then(function (r) { return r.text().then(function (t) { done({ code: r.status, body: t }); }); })
+      .catch(function (e) { done({ code: -1, body: String(e) }); });
+  }
+}
+
+function paLoadStatus() {
+  paLog("正在检测学习网站...");
+  document.getElementById("paStText").textContent = "检测中...";
+  // 方式一：直接探测网站健康检查（免登录，最可靠）
+  fetch("https://mrstudio.pythonanywhere.com/api/health")
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById("paDot").className = "dot dot-on";
+      document.getElementById("paStText").textContent = "运行中";
+      document.getElementById("paReport").innerHTML =
+        "网站状态：在线 ✓<br>健康检查：" + JSON.stringify(d) + "<br>正在读取详细配置...";
+      paLog("健康检查通过，网站在线");
+      paLoadDetail();
+      paLoadMaintState();
+    })
+    .catch(function (e) {
+      document.getElementById("paDot").className = "dot dot-off";
+      document.getElementById("paStText").textContent = "无法连接";
+      document.getElementById("paReport").innerHTML =
+        "网站状态：无法连接 ✗<br>" + String(e) +
+        "<br><span class='warn'>提示：请检查手机网络；若网站确实在维护中，可稍后重试</span>";
+      paLog("无法连接学习网站：" + String(e));
+    });
+}
+
+function paLoadDetail() {
+  // 方式二：PA API 读取详细配置（到期时间/版本/CPU）
+  paApi("GET", "/webapps/mrstudio.pythonanywhere.com/", function (res) {
+    if (res.code === 200) {
+      var info = {};
+      try { info = JSON.parse(res.body); } catch (e) {}
+      document.getElementById("paReport").innerHTML =
+        "网站状态：在线 ✓<br>域名：" + (info.domain_name || "?") + "<br>" +
+        "Python 版本：" + (info.python_version || "?") + "<br>" +
+        "工作目录：" + (info.working_directory || "?") + "<br>" +
+        "强制 HTTPS：" + (info.force_https ? "是" : "否") + "<br>" +
+        "到期时间：" + (info.expiry || "?") + "（到期需登录续期）";
+      paLog("详细配置已加载");
+      paLoadCpu();
+    } else {
+      var rep = document.getElementById("paReport").innerHTML;
+      document.getElementById("paReport").innerHTML =
+        rep + "<br>详细配置读取失败：" + res.code + " " + String(res.body || "").slice(0, 120) +
+        "<br><span class='warn'>网站在线，但控制台连不上 pythonanywhere API（可能网络限制），重启/日志功能暂不可用</span>";
+      paLog("PA API 读取失败：" + res.code);
+    }
+  });
+}
+
+/* 维护开关（走学习网站自身的代理 API，手机可直连） */
+function paLoadMaintState() {
+  fetch("https://mrstudio.pythonanywhere.com/api/admin/maintenance", {
+    headers: { "X-Admin-Pass": "111011" }
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.success && d.maintenance && d.maintenance.on) {
+      document.getElementById("paDot").className = "dot dot-off";
+      document.getElementById("paStText").textContent = "维护中";
+      document.getElementById("paMsg").value = d.maintenance.message || "";
+      var rep = document.getElementById("paReport").innerHTML;
+      document.getElementById("paReport").innerHTML = "网站状态：维护中 🔧<br>公告：" + (d.maintenance.message || "") + "<br>" + rep;
+      paLog("当前为维护模式");
+    } else if (d.success) {
+      document.getElementById("paMsg").value = "";
+    }
+  }).catch(function (e) {});
+}
+
+function paSetMaint(on) {
+  var msg = document.getElementById("paMsg").value.trim() || "网站维护中，请稍后再来试试吧";
+  fetch("https://mrstudio.pythonanywhere.com/api/admin/maintenance", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Admin-Pass": "111011" },
+    body: JSON.stringify({ on: on, message: msg })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.success) {
+      paLog(on ? "已开启维护，公告：" + msg : "已关闭维护，网站恢复正常");
+      paLoadStatus();
+    } else {
+      paLog("操作失败：" + (d.error || "未知错误"));
+    }
+  }).catch(function (e) {
+    paLog("操作失败：" + String(e));
+  });
+}
+
+function paLoadCpu() {
+  paApi("GET", "/cpu/", function (res) {
+    try {
+      var c = JSON.parse(res.body);
+      var used = (c.daily_cpu_total_usage_seconds || 0).toFixed(1);
+      var rep = document.getElementById("paReport").innerHTML;
+      rep += "<br>今日 CPU 用量：" + used + " / " + c.daily_cpu_limit_seconds + " 秒";
+      document.getElementById("paReport").innerHTML = rep;
+    } catch (e) {}
+  });
+}
+
+function paReload() {
+  paLog("正在重启学习网站，请稍候...");
+  document.getElementById("paStText").textContent = "重启中...";
+  document.getElementById("paDot").className = "dot dot-off";
+  paApi("POST", "/webapps/mrstudio.pythonanywhere.com/reload/", function (res) {
+    if (res.code === 200) {
+      paLog("重启成功，约 20 秒后生效");
+      setTimeout(paLoadStatus, 3000);
+    } else {
+      paLog("重启失败：" + res.code + " " + String(res.body).slice(0, 120));
+      paLoadStatus();
+    }
+  });
+}
+
+function paLoadLog() {
+  paLog("正在读取错误日志...");
+  paApi("GET", "/files/path/var/log/mrstudio.pythonanywhere.com.error.log", function (res) {
+    var body = String(res.body || "");
+    if (!body || body === "null") body = "（暂无错误日志，网站运行正常）";
+    if (res.code !== 200 && res.code !== 204) body = "读取失败：" + res.code + " " + body.slice(0, 150);
+    document.getElementById("paLog").textContent = body;
+    paLog("日志已刷新");
+  });
+}
+
+/* ===== 官网 GitHub 操作 ===== */
+function ghGet(path) {
+  return fetch("https://api.github.com/repos/" + REPO + "/contents/" + path, {
+    headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" }
+  }).then(function (r) { return r.json(); });
+}
+function ghPut(path, content, message, sha) {
+  return fetch("https://api.github.com/repos/" + REPO + "/contents/" + path, {
+    method: "PUT",
+    headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ message: message, content: content, sha: sha })
+  }).then(function (r) { return r.json(); });
+}
+
+function renderReport() {
+  var rep = document.getElementById("stReport");
+  if (!rep) return;
+  rep.innerHTML = "运行状态：" + _st + "<br>当前时间：" + new Date().toLocaleString() + "<br>在线人数：" + _online + " 人<br>播放音乐：" + _music;
+}
+
+function loadStatus() {
+  ghGet(FILE).then(function (d) {
+    if (d.sha) {
+      var obj = JSON.parse(b64dec(d.content));
+      currentOn = !!obj.on;
+      _st = currentOn ? "维护中" : "运行中";
+      document.getElementById("stText").textContent = _st;
+      document.getElementById("dot").className = "dot " + (currentOn ? "dot-off" : "dot-on");
+      document.getElementById("msg").value = obj.message || "";
+      renderReport();
+      loadOnline();
+      loadMusicInfo();
+      log("状态：当前" + _st);
+    } else {
+      log("读取失败：" + (d.message || "未知错误"));
+    }
+  });
+}
+
+function loadOnline() {
+  _online = "读取中...";
+  renderReport();
+  window.WAU_r_ = function (count, key, x) {
+    _online = String(count);
+    renderReport();
+    delete window.WAU_r_;
+    var s = document.getElementById("amungS");
+    if (s) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement("script");
+  s.id = "amungS";
+  s.src = "https://whos.amung.us/pingjs/?k=rzd2eghzxx";
+  document.body.appendChild(s);
+}
+
+function loadMusicInfo() {
+  ghGet(FILE_MUSIC).then(function (d) {
+    if (d.sha) {
+      var obj = JSON.parse(b64dec(d.content));
+      _music = obj.name || ("歌曲ID " + obj.song_id);
+      document.getElementById("nowMusic").textContent = "当前：" + _music;
+      renderReport();
+    } else {
+      _music = "读取失败";
+      renderReport();
+    }
+  });
+}
+
+function playUnhappy() {
+  saveMusicJson("3332771263", "unhappy - s0rrow");
+  log("正在切换为 unhappy - s0rrow（约1分钟后网站生效）");
+}
+
+function saveMusic() {
+  var url = document.getElementById("musicUrl").value.trim();
+  var m = url.match(/song\?id=(\d+)/) || url.match(/(\d{6,})/);
+  if (!m) { log("无法识别歌曲链接，请粘贴网易云歌曲链接"); return; }
+  var id = m[1];
+  fetch("https://music.163.com/api/song/detail/?id=" + id + "&ids=%5B" + id + "%5D")
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var name = "歌曲ID " + id;
+      if (d.songs && d.songs[0]) {
+        name = d.songs[0].name + " - " + (d.songs[0].artists || []).map(function (a) { return a.name; }).join("/");
+      }
+      saveMusicJson(id, name);
+    })
+    .catch(function () { saveMusicJson(id, "歌曲ID " + id); });
+}
+
+function saveMusicJson(id, name) {
+  ghGet(FILE_MUSIC).then(function (d) {
+    if (!d.sha) { log("读取 music.json 失败"); return; }
+    var obj = { song_id: id, name: name };
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE_MUSIC, b64, "切换网站音乐", d.sha).then(function (r) {
+      if (r.content) {
+        _music = name;
+        renderReport();
+        document.getElementById("nowMusic").textContent = "当前：" + name;
+        log("音乐已切换：" + name + "（约1分钟后网站生效）");
+      } else {
+        log("切换失败：" + (r.message || ""));
+      }
+    });
+  });
+}
+
+function saveMsg() {
+  var msg = document.getElementById("msg").value.trim() || "网站修复中，请稍后再来试试吧";
+  ghGet(FILE).then(function (d) {
+    if (!d.sha) { log("读取失败：" + (d.message || "")); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    obj.message = msg;
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE, b64, "更新停服公告", d.sha).then(function (r) {
+      log(r.content ? "公告已保存成功" : "保存失败：" + (r.message || ""));
+    });
+  });
+}
+
+function setMaint(on) {
+  var msg = document.getElementById("msg").value.trim() || "网站修复中，请稍后再来试试吧";
+  ghGet(FILE).then(function (d) {
+    if (!d.sha) { log("读取失败：" + (d.message || "")); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    obj.on = on;
+    obj.message = msg;
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE, b64, on ? "开启网站维护" : "关闭网站维护", d.sha).then(function (r) {
+      if (r.content) {
+        currentOn = on;
+        log(on ? "已开启维护，约 1 分钟后玩家可见维护页" : "已关闭维护，网站恢复正常");
+        loadStatus();
+      } else {
+        log("操作失败：" + (r.message || ""));
+      }
+    });
+  });
+}
+
+function loadStats() {
+  fetch("https://api.github.com/repos/" + REPO + "/releases", {
+    headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" }
+  }).then(function (r) { return r.json(); }).then(function (rels) {
+    if (!Array.isArray(rels)) { log("统计失败：" + (rels.message || "")); return; }
+    var total = 0, html = "";
+    rels.forEach(function (rel) {
+      rel.assets.forEach(function (a) {
+        html += "<p>" + a.name + "：" + a.download_count + " 次</p>";
+        total += a.download_count;
+      });
+    });
+    html += "<p style='font-weight:bold'>合计下载：" + total + " 次</p>";
+    document.getElementById("stats").innerHTML = html;
+    log("下载统计已刷新");
+  });
+}
+
+/* ===== 官网流动广播管理 ===== */
+var FILE_BCAST = "broadcast.json";
+var _bcastOn = false;
+
+function renderBcast() {
+  var st = document.getElementById("bcastSt");
+  var dot = document.getElementById("bcastDot");
+  if (!st) return;
+  st.textContent = _bcastOn ? "广播中" : "未开启";
+  dot.className = "dot " + (_bcastOn ? "dot-on" : "dot-off");
+}
+
+function loadBcast() {
+  ghGet(FILE_BCAST).then(function (d) {
+    if (!d.sha) { log("读取 broadcast.json 失败"); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    document.getElementById("bcastText").value = obj.text || "";
+    if (obj.speed) document.getElementById("bcastSpeed").value = obj.speed;
+    _bcastOn = !!obj.enabled;
+    if (obj.schedule && obj.schedule.start) document.getElementById("bcastStart").value = toLocalInput(obj.schedule.start);
+    if (obj.schedule && obj.schedule.end) document.getElementById("bcastEnd").value = toLocalInput(obj.schedule.end);
+    renderBcast();
+    log("广播设置已加载（" + (_bcastOn ? "开启" : "关闭") + "，速度 " + (obj.speed || 3) + "）");
+  });
+}
+
+// ISO 转 datetime-local 输入框格式
+function toLocalInput(iso) {
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  var p = function (n) { return (n < 10 ? "0" : "") + n; };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+function saveBcast() {
+  ghGet(FILE_BCAST).then(function (d) {
+    if (!d.sha) { log("读取 broadcast.json 失败"); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    obj.text = document.getElementById("bcastText").value.trim() || obj.text;
+    var sp = parseInt(document.getElementById("bcastSpeed").value, 10);
+    if (!isNaN(sp)) obj.speed = Math.min(10, Math.max(1, sp));
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE_BCAST, b64, "更新广播内容", d.sha).then(function (r) {
+      log(r.content ? "广播内容已保存（约1分钟生效）" : "保存失败：" + (r.message || ""));
+    });
+  });
+}
+
+// 演示当前速度：用与官网相同的公式（30/speed 秒）驱动演示条
+function demoBcastSpeed() {
+  var sp = parseInt(document.getElementById("bcastSpeed").value, 10);
+  if (isNaN(sp)) sp = 3;
+  sp = Math.min(10, Math.max(1, sp));
+  var dur = 30 / sp;
+  var el = document.getElementById("bcastDemoText");
+  var clone = el.cloneNode(true);
+  el.parentNode.replaceChild(clone, el);
+  clone.style.animation = "none";
+  void clone.offsetWidth;
+  clone.style.animation = "demoMarquee " + dur + "s linear infinite";
+  document.getElementById("bcastSpeed").value = sp;
+  log("正在演示速度 " + sp + "（一圈 " + dur.toFixed(1) + " 秒）");
+}
+
+function setBcastOn(on) {
+  ghGet(FILE_BCAST).then(function (d) {
+    if (!d.sha) { log("读取 broadcast.json 失败"); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    obj.enabled = on;
+    _bcastOn = on;
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE_BCAST, b64, on ? "开启官网广播" : "关闭官网广播", d.sha).then(function (r) {
+      if (r.content) {
+        renderBcast();
+        log(on ? "广播已开启（约1分钟生效）" : "广播已关闭（约1分钟生效）");
+      } else log("操作失败：" + (r.message || ""));
+    });
+  });
+}
+
+function setBcastSchedule(enabled) {
+  var start = document.getElementById("bcastStart").value;
+  var end = document.getElementById("bcastEnd").value;
+  if (enabled && (!start || !end)) { log("请先填写开始和结束时间"); return; }
+  ghGet(FILE_BCAST).then(function (d) {
+    if (!d.sha) { log("读取 broadcast.json 失败"); return; }
+    var obj = JSON.parse(b64dec(d.content));
+    obj.schedule = obj.schedule || {};
+    obj.schedule.enabled = enabled;
+    if (enabled) {
+      obj.schedule.start = new Date(start).toISOString();
+      obj.schedule.end = new Date(end).toISOString();
+    }
+    var b64 = b64enc(JSON.stringify(obj, null, 2));
+    ghPut(FILE_BCAST, b64, enabled ? "启用定时广播" : "停用定时广播", d.sha).then(function (r) {
+      log(r.content ? (enabled ? "定时广播已启用（到点自动显示）" : "定时广播已停用") : "操作失败：" + (r.message || ""));
+    });
+  });
+}
+</script>
+</body>
+</html>
