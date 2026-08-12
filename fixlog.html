@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>修复日志 — MR工作室</title>
+<meta name="description" content="MR工作室网站修复日志：记录从建站以来发现并修复的所有问题。">
+<link rel="icon" type="image/png" href="assets/img/studio-icon.jpg">
+<link rel="stylesheet" href="css/style.css?v=3">
+<style>
+  .fixlog-wrap { max-width: 860px; margin: 0 auto; padding: 48px 20px 64px; }
+  .fixlog-title { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+  .fixlog-sub { color: #888; font-size: 14px; margin-bottom: 28px; }
+  .fixlog-list { list-style: none; padding: 0; }
+  .fixlog-list li {
+    background: #fff; border: 1px solid #eef0f4; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 12px;
+    font-size: 15px; line-height: 1.8; color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .fixlog-list .num {
+    display: inline-block; background: #2f6fb3; color: #fff;
+    border-radius: 999px; min-width: 26px; height: 26px; line-height: 26px;
+    text-align: center; font-size: 13px; font-weight: 700; margin-right: 10px;
+  }
+  .fixlog-list .fix { font-weight: 700; color: #2e9e4f; }
+  .fixlog-back { display: inline-block; margin-bottom: 24px; color: #2f6fb3; text-decoration: none; font-size: 14px; }
+  .fixlog-back:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- ============ 顶部导航 ============ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img class="nav-logo" src="assets/img/studio-icon.jpg" alt="MR工作室">
+      <span class="nav-name">MR工作室</span>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html#software">软件下载</a>
+      <a href="index.html#games">游戏介绍</a>
+      <a href="https://mrstudio.pythonanywhere.com/" target="_blank" rel="noopener">在线学习</a>
+      <a href="index.html#about">关于我们</a>
+      <a href="index.html#help">帮助与教程</a>
+      <a href="fixlog.html" style="color:#d43c2a;font-weight:bold;">修复日志</a>
+    </nav>
+  </div>
+</header>
+
+<main class="fixlog-wrap">
+  <a class="fixlog-back" href="index.html">← 返回官网首页</a>
+  <h1 class="fixlog-title">🛠 修复日志</h1>
+  <p class="fixlog-sub">从建立网站以来，我们记录并修复的所有问题</p>
+
+  <ul class="fixlog-list">
+    <li><span class="num">1</span>官网下载太慢（GitHub 直连仅 0.02MB/s）——<span class="fix">已启用镜像加速</span>，实测提升到 1.2~8.2MB/s，并保留官方下载作为备用</li>
+    <li><span class="num">2</span>Windows 版安装包被 SmartScreen 拦截提示——<span class="fix">已改用免安装绿色版 zip 作为主下载</span>，避免弹窗困扰</li>
+    <li><span class="num">3</span>官网在线人数统计不真实——<span class="fix">已改为真实访问统计</span>（不蒜子），数据可靠</li>
+    <li><span class="num">4</span>官网背景音乐自动播放被浏览器拦截——<span class="fix">已改为手动点击播放</span>，不打扰浏览</li>
+    <li><span class="num">5</span>官网"帮助与教程"弹窗打扰浏览——<span class="fix">已改为页面内锚点滚动定位</span>，不再弹窗</li>
+    <li><span class="num">6</span>学习网站"在线运行代码"依赖服务器执行，免费主机不支持——<span class="fix">已改为浏览器端运行</span>（Pyodide），无需服务器执行</li>
+    <li><span class="num">7</span>学习网站选择题提交答案无反应——<span class="fix">已修复脚本损坏问题</span>，提交、判分、反馈全部正常</li>
+    <li><span class="num">8</span>手机控制台连不上 PythonAnywhere API（网络限制）——<span class="fix">已由学习网站自身代理转发</span>，状态查询、重启、日志、维护开关全部可用</li>
+    <li><span class="num">9</span>官网广播文字滚到最左边直接消失——<span class="fix">已修复为平滑循环滚动</span>，并根据使用反馈回归原流动方式</li>
+    <li><span class="num">10</span>广播速度只能靠感觉调——<span class="fix">已加控制台实时速度演示</span>，所见即所得，还支持定时开关</li>
+    <li><span class="num">11</span>学习网站无法远程维护——<span class="fix">已加入维护开关与自定义公告</span>，控制台可一键开启/关闭，支持定时</li>
+    <li><span class="num">12</span>官网无法远程广播通知——<span class="fix">已加入官网流动广播</span>，支持自定义内容、速度、直接开关与定时广播</li>
+  </ul>
+</main>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="container" style="max-width:860px;margin:0 auto;padding:20px;text-align:center;color:#999;font-size:13px;">
+    © MR工作室 · 用心做游戏 · <a href="fixlog.html" style="color:#2f6fb3;text-decoration:none;">修复日志</a>
+  </div>
+</footer>
+
+</body>
+</html>
