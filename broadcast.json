@@ -1,6 +1,6 @@
 {
-  "enabled": false,
-  "text": "🎉 欢迎来到 MR工作室官网！",
+  "enabled": true,
+  "text": "🎉 热烈庆祝《上位的代价》上线！下载即玩，支持我们！",
   "schedule": {
     "enabled": false,
     "start": "2026-08-12T20:00:00",
