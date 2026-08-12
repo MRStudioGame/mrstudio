@@ -234,15 +234,18 @@
   var txt = document.getElementById("broadcastText");
   if (!bar || !txt) return;
 
-  function showBroadcast(text) {
+  function showBroadcast(text, speed) {
     txt.textContent = text;
     bar.style.display = "block";
+    // 速度 → 动画时长：speed=1 约 30 秒，speed=10 约 3 秒
+    var dur = 30 / (speed || 3);
+    var el = document.getElementById("broadcastText");
     // 重新触发滚动动画
-    var clone = txt.cloneNode(true);
-    txt.parentNode.replaceChild(clone, txt);
-    document.getElementById("broadcastText").style.animation = "none";
-    void document.getElementById("broadcastText").offsetWidth;
-    document.getElementById("broadcastText").style.animation = "mrMarquee 18s linear infinite";
+    var clone = el.cloneNode(true);
+    el.parentNode.replaceChild(clone, el);
+    clone.style.animation = "none";
+    void clone.offsetWidth;
+    clone.style.animation = "mrMarquee " + dur + "s linear infinite";
   }
 
   function evalBroadcast() {
@@ -264,7 +267,7 @@
               var end = d.schedule.end ? new Date(d.schedule.end).getTime() : Infinity;
               if (now >= start && now <= end) on = true;
             }
-            if (on) showBroadcast(d.text);
+            if (on) showBroadcast(d.text, d.speed);
             else bar.style.display = "none";
           })
           .catch(function () {});
