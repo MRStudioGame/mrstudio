@@ -1,7 +1,7 @@
 {
-  "version": "1.0.8",
-  "changelog": "v1.0.8 更新\n- 新增机器人管理：添加/删除机器人、机器人列表搜索筛选\n- 新增机器人私信：用户发给机器人的消息在此查看，可仿冒机器人回复（用户端显示与机器人一致）\n- 机器人伪装：全国城市随机分布、真实昵称头像属地，全端不暴露身份",
+  "version": "1.0.9",
+  "changelog": "v1.0.9 更新\n- 更新流程全自动闭环：检测新版本→申请安装权限→自动下载安装→装完自动打开新版\n- 无需手动替换文件",
   "force_update": false,
   "file_url": "https://mrstudiogame.github.io/mrstudio/emotion-weather/admin/admin.html",
-  "apk_url": "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/releases/download/emotion-weather-admin-v1.0.8/emotion-weather-admin-1.0.8.apk"
+  "apk_url": "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/releases/download/emotion-weather-admin-v1.0.9/emotion-weather-admin-1.0.9.apk"
 }
