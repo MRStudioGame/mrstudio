@@ -268,6 +268,14 @@ function updateMusicBtn() {
 document.getElementById("musicBtn").onclick = toggleBgm;
 // 页面加载立即尝试自动播放（微信/多数 WebView 允许；Chrome 桌面端会用静音兜底）
 tryBgm();
+// 兜底：首次点击页面任意位置再次尝试开启音乐
+let clickTried = false;
+document.addEventListener("click", function() {
+  if (!bgmOn && !clickTried) {
+    clickTried = true;
+    tryBgm();
+  }
+}, { once: true });
 loadVersion();
 </script>
 </body>
