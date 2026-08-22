@@ -189,6 +189,11 @@ function updateMusicBtn() {
   document.getElementById("musicBtn").title = bgmOn ? "暂停背景音乐" : "播放背景音乐";
 }
 document.getElementById("musicBtn").onclick = toggleBgm;
+// 首次点击页面任意位置自动开启背景音乐（绕开浏览器自动播放拦截）
+document.addEventListener("click", function once() {
+  tryBgm();
+  document.removeEventListener("click", once);
+}, { once: true });
 loadVersion();
 </script>
 </body>
