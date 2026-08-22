@@ -169,6 +169,7 @@
   </div>
   <div class="nav">
     <button id="nav-users" class="active" onclick="switchTab('users')">用户管理</button>
+    <button id="nav-bots" onclick="switchTab('bots')">机器人管理</button>
     <button id="nav-items" onclick="switchTab('items')">物品发放</button>
     <button id="nav-messages" onclick="switchTab('messages')">私信管理</button>
   </div>
@@ -188,6 +189,43 @@
         <table>
           <thead><tr><th style="width:30px"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th><th>用户ID</th><th>手机号</th><th>匿名ID</th><th>性别</th><th>年龄</th><th>生日</th><th>注册时间</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="userRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 机器人管理 -->
+    <div id="tab-bots" class="hidden">
+      <div class="card">
+        <h3>添加机器人（伪装用户，全端隐藏身份）</h3>
+        <div class="toolbar">
+          <input id="botNickname" placeholder="昵称（如：小晴天）" style="width:200px">
+          <select id="botCity" style="min-width:130px">
+            <option value="">随机城市</option>
+            <option>北京</option><option>上海</option><option>广州</option><option>深圳</option>
+            <option>成都</option><option>重庆</option><option>武汉</option><option>杭州</option>
+            <option>南京</option><option>西安</option><option>长沙</option><option>苏州</option>
+            <option>郑州</option><option>天津</option><option>青岛</option><option>厦门</option>
+          </select>
+          <input id="botBio" placeholder="个人简介（选填）" style="width:220px">
+          <button class="btn btn-primary" onclick="addBot()">添加</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted)">头像自动生成（随机纯色+昵称首字母），坐标随机分配全国城市，提交后立即出现在地图上。</p>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="botSearch" placeholder="搜索：昵称 / 属地" style="width:260px" oninput="loadBots()">
+          <button class="btn btn-ghost" onclick="loadBots()">刷新</button>
+        </div>
+        <table>
+          <thead><tr><th>昵称</th><th>IP属地</th><th>简介</th><th>坐标</th><th>云朵数</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody id="botRows"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>机器人私信（用户发给机器人的消息，管理员可仿冒回复）</h3>
+        <table>
+          <thead><tr><th>发送用户</th><th>目标机器人</th><th>消息内容</th><th>时间</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="botMsgRows"></tbody>
         </table>
       </div>
     </div>
@@ -471,16 +509,17 @@ function showApp() {
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("loginName").textContent = sessionStorage.getItem("admin_user");
-  loadUsers(); loadSkins(); loadGrants();
+  loadUsers(); loadBots(); loadSkins(); loadGrants();
   checkAdminUpdate(); // 登录后检查管理端自身更新
 }
 
 /* ---------------- Tab 切换 ---------------- */
 function switchTab(name) {
-  ["users", "items", "messages"].forEach(t => {
+  ["users", "bots", "items", "messages"].forEach(t => {
     document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
     document.getElementById("nav-" + t).classList.toggle("active", t === name);
   });
+  if (name === "bots") { loadBots(); loadBotMessages(); }
   if (name === "items") loadGrants();
   if (name === "messages") startMessagePolling();
 }
@@ -587,6 +626,71 @@ async function showUserDetail(userId) {
       </div>`;
     document.getElementById("userModal").style.display = "flex";
   } catch (e) { toast("加载详情失败：" + e.message); }
+}
+
+/* ---------------- 机器人管理 ---------------- */
+async function loadBots() {
+  try {
+    let bots = await adminRpc("admin_list_bots");
+    const kw = (document.getElementById("botSearch").value || "").trim().toLowerCase();
+    if (kw) bots = (bots || []).filter(b => (b.nickname || "").toLowerCase().includes(kw) || (b.ip_location || "").toLowerCase().includes(kw));
+    const rows = document.getElementById("botRows");
+    if (!bots.length) { rows.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999">暂无机器人</td></tr>'; return; }
+    rows.innerHTML = bots.map(b => `
+      <tr>
+        <td data-label="昵称"><b>${b.nickname}</b></td>
+        <td data-label="IP属地">${b.ip_location || '-'}</td>
+        <td data-label="简介">${(b.bio || '-').slice(0, 20)}</td>
+        <td data-label="坐标" style="font-size:12px">${b.lat.toFixed(3)}, ${b.lng.toFixed(3)}</td>
+        <td data-label="云朵数">${b.cloud_count || 0}</td>
+        <td data-label="创建时间">${(b.created_at || '').replace('T', ' ').slice(0, 16)}</td>
+        <td data-label="操作"><button class="btn btn-danger" style="padding:4px 10px" onclick="delBot('${b.id}','${b.nickname}')">删除</button></td>
+      </tr>`).join("");
+  } catch (e) { toast("加载机器人失败：" + e.message); }
+}
+async function addBot() {
+  const nickname = document.getElementById("botNickname").value.trim();
+  const city = document.getElementById("botCity").value;
+  const bio = document.getElementById("botBio").value.trim();
+  if (!nickname) return toast("请填写昵称");
+  try {
+    await adminRpc("admin_add_bot", { p_nickname: nickname, p_ip_location: city, p_bio: bio });
+    toast("机器人「" + nickname + "」已添加并出现在地图上");
+    document.getElementById("botNickname").value = "";
+    document.getElementById("botBio").value = "";
+    loadBots();
+  } catch (e) { toast("添加失败：" + e.message); }
+}
+function delBot(id, name) {
+  if (!confirm("确定删除机器人「" + name + "」？\n将同时移除：地图云朵、所有用户的关注、私信会话。")) return;
+  adminRpc("admin_delete_bot", { p_bot_id: id })
+    .then(() => { toast("已删除机器人「" + name + "」"); loadBots(); loadBotMessages(); })
+    .catch(e => toast("删除失败：" + e.message));
+}
+/* 机器人私信列表（用户发给机器人的消息） */
+async function loadBotMessages() {
+  try {
+    const list = await adminRpc("admin_list_bot_messages");
+    const rows = document.getElementById("botMsgRows");
+    if (!list || !list.length) { rows.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999">暂无用户发给机器人的消息</td></tr>'; return; }
+    rows.innerHTML = list.map(m => `
+      <tr>
+        <td data-label="发送用户" style="font-size:12px">${m.from_anonymous || '-'}<br><span style="color:#999">${m.from_phone || '-'}</span></td>
+        <td data-label="目标机器人">${m.bot_nickname}</td>
+        <td data-label="消息内容">${m.content}</td>
+        <td data-label="时间">${(m.created_at || '').replace('T', ' ').slice(0, 16)}</td>
+        <td data-label="状态">${m.replied ? '<span class="badge badge-shipped">已回复</span>' : '<span class="badge badge-pending">待回复</span>'}</td>
+        <td data-label="操作">${m.replied ? '-' : `<button class="btn btn-primary" style="padding:4px 10px" onclick="replyBotMsg('${m.id}','${m.bot_nickname}')">仿冒回复</button>`}</td>
+      </tr>`).join("");
+  } catch (e) { toast("加载机器人私信失败：" + e.message); }
+}
+function replyBotMsg(msgId, botName) {
+  const content = prompt("以「" + botName + "」的身份回复用户：");
+  if (content === null) return;
+  if (!content || content.trim().length < 1) return toast("回复内容不能为空");
+  adminRpc("admin_reply_as_bot", { p_message_id: msgId, p_content: content.trim() })
+    .then(() => { toast("已以「" + botName + "」身份回复，用户端可见"); loadBotMessages(); })
+    .catch(e => toast("回复失败：" + e.message));
 }
 
 /* ---------------- 物品发放 ---------------- */
