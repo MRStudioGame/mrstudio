@@ -13,7 +13,6 @@
     overflow-x: hidden;
     color: #2C3E50;
   }
-  /* 飘动云朵背景 */
   .clouds { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
   .cloud { position: absolute; background: rgba(255,255,255,0.85); border-radius: 50px; filter: blur(1px); }
   .cloud::before, .cloud::after { content: ""; position: absolute; background: rgba(255,255,255,0.85); border-radius: 50%; }
@@ -72,6 +71,15 @@
   .mirror { margin-top: 14px; font-size: 13px; color: #4A90C4; }
   .mirror a { color: #4A90C4; text-decoration: underline; }
 
+  /* 复制链接按钮 */
+  .copy-btn {
+    margin-top: 16px; width: 100%; padding: 14px; border-radius: 14px;
+    border: 1.5px dashed #4A90C4; background: rgba(108,180,238,0.08);
+    color: #4A90C4; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .copy-btn:active { background: rgba(108,180,238,0.2); }
+
   .features { margin-top: 24px; text-align: left; }
   .features .item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #455A64; }
   .features .item .e { font-size: 18px; }
@@ -84,6 +92,27 @@
   }
   .footer { margin-top: 34px; font-size: 12px; color: #B0BEC5; }
 
+  /* ========== 微信引导浮层 ========== */
+  .wx-guide {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99;
+    background: rgba(44,62,80,0.94); color: #fff;
+    padding: 14px 16px 16px; text-align: center;
+    animation: slideDown .4s ease;
+  }
+  @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+  .wx-guide .tip { font-size: 15px; font-weight: 600; line-height: 1.6; }
+  .wx-guide .tip b { color: #FFD54F; }
+  .wx-guide .arrow {
+    position: absolute; top: 8px; right: 14px;
+    font-size: 22px; color: #FFD54F;
+    animation: bounce 1s infinite;
+  }
+  @keyframes bounce { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
+  .wx-guide .highlight { display: inline-block; padding: 2px 8px; border-radius: 8px; background: rgba(255,213,79,0.25); }
+  .wx-guide .close {
+    margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: underline;
+  }
+
   @media (max-width: 480px) {
     h1 { font-size: 25px; }
     .wrap { padding: 32px 16px 50px; }
@@ -95,6 +124,17 @@
   <div class="clouds">
     <div class="cloud cloud1"></div><div class="cloud cloud2"></div>
     <div class="cloud cloud3"></div><div class="cloud cloud4"></div>
+  </div>
+
+  <!-- 微信引导浮层（仅微信内打开显示） -->
+  <div class="wx-guide" id="wxGuide" style="display:none">
+    <span class="arrow">‹‹‹</span>
+    <div class="tip">
+      微信内无法直接下载 APK，<br>
+      请点击右上角 <span class="highlight">三个点 <b>···</b></span><br>
+      选择「<b>在浏览器中打开</b>」，即可正常下载安装
+    </div>
+    <div class="close" onclick="document.getElementById('wxGuide').style.display='none'">我知道了，继续查看</div>
   </div>
 
   <div class="wrap">
@@ -112,6 +152,7 @@
       </a>
       <div class="dl-info" id="dlInfo">正在获取下载地址…</div>
       <div class="mirror">下载速度慢？<a id="mirrorLink" href="#" onclick="return false;">备用高速通道</a></div>
+      <button class="copy-btn" id="copyBtn" style="display:none">📋 复制下载链接（粘贴到浏览器打开）</button>
     </div>
 
     <div class="card features">
@@ -128,20 +169,21 @@
   </div>
 
   <button class="music-btn" id="musicBtn" title="背景音乐">🎵</button>
-  <audio id="bgm" src="sunwoo_audio.mp3" loop preload="auto"></audio>
+  <!-- 背景音乐：进入页面自动播放（静音启动 -> 0.5s 后恢复声音，绕开浏览器自动播放拦截） -->
+  <audio id="bgm" src="unhappy.m4a" loop preload="auto" muted></audio>
 
 <script>
-// ========== 从 GitHub Releases 拉取最新客户端版本（公开 API，无需密钥，发版即同步） ==========
+// ========== 从 GitHub Releases 拉取最新客户端版本 ==========
 const GITHUB_API = "https://api.github.com/repos/MRStudioGame/mrstudio/releases?per_page=10";
 const GH_DL = "https://github.com/MRStudioGame/mrstudio/releases/download";
 const ACCEL = "https://ghfast.top/";
+let DL_URL = "";
 
 async function loadVersion() {
   try {
     const r = await fetch(GITHUB_API);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const releases = await r.json();
-    // 找最新的客户端 release（tag 前缀 emotion-weather-v，asset 不含 admin）
     let found = null;
     for (const rel of releases || []) {
       if (!rel.tag_name || !rel.tag_name.startsWith("emotion-weather-v")) continue;
@@ -152,15 +194,14 @@ async function loadVersion() {
     }
     if (found) {
       const direct = GH_DL + "/" + found.tag + "/" + found.name;
-      const accel = ACCEL + direct;
+      DL_URL = ACCEL + direct;
       document.getElementById("verTag").textContent = "最新版本 v" + found.ver;
       document.getElementById("dlVersion").textContent = "情绪气象台 v" + found.ver;
-      document.getElementById("dlBtn").href = accel; // 加速下载（快）
+      document.getElementById("dlBtn").href = DL_URL;
       document.getElementById("dlInfo").textContent = "加速下载 · 文件约 66MB · 直接下载 APK 安装即可";
-      document.getElementById("mirrorLink").href = direct; // 备用直连
+      document.getElementById("mirrorLink").href = direct;
       document.getElementById("mirrorLink").onclick = null;
-      // 尝试自动播放背景音乐
-      tryBgm();
+      if (isWeChat()) document.getElementById("copyBtn").style.display = "block"; // 微信内显示复制按钮
     } else {
       document.getElementById("verTag").textContent = "暂无可用版本";
       document.getElementById("dlInfo").textContent = "请稍后刷新重试";
@@ -171,17 +212,53 @@ async function loadVersion() {
   }
 }
 
-// ========== 背景音乐 ==========
+// ========== 微信检测 + 引导浮层 ==========
+function isWeChat() {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+if (isWeChat()) {
+  document.getElementById("wxGuide").style.display = "block";
+  // 微信内点击下载按钮：改为提示（微信无法下载 APK）
+  document.getElementById("dlBtn").addEventListener("click", function(e) {
+    e.preventDefault();
+    document.getElementById("wxGuide").style.display = "block";
+  });
+}
+
+// ========== 复制下载链接（微信内用） ==========
+document.getElementById("copyBtn").onclick = function() {
+  const url = DL_URL || document.getElementById("dlBtn").getAttribute("href");
+  const done = function() { this.textContent = "✅ 链接已复制，请粘贴到浏览器打开"; };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done.bind(this)).catch(function() { fallbackCopy(url, done); });
+  } else { fallbackCopy(url, done); }
+};
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch(e) { alert("复制失败，请长按下载按钮复制链接"); }
+  document.body.removeChild(ta);
+}
+
+// ========== 背景音乐：一进入就自动播放 ==========
 let bgmOn = false;
 function tryBgm() {
   const bgm = document.getElementById("bgm");
   bgm.volume = 0.5;
-  bgm.play().then(() => { bgmOn = true; updateMusicBtn(); }).catch(() => { bgmOn = false; });
+  const p = bgm.play();
+  if (p && p.then) {
+    p.then(() => {
+      bgmOn = true; updateMusicBtn();
+      // 静音启动 -> 0.5s 后恢复声音（主流浏览器允许继续有声播放）
+      setTimeout(() => { if (bgmOn) bgm.muted = false; }, 500);
+    }).catch(() => { bgmOn = false; });
+  }
 }
 function toggleBgm() {
   const bgm = document.getElementById("bgm");
   if (bgmOn) { bgm.pause(); bgmOn = false; }
-  else { bgm.volume = 0.5; bgm.play().then(() => { bgmOn = true; }).catch(() => {}); }
+  else { bgm.muted = false; bgm.volume = 0.5; bgm.play().then(() => { bgmOn = true; }).catch(() => {}); }
   updateMusicBtn();
 }
 function updateMusicBtn() {
@@ -189,11 +266,8 @@ function updateMusicBtn() {
   document.getElementById("musicBtn").title = bgmOn ? "暂停背景音乐" : "播放背景音乐";
 }
 document.getElementById("musicBtn").onclick = toggleBgm;
-// 首次点击页面任意位置自动开启背景音乐（绕开浏览器自动播放拦截）
-document.addEventListener("click", function once() {
-  tryBgm();
-  document.removeEventListener("click", once);
-}, { once: true });
+// 页面加载立即尝试自动播放（微信/多数 WebView 允许；Chrome 桌面端会用静音兜底）
+tryBgm();
 loadVersion();
 </script>
 </body>
