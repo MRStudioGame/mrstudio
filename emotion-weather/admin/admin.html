@@ -402,19 +402,29 @@ function doUpdateNow() {
   if (!latestAdmin) return;
   const isAndroidApp = /Android/i.test(navigator.userAgent) && !/Chrome|Firefox|Safari/i.test(navigator.userAgent);
   if (isAndroidApp && latestAdmin.apk_url) {
-    // APK 壳环境：调原生桥下载并安装新版 APK（含未知来源权限引导，Android 8.0+）
+    // APK 壳环境：完整自动闭环——权限引导 -> 自动下载安装 -> 装完自动打开新版本
     const bridge = window.AndroidBridge;
     if (bridge) {
-      const started = bridge.downloadAndInstall(latestAdmin.apk_url);
+      const url = latestAdmin.apk_url;
+      const started = bridge.downloadAndInstall(url);
       if (started) {
-        document.getElementById("updateMsg").textContent = "正在下载新版管理端并安装，请稍候…";
+        document.getElementById("updateMsg").textContent = "正在下载新版管理端并自动安装，请稍候…";
       } else {
-        document.getElementById("updateMsg").textContent = "需要先允许安装未知来源应用：请在弹出的系统设置中开启【允许来自此来源的应用】，然后返回本页重新点击【立即更新】。";
-        toast("请开启安装未知应用权限后重试");
+        // 未授权：已自动跳系统设置；返回后自动继续，这里轮询兜底
+        document.getElementById("updateMsg").textContent = "请在弹出的系统设置中开启【允许来自此来源的应用】，开启后返回将自动继续安装…";
+        toast("请在系统设置中开启安装权限，返回后自动继续");
+        const timer = setInterval(() => {
+          if (window.AndroidBridge && window.AndroidBridge.canInstall()) {
+            clearInterval(timer);
+            document.getElementById("updateMsg").textContent = "权限已开启，正在自动下载安装新版本…";
+            window.AndroidBridge.downloadAndInstall(url);
+          }
+        }, 1000);
+        setTimeout(() => clearInterval(timer), 60000); // 60s 兜底停止轮询
       }
       return;
     }
-    // 无原生桥（浏览器环境）：提示手动下载 APK
+    // 无原生桥（浏览器环境）：提示下载 APK
     document.getElementById("updateDownloading").style.display = "none";
     document.getElementById("updateNowBtn").disabled = false;
     toast("请下载新版管理端 APK 安装：" + latestAdmin.apk_url);
