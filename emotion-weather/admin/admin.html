@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪气象台 · 管理端</title>
+<style>
+  :root {
+    --blue: #6CB4EE; --apricot: #FFD3B4; --coral: #FF8A80;
+    --bg: #F8F9FA; --card: #FFFFFF; --text: #333333; --muted: #999999;
+    --border: #EEEEEE;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  body { background: var(--bg); color: var(--text); }
+  .topbar { background: var(--card); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+           border-bottom: 1px solid var(--border); }
+  .topbar h1 { font-size: 18px; font-weight: 600; }
+  .topbar h1 span { color: var(--blue); }
+  .topbar .user { font-size: 13px; color: var(--muted); }
+  .nav { display: flex; gap: 8px; padding: 12px 24px; background: var(--card); border-bottom: 1px solid var(--border); }
+  .nav button { padding: 8px 18px; border: none; border-radius: 20px; background: var(--bg); color: var(--text);
+                font-size: 14px; cursor: pointer; }
+  .nav button.active { background: var(--blue); color: #fff; }
+  .container { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+  .card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+  .card h3 { font-size: 15px; margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+  input:focus, select:focus { border-color: var(--blue); }
+  .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-danger { background: var(--coral); color: #fff; }
+  .btn-ghost { background: var(--bg); color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; background: #FAFBFC; }
+  tr:hover td { background: #F7FBFF; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+  .badge-pending { background: #FFF3E0; color: #E65100; }
+  .badge-shipped { background: #E8F5E9; color: #2E7D32; }
+  .badge-cancelled { background: #F5F5F5; color: #9E9E9E; }
+  .badge-deleted { background: #FCE4EC; color: #C2185B; }
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal { background: #fff; border-radius: 16px; padding: 24px; width: 520px; max-width: 92vw; max-height: 84vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 16px; }
+  .modal .row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+  .modal .row label { width: 90px; font-size: 13px; color: var(--muted); flex-shrink: 0; }
+  .modal .row input, .modal .row select { flex: 1; }
+  .login-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .login-card { background: #fff; border-radius: 16px; padding: 40px; width: 360px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .login-card h2 { margin-bottom: 6px; }
+  .login-card p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .login-card input { width: 100%; margin-bottom: 14px; }
+  .login-card .btn { width: 100%; padding: 12px; font-size: 15px; }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff;
+           padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat { background: var(--card); border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat .num { font-size: 26px; font-weight: 700; color: var(--blue); }
+  .stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  /* 微信式聊天布局 */
+  .chat-layout { display: flex; height: calc(100vh - 130px); background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .chat-side { width: 280px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #FAFBFC; }
+  .chat-main { flex: 1; display: flex; flex-direction: column; }
+  .session-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .session-item:hover { background: #F0F5FB; }
+  .session-item.active { background: #E3F0FC; }
+  .session-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+  .session-name { font-size: 14px; font-weight: 600; }
+  .session-preview { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .bubble-row { display: flex; margin-bottom: 10px; align-items: flex-start; }
+  .bubble-row.me { justify-content: flex-end; }
+  .bubble-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .bubble { max-width: 65%; padding: 9px 12px; border-radius: 10px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+  .bubble-row.me .bubble { background: var(--blue); color: #fff; border-top-right-radius: 2px; }
+  .bubble-row.other .bubble { background: #fff; color: var(--text); border-top-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .bubble-time { font-size: 10px; color: #bbb; margin: 2px 6px 0; }
+  .hidden { display: none !important; }
+
+  /* ============ 移动端响应式（手机竖屏优先） ============ */
+  @media (max-width: 768px) {
+    body { font-size: 14px; }
+    .topbar { padding: 10px 14px; }
+    .topbar h1 { font-size: 16px; }
+    .container { padding: 12px; }
+    .card { padding: 14px; border-radius: 12px; margin-bottom: 12px; }
+    .toolbar { flex-wrap: wrap; gap: 8px; }
+    .toolbar input, .toolbar select { flex: 1 1 100%; min-width: 0; }
+    .btn { padding: 10px 14px; font-size: 14px; }
+    /* 顶部横向导航改底部固定导航 */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      display: flex; gap: 0; padding: 0; background: #fff;
+      border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+    }
+    .nav button {
+      flex: 1; padding: 10px 2px; border-radius: 0; font-size: 12px;
+      background: transparent; color: var(--muted); border: none;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .nav button.active { color: var(--blue); background: transparent; font-weight: 600; }
+    /* 表格转卡片列表 */
+    table, thead, tbody, tr, th, td { display: block; width: 100%; }
+    thead { display: none; }
+    tr {
+      display: block; margin-bottom: 10px; padding: 12px;
+      background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      border-bottom: none;
+    }
+    td {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 13px;
+    }
+    td:last-child { border-bottom: none; }
+    td::before {
+      content: attr(data-label); color: var(--muted); font-size: 12px; margin-right: 12px; flex-shrink: 0;
+    }
+    td:first-child::before, td[style*="font-size:12px"]::before { content: attr(data-label); }
+    td .btn { white-space: nowrap; }
+    /* 用户表格按钮组 */
+    td:last-child { flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    /* 聊天改单栏（会话列表可切换） */
+    .chat-layout { height: calc(100vh - 110px); }
+    .chat-side { width: 100%; }
+    .chat-main { display: none; }
+    .chat-main.visible { display: flex; }
+    .chat-side.hidden-mobile { display: none; }
+    .bubble { max-width: 80%; font-size: 14px; }
+    /* 弹窗适配 */
+    .modal { width: 92vw; max-height: 86vh; padding: 18px; }
+    .login-card { width: 88vw; padding: 28px 22px; }
+    /* 统计卡片 */
+    .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat { padding: 12px 6px; }
+    .stat .num { font-size: 20px; }
+    /* 底部导航占位（避免内容被遮挡） */
+    .container { padding-bottom: 76px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="login-wrap">
+  <div class="login-card">
+    <h2>情绪气象台 · 管理端</h2>
+    <p>MR工作室 出品 · 本地管理后台</p>
+    <input id="loginPass" type="password" placeholder="请输入访问密码" autocomplete="off" style="margin-bottom:14px">
+    <button class="btn btn-primary" onclick="doLogin()">进 入</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="topbar">
+    <h1>情绪气象台 <span>管理端</span></h1>
+    <div class="user"><button class="btn btn-ghost" style="padding:6px 14px;margin-right:10px" onclick="manualCheckUpdate()">检查版本更新</button><span id="loginName"></span> · <a href="#" onclick="doLogout()" style="color:var(--coral)">退出</a></div>
+  </div>
+  <div class="nav">
+    <button id="nav-users" class="active" onclick="switchTab('users')">用户管理</button>
+    <button id="nav-orders" onclick="switchTab('orders')">订单管理</button>
+    <button id="nav-items" onclick="switchTab('items')">物品发放</button>
+    <button id="nav-messages" onclick="switchTab('messages')">私信管理</button>
+  </div>
+
+  <div class="container">
+    <!-- 用户管理 -->
+    <div id="tab-users">
+      <div class="card">
+        <div class="toolbar">
+          <input id="userSearch" placeholder="搜索：ID / 手机号 / 匿名ID" style="width:320px" oninput="loadUsers()">
+          <button class="btn btn-ghost" onclick="loadUsers()">刷新</button>
+          <span style="flex:1"></span>
+          <span id="selCount" style="font-size:12px;color:var(--muted);margin-right:8px">已选 0</span>
+          <button class="btn btn-danger" onclick="askBatchDelete()">批量注销</button>
+          <button class="btn btn-danger" onclick="askBatchPurge()">批量彻底删除</button>
+        </div>
+        <table>
+          <thead><tr><th style="width:30px"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th><th>用户ID</th><th>手机号</th><th>匿名ID</th><th>性别</th><th>年龄</th><th>生日</th><th>注册时间</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="userRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 订单管理 -->
+    <div id="tab-orders" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <select id="orderFilter" onchange="loadOrders()">
+            <option value="">全部状态</option>
+            <option value="pending">待确认</option>
+            <option value="shipped">已发货</option>
+            <option value="cancelled">已取消</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadOrders()">刷新</button>
+        </div>
+        <table>
+          <thead><tr><th>提交时间</th><th>用户ID</th><th>物品</th><th>填写ID</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 物品发放 -->
+    <div id="tab-items" class="hidden">
+      <div class="card">
+        <h3>物品发放（确认收款后执行）</h3>
+        <div class="toolbar">
+          <input id="grantUserId" placeholder="用户ID" style="width:320px">
+          <select id="grantSkinId" style="min-width:180px"><option value="">选择物品…</option></select>
+          <button class="btn btn-primary" onclick="doGrant()">发 放</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted)">发放后物品将加入该用户"我的物品"，App 下次打开即可见。</p>
+      </div>
+      <div class="card">
+        <h3>最近发放记录</h3>
+        <table>
+          <thead><tr><th>时间</th><th>用户ID</th><th>物品</th></tr></thead>
+          <tbody id="grantRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 私信管理（微信式） -->
+    <div id="tab-messages" class="hidden">
+      <div class="chat-layout">
+        <!-- 左侧：会话列表 -->
+        <div class="chat-side">
+          <div style="padding:12px 16px;font-weight:600;border-bottom:1px solid var(--border)">会话列表</div>
+          <div id="chatSessionList" style="overflow-y:auto;flex:1"></div>
+        </div>
+        <!-- 右侧：聊天窗口 -->
+        <div class="chat-main" id="chatMain">
+          <div id="chatHeader" style="padding:12px 16px;font-weight:600;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+            <span id="chatBackBtn" onclick="closeChatMobile()" style="display:none;color:var(--blue);cursor:pointer;font-size:15px">‹ 返回</span>
+            <span id="chatHeaderText">选择一个会话开始聊天</span>
+          </div>
+          <div id="chatBody" style="flex:1;overflow-y:auto;padding:16px;background:#F5F7FA"></div>
+          <div id="chatInputBar" style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+            <select id="replyAs" style="min-width:110px">
+              <option value="admin">官方客服</option>
+              <option value="counselor">心理咨询</option>
+            </select>
+            <input id="replyContent" placeholder="输入回复内容…" style="flex:1">
+            <button class="btn btn-primary" onclick="doReply()">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 用户详情弹窗 -->
+<div class="modal-mask" id="userModal">
+  <div class="modal">
+    <h3>用户详情</h3>
+    <div id="userDetailBody"></div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-mask" id="confirmModal">
+  <div class="modal" style="width:400px">
+    <h3 id="confirmTitle">确认操作</h3>
+    <p id="confirmMsg" style="font-size:14px;color:#666;margin-bottom:12px"></p>
+    <input id="confirmReason" placeholder="请填写理由（必填，用户会看到）" style="width:100%;display:none;margin-bottom:16px">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmBtn">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 管理端更新弹窗 -->
+<div class="modal-mask" id="updateModal">
+  <div class="modal" style="width:440px">
+    <h3 id="updateTitle">发现管理端新版本</h3>
+    <p id="updateMsg" style="font-size:13px;color:#666;margin:12px 0 16px;white-space:pre-line;line-height:1.7"></p>
+    <div id="updateForceTip" style="display:none;font-size:12px;color:#E57373;margin-bottom:12px">此版本为强制更新，安装后才能继续使用</div>
+    <div id="updateDownloading" style="display:none;margin-bottom:12px">
+      <div style="height:6px;background:#F0F0F0;border-radius:3px;overflow:hidden"><div id="updateBar" style="height:100%;width:0%;background:var(--blue);transition:width .3s"></div></div>
+      <p style="font-size:12px;color:#999;margin-top:6px">正在下载新版管理端…</p>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" id="updateLaterBtn" onclick="closeUpdate()">暂不更新</button>
+      <button class="btn btn-primary" id="updateNowBtn" onclick="doUpdateNow()">立即更新</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   情绪气象台 · 管理端（单文件，直接调 Supabase REST API）
+   ⚠️ 安全提示：本页面需要 service_role key，只能在本机浏览器使用，
+   切勿部署到公开网站（GitHub Pages / Vercel 等），否则 key 会泄露！
+   如需公开部署，请改用 Supabase Edge Function 代理。
+   ========================================================================== */
+const CONFIG = {
+  // Supabase 项目（情绪气象台，东京）
+  SUPABASE_URL: "https://blpcafubzdofllzsxuem.supabase.co",
+  // anon key（浏览器/WebView 安全使用；数据访问由服务端 RPC + 密码 2013 保护）
+  ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJscGNhZnViemRvZmxsenN4dWVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyOTUwNjUsImV4cCI6MjEwMjg3MTA2NX0.meKzETSAsyCnLjcfFAmlAS2drJMdiGKdhXaRf69VQN4",
+  // 管理端访问密码（简单口令，写死在代码里）
+  ADMIN_PASSWORD: "2013",
+  // 管理端自身版本号（每次发布新版 +1）
+  APP_VERSION: "1.0.6",
+  // 管理端版本清单地址（可放 GitHub Pages 或任意静态托管；也可用 Supabase 的 versions 表）
+  VERSION_URL: "https://mrstudiogame.github.io/mrstudio/emotion-weather/admin/version.json"
+};
+
+/* ---------------- 管理端自身更新检查 ---------------- */
+let latestAdmin = null;
+
+function parseVersion(v) {
+  return String(v || "0.0.0").split(".").map(n => parseInt(n, 10) || 0);
+}
+function isNewer(a, b) {
+  const A = parseVersion(a), B = parseVersion(b);
+  for (let i = 0; i < 3; i++) {
+    if ((A[i] || 0) > (B[i] || 0)) return true;
+    if ((A[i] || 0) < (B[i] || 0)) return false;
+  }
+  return false;
+}
+
+async function checkAdminUpdate() {
+  try {
+    const res = await fetch(CONFIG.VERSION_URL + "?v=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return; // 版本清单不可达则静默跳过
+    const j = await res.json();
+    latestAdmin = j;
+    if (isNewer(j.version, CONFIG.APP_VERSION)) {
+      document.getElementById("updateTitle").textContent = "管理端新版本 v" + j.version + " 可用";
+      document.getElementById("updateMsg").textContent = j.changelog || "修复问题与新增功能。";
+      document.getElementById("updateForceTip").style.display = j.force_update ? "block" : "none";
+      document.getElementById("updateLaterBtn").style.display = j.force_update ? "none" : "inline-block";
+      document.getElementById("updateModal").style.display = "flex";
+    }
+  } catch (e) { /* 离线/失败不打扰 */ }
+}
+
+function closeUpdate() {
+  document.getElementById("updateModal").style.display = "none";
+  if (latestAdmin && latestAdmin.force_update) {
+    toast("强制更新：请立即更新管理端后才能继续使用");
+    // 强制更新时不可绕过：关闭弹窗后 30 秒再次弹出
+    setTimeout(checkAdminUpdate, 30000);
+  }
+}
+
+// 手动检查版本更新（绕过缓存，立即检查；无更新时提示）
+function manualCheckUpdate() {
+  toast("正在检查版本更新…");
+  fetch(CONFIG.VERSION_URL + "?v=" + Date.now(), { cache: "no-store" })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
+    .then(j => {
+      latestAdmin = j;
+      if (isNewer(j.version, CONFIG.APP_VERSION)) {
+        document.getElementById("updateTitle").textContent = "管理端新版本 v" + j.version + " 可用";
+        document.getElementById("updateMsg").textContent = j.changelog || "修复问题与新增功能。";
+        document.getElementById("updateForceTip").style.display = j.force_update ? "block" : "none";
+        document.getElementById("updateLaterBtn").style.display = j.force_update ? "none" : "inline-block";
+        document.getElementById("updateModal").style.display = "flex";
+      } else {
+        toast("已是最新版本 v" + CONFIG.APP_VERSION);
+      }
+    })
+    .catch(e => toast("检查失败：" + e.message));
+}
+
+function doUpdateNow() {
+  if (!latestAdmin) return;
+  const isAndroidApp = /Android/i.test(navigator.userAgent) && !/Chrome|Firefox|Safari/i.test(navigator.userAgent);
+  if (isAndroidApp && latestAdmin.apk_url) {
+    // APK 壳环境：直接提示下载新版 APK（WebView 无法替换 assets）
+    document.getElementById("updateDownloading").style.display = "none";
+    document.getElementById("updateNowBtn").disabled = false;
+    toast("请下载新版管理端 APK 安装：" + latestAdmin.apk_url);
+    document.getElementById("updateModal").style.display = "none";
+    return;
+  }
+  const url = latestAdmin.file_url || latestAdmin.url || CONFIG.VERSION_URL.replace(/version\.json$/, "admin.html");
+  document.getElementById("updateDownloading").style.display = "block";
+  document.getElementById("updateNowBtn").disabled = true;
+  document.getElementById("updateMsg").textContent = "正在下载 v" + latestAdmin.version + " …";
+  fetch(url, { cache: "no-store" })
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const total = parseInt(r.headers.get("content-length") || "0", 10);
+      const reader = r.body.getReader();
+      const chunks = [];
+      let got = 0;
+      const pump = () => reader.read().then(({ done, value }) => {
+        if (done) {
+          const blob = new Blob(chunks, { type: "text/html;charset=utf-8" });
+          // 下载新版 admin.html 供用户替换本地文件
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "admin.html";
+          document.body.appendChild(a);
+          a.click();
+          URL.revokeObjectURL(a.href);
+          a.remove();
+          document.getElementById("updateDownloading").style.display = "none";
+          document.getElementById("updateNowBtn").disabled = false;
+          toast("新版管理端已下载，请用下载的 admin.html 替换旧文件后刷新");
+          document.getElementById("updateModal").style.display = "none";
+          return;
+        }
+        chunks.push(value);
+        got += value.length;
+        // 有 content-length 时显示真实进度；没有时显示"正在下载…"避免卡 0%
+        if (total > 0) {
+          document.getElementById("updateBar").style.width = Math.min(100, Math.round(got / total * 100)) + "%";
+        } else {
+          document.getElementById("updateBar").style.width = "30%";
+          const p = document.querySelector("#updateDownloading p");
+          if (p) p.textContent = "正在下载新版管理端（" + (got / 1024).toFixed(0) + " KB）…";
+        }
+        return pump();
+      });
+      return pump();
+    })
+    .catch(e => {
+      document.getElementById("updateDownloading").style.display = "none";
+      document.getElementById("updateNowBtn").disabled = false;
+      toast("下载失败：" + e.message + "，请手动下载最新版");
+    });
+}
+
+
+// ⚠️ Supabase 禁止在浏览器使用 secret key（返回 401 Forbidden use of secret API key in browser）。
+// 因此管理端改用 anon key + 服务端 RPC 密码校验（admin_* 函数内部验证密码 2013）。
+const H = { "apikey": CONFIG.ANON_KEY, "Authorization": "Bearer " + CONFIG.ANON_KEY, "Content-Type": "application/json" };
+
+async function api(path, body) {
+  const opt = body ? { method: "POST", headers: H, body: JSON.stringify(body) } : { method: "GET", headers: H };
+  const res = await fetch(CONFIG.SUPABASE_URL + path, opt);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 200));
+  }
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("json") ? res.json() : res.text();
+}
+
+// 带密码的 RPC 调用（服务端校验密码 2013）
+async function adminRpc(fn, params) {
+  return api("/rest/v1/rpc/" + fn, Object.assign({ p_password: CONFIG.ADMIN_PASSWORD }, params || {}));
+}
+
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2500); }
+
+/* ---------------- 登录（简单密码口令 2013） ---------------- */
+async function doLogin() {
+  const pass = document.getElementById("loginPass").value;
+  if (!pass) return toast("请输入密码");
+  if (pass === CONFIG.ADMIN_PASSWORD) {
+    sessionStorage.setItem("admin_user", "admin");
+    showApp();
+  } else {
+    toast("密码错误");
+  }
+}
+function doLogout() { sessionStorage.removeItem("admin_user"); location.reload(); }
+function showApp() {
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("loginName").textContent = sessionStorage.getItem("admin_user");
+  loadUsers(); loadOrders(); loadSkins(); loadGrants();
+  checkAdminUpdate(); // 登录后检查管理端自身更新
+}
+
+/* ---------------- Tab 切换 ---------------- */
+function switchTab(name) {
+  ["users", "orders", "items", "messages"].forEach(t => {
+    document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
+    document.getElementById("nav-" + t).classList.toggle("active", t === name);
+  });
+  if (name === "orders") loadOrders();
+  if (name === "items") loadGrants();
+  if (name === "messages") startMessagePolling();
+}
+
+/* ---------------- 用户管理 ---------------- */
+async function loadUsers() {
+  try {
+    const users = await adminRpc("admin_list_users");
+    const kw = (document.getElementById("userSearch").value || "").trim().toLowerCase();
+    const rows = document.getElementById("userRows");
+    const list = kw ? users.filter(u =>
+      (u.uid || "").toLowerCase().includes(kw) ||
+      (u.phone || "").toLowerCase().includes(kw) ||
+      (u.anonymous_id || "").toLowerCase().includes(kw)
+    ) : users;
+    if (!list.length) { rows.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999">暂无用户</td></tr>'; return; }
+    rows.innerHTML = list.map(u => `
+      <tr>
+        <td data-label="选"><input type="checkbox" class="user-check" value="${u.uid}" ${u.deleted_at ? 'disabled' : ''} onchange="updateSelCount()"></td>
+        <td data-label="用户ID" style="font-size:12px">${u.uid}</td>
+        <td data-label="手机号">${u.deleted_at ? '<span class="badge badge-deleted">已注销</span>' : (u.phone || '-')}</td>
+        <td data-label="匿名ID">${u.anonymous_id || '-'}</td>
+        <td data-label="性别">${u.gender || '-'}</td>
+        <td data-label="年龄">${u.age ?? '-'}</td>
+        <td data-label="生日">${u.birthday || '-'}</td>
+        <td data-label="注册时间">${(u.created_at || '').replace('T', ' ').slice(0, 16)}</td>
+        <td data-label="状态">${u.deleted_at ? '<span class="badge badge-deleted">已注销</span>' : '<span class="badge badge-shipped">正常</span>'}</td>
+        <td data-label="操作">
+          <button class="btn btn-ghost" style="padding:4px 10px" onclick="showUserDetail('${u.uid}')">详情</button>
+          ${u.deleted_at
+            ? `<button class="btn btn-danger" style="padding:4px 10px" onclick="askPurgeUser('${u.uid}')">彻底删除</button>`
+            : `<button class="btn btn-danger" style="padding:4px 10px" onclick="askDeleteUser('${u.uid}')">注销</button>`}
+        </td>
+      </tr>`).join("");
+    updateSelCount();
+  } catch (e) { toast("加载用户失败：" + e.message); }
+}
+
+/* ---------------- 批量操作 ---------------- */
+function updateSelCount() {
+  const n = document.querySelectorAll(".user-check:checked").length;
+  document.getElementById("selCount").textContent = "已选 " + n;
+}
+function toggleAll(cb) {
+  document.querySelectorAll(".user-check").forEach(c => { if (!c.disabled) c.checked = cb.checked; });
+  updateSelCount();
+}
+function getSelectedIds() {
+  return [...document.querySelectorAll(".user-check:checked")].map(c => c.value);
+}
+function askBatchDelete() {
+  const ids = getSelectedIds();
+  if (!ids.length) return toast("请先勾选要注销的用户");
+  pendingDeleteIds = ids;
+  document.getElementById("confirmTitle").textContent = "批量注销（" + ids.length + " 个用户）";
+  document.getElementById("confirmMsg").textContent = "将软删除所选用户的全部数据。请填写注销理由（用户再次登录时会看到）：";
+  document.getElementById("confirmReason").style.display = "block";
+  document.getElementById("confirmReason").value = "";
+  document.getElementById("confirmModal").style.display = "flex";
+  document.getElementById("confirmBtn").onclick = doBatchDelete;
+}
+async function doBatchDelete() {
+  const reason = document.getElementById("confirmReason").value.trim();
+  if (!reason || reason.length < 2) { toast("请填写注销理由（至少2个字）"); return; }
+  try {
+    const n = await adminRpc("admin_batch_delete", { p_user_ids: pendingDeleteIds, p_reason: reason });
+    toast("已批量注销 " + n + " 个用户");
+    closeConfirm();
+    loadUsers();
+  } catch (e) { toast("操作失败：" + e.message); }
+}
+function askBatchPurge() {
+  const ids = getSelectedIds();
+  if (!ids.length) return toast("请先勾选要彻底删除的用户（含已注销的）");
+  pendingDeleteIds = ids;
+  document.getElementById("confirmTitle").textContent = "批量彻底删除（" + ids.length + " 个用户）";
+  document.getElementById("confirmMsg").textContent = "将彻底删除所选用户的所有信息（账号、云朵、订单、日记、消息全部抹除），不可恢复！确定吗？";
+  document.getElementById("confirmReason").style.display = "none";
+  document.getElementById("confirmModal").style.display = "flex";
+  document.getElementById("confirmBtn").onclick = doBatchPurge;
+}
+async function doBatchPurge() {
+  try {
+    const n = await adminRpc("admin_batch_purge", { p_user_ids: pendingDeleteIds });
+    toast("已彻底删除 " + n + " 个用户");
+    closeConfirm();
+    loadUsers();
+  } catch (e) { toast("操作失败：" + e.message); }
+}
+
+async function showUserDetail(userId) {
+  try {
+    const [stats, items] = await Promise.all([
+      adminRpc("admin_user_stats", { p_user_id: userId }),
+      adminRpc("admin_list_orders").then(list => (list || []).filter(o => o.user_id === userId))
+    ]);
+    document.getElementById("userDetailBody").innerHTML = `
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${stats[0]?.cloud_count ?? 0}</div><div class="lbl">发布云朵</div></div>
+        <div class="stat"><div class="num">${stats[0]?.lantern_received ?? 0}</div><div class="lbl">收路灯</div></div>
+        <div class="stat"><div class="num">${stats[0]?.item_count ?? 0}</div><div class="lbl">已购物品</div></div>
+      </div>
+      <h3 style="font-size:14px;margin-bottom:8px">订单记录（${items.length}）</h3>
+      <table>
+        <thead><tr><th>时间</th><th>物品</th><th>金额</th><th>状态</th></tr></thead>
+        <tbody>${items.map(o => `<tr>
+          <td>${(o.created_at || '').replace('T', ' ').slice(0, 16)}</td>
+          <td>${o.item_name || o.product_id || '-'}</td>
+          <td>¥${((o.amount_cents || 0) / 100).toFixed(2)}</td>
+          <td>${statusBadge(o.status)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999">无订单</td></tr>'}</tbody>
+      </table>
+      <div style="margin-top:16px;text-align:right">
+        <button class="btn btn-ghost" onclick="document.getElementById('userModal').style.display='none'">关闭</button>
+      </div>`;
+    document.getElementById("userModal").style.display = "flex";
+  } catch (e) { toast("加载详情失败：" + e.message); }
+}
+
+/* ---------------- 订单管理 ---------------- */
+async function loadOrders() {
+  try {
+    const f = document.getElementById("orderFilter").value;
+    let orders = await adminRpc("admin_list_orders");
+    if (f) orders = (orders || []).filter(o => o.status === f);
+    const rows = document.getElementById("orderRows");
+    if (!orders.length) { rows.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999">暂无订单</td></tr>'; return; }
+    rows.innerHTML = orders.map(o => `
+      <tr>
+        <td data-label="时间">${(o.created_at || '').replace('T', ' ').slice(0, 16)}</td>
+        <td data-label="用户ID" style="font-size:12px">${o.user_id}</td>
+        <td data-label="物品">${o.item_name || o.product_id || '-'}</td>
+        <td data-label="填写ID">${o.submitted_user_id || '-'}</td>
+        <td data-label="金额">¥${((o.amount_cents || 0) / 100).toFixed(2)}</td>
+        <td data-label="状态">${statusBadge(o.status)}</td>
+        <td data-label="操作">${o.status === 'pending' ? `<button class="btn btn-primary" style="padding:4px 10px;margin-right:4px" onclick="shipOrder('${o.id}')">确认发货</button><button class="btn btn-danger" style="padding:4px 10px" onclick="rejectOrder('${o.id}')">拒绝</button>` : (o.status === 'rejected' ? `<span style="font-size:11px;color:#E65100">理由：${o.reject_reason || '-'}</span>` : '-')}</td>
+      </tr>`).join("");
+  } catch (e) { toast("加载订单失败：" + e.message); }
+}
+function statusBadge(s) {
+  return { pending: '<span class="badge badge-pending">待确认</span>', shipped: '<span class="badge badge-shipped">已发货</span>', cancelled: '<span class="badge badge-cancelled">已取消</span>', rejected: '<span class="badge badge-deleted">已拒绝</span>' }[s] || s;
+}
+async function shipOrder(orderId) {
+  try {
+    await adminRpc("admin_ship_order", { p_order_id: orderId });
+    toast("已确认收款并发货");
+    loadOrders();
+  } catch (e) { toast("操作失败：" + e.message); }
+}
+function rejectOrder(orderId) {
+  const reason = prompt("请填写拒绝发货的理由（必填，用户会看到）：");
+  if (reason === null) return; // 用户取消
+  if (!reason || reason.trim().length < 2) { toast("理由不能为空（至少2个字）"); return; }
+  doReject(orderId, reason.trim());
+}
+async function doReject(orderId, reason) {
+  try {
+    await adminRpc("admin_reject_order", { p_order_id: orderId, p_reason: reason });
+    toast("已拒绝该订单，理由已通知用户");
+    loadOrders();
+  } catch (e) { toast("操作失败：" + e.message); }
+}
+
+/* ---------------- 物品发放 ---------------- */
+async function loadSkins() {
+  try {
+    // skins 表公开可读（商店展示），anon 可直接查
+    const skins = await api("/rest/v1/skins?select=*&active=eq.true&order=sort.asc");
+    document.getElementById("grantSkinId").innerHTML = '<option value="">选择物品…</option>' +
+      skins.map(s => `<option value="${s.id}">${s.name}（${s.type}）¥${s.price_cents / 100}</option>`).join("");
+    window.__skins = skins;
+  } catch (e) { toast("加载物品失败：" + e.message); }
+}
+async function doGrant() {
+  const userId = document.getElementById("grantUserId").value.trim();
+  const skinId = document.getElementById("grantSkinId").value;
+  if (!userId || !skinId) return toast("请填写用户ID并选择物品");
+  try {
+    await adminRpc("admin_grant_item", { p_user_id: userId, p_skin_id: skinId });
+    toast("发放成功！");
+    document.getElementById("grantUserId").value = "";
+    loadGrants();
+  } catch (e) { toast("发放失败：" + e.message); }
+}
+async function loadGrants() {
+  try {
+    const items = await adminRpc("admin_list_grants");
+    document.getElementById("grantRows").innerHTML = (items || []).map(i => `
+      <tr><td>${(i.granted_at || '').replace('T', ' ').slice(0, 16)}</td>
+      <td style="font-size:12px">${i.user_id}</td><td>${i.item_name}</td></tr>`).join('') ||
+      '<tr><td colspan="3" style="text-align:center;color:#999">暂无发放记录</td></tr>';
+  } catch (e) { /* 静默 */ }
+}
+
+/* ---------------- 私信管理（微信式） ---------------- */
+let msgTimer = null;
+let currentChatUser = null; // 当前会话的用户ID（uuid）
+let allMessages = [];
+
+function startMessagePolling() {
+  loadMessages();
+  if (msgTimer) clearInterval(msgTimer);
+  msgTimer = setInterval(loadMessages, 4000);
+}
+
+async function loadMessages() {
+  try {
+    allMessages = await adminRpc("admin_list_messages") || [];
+    renderSessionList();
+    renderChatBody();
+  } catch (e) { /* 静默 */ }
+}
+
+function renderSessionList() {
+  const box = document.getElementById("chatSessionList");
+  if (!box) return;
+  // 按用户分组（与用户相关的消息，取对方ID；客服身份 admin/counselor 是来源不算会话方）
+  const sessions = new Map();
+  allMessages.forEach(m => {
+    const other = m.from_user_id === "admin" || m.from_user_id === "counselor" ? m.to_user_id : m.from_user_id;
+    if (!other || other.length < 20) return; // 只要用户uuid会话
+    if (!sessions.has(other)) sessions.set(other, []);
+    sessions.get(other).push(m);
+  });
+  if (!sessions.size) {
+    box.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:13px">暂无会话</div>';
+    return;
+  }
+  box.innerHTML = [...sessions.entries()].map(([uid, msgs]) => {
+    const last = msgs[msgs.length - 1];
+    const preview = last.content.slice(0, 24);
+    return `<div class="session-item ${currentChatUser === uid ? 'active' : ''}" onclick="openChat('${uid}')">
+      <div class="session-avatar">${uid.slice(0, 2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="session-name">${uid.slice(0, 12)}…</div>
+        <div class="session-preview">${preview}</div>
+      </div>
+      <span style="font-size:11px;color:#bbb">${(last.created_at || '').slice(11, 16)}</span>
+    </div>`;
+  }).join("");
+}
+
+function openChat(uid) {
+  currentChatUser = uid;
+  document.getElementById("chatHeaderText").textContent = "与 " + uid.slice(0, 12) + "… 聊天";
+  // 移动端：隐藏会话列表，显示聊天窗
+  if (window.innerWidth <= 768) {
+    document.querySelector(".chat-side").classList.add("hidden-mobile");
+    document.getElementById("chatMain").classList.add("visible");
+    document.getElementById("chatBackBtn").style.display = "inline";
+  }
+  renderSessionList();
+  renderChatBody();
+}
+function closeChatMobile() {
+  document.querySelector(".chat-side").classList.remove("hidden-mobile");
+  document.getElementById("chatMain").classList.remove("visible");
+  document.getElementById("chatBackBtn").style.display = "none";
+  currentChatUser = null;
+  document.getElementById("chatHeaderText").textContent = "选择一个会话开始聊天";
+}
+
+function renderChatBody() {
+  const body = document.getElementById("chatBody");
+  if (!body) return;
+  if (!currentChatUser) {
+    body.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px">← 选择一个会话开始聊天</div>';
+    return;
+  }
+  const msgs = allMessages.filter(m => m.from_user_id === currentChatUser || m.to_user_id === currentChatUser);
+  if (!msgs.length) {
+    body.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px">暂无消息</div>';
+    return;
+  }
+  body.innerHTML = msgs.map(m => {
+    const isMe = m.from_user_id === "admin" || m.from_user_id === "counselor";
+    const avatarTxt = isMe ? (m.from_user_id === "admin" ? "客" : "心") : currentChatUser.slice(0, 2).toUpperCase();
+    return `<div class="bubble-row ${isMe ? 'me' : 'other'}">
+      ${isMe ? '' : `<div class="bubble-avatar" style="background:#FFD3B4;color:#8a5a2a;margin-right:8px">${avatarTxt}</div>`}
+      <div style="display:flex;flex-direction:column;align-items:${isMe ? 'flex-end' : 'flex-start'}">
+        <div class="bubble">${m.content}</div>
+        <div class="bubble-time">${(m.created_at || '').replace('T', ' ').slice(0, 16)}</div>
+      </div>
+      ${isMe ? `<div class="bubble-avatar" style="background:#6CB4EE;color:#fff;margin-left:8px">${avatarTxt}</div>` : ''}
+    </div>`;
+  }).join("");
+  body.scrollTop = body.scrollHeight;
+}
+
+async function doReply() {
+  const content = document.getElementById("replyContent").value.trim();
+  const as = document.getElementById("replyAs").value;
+  if (!currentChatUser) return toast("请先选择要回复的会话");
+  if (!content) return toast("请输入回复内容");
+  try {
+    await adminRpc("admin_reply_message", { p_to_user_id: currentChatUser, p_content: content, p_as: as });
+    document.getElementById("replyContent").value = "";
+    loadMessages();
+  } catch (e) { toast("发送失败：" + e.message); }
+}
+
+// 回车发送
+if (typeof document !== "undefined") {
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && document.getElementById("tab-messages") && !document.getElementById("tab-messages").classList.contains("hidden") && !e.shiftKey) {
+      const inp = document.getElementById("replyContent");
+      if (inp && document.activeElement === inp) { e.preventDefault(); doReply(); }
+    }
+  });
+}
+let pendingDeleteId = null;
+let pendingPurgeId = null;
+let pendingDeleteIds = [];
+function askDeleteUser(userId) {
+  pendingDeleteId = userId;
+  document.getElementById("confirmTitle").textContent = "注销用户";
+  document.getElementById("confirmMsg").textContent = "将软删除该用户全部数据（云朵、设备将被清理）。请填写注销理由（用户再次登录时会看到）：";
+  document.getElementById("confirmReason").style.display = "block";
+  document.getElementById("confirmReason").value = "";
+  document.getElementById("confirmModal").style.display = "flex";
+  document.getElementById("confirmBtn").onclick = doDeleteUser;
+}
+async function doDeleteUser() {
+  const reason = document.getElementById("confirmReason").value.trim();
+  if (!reason || reason.length < 2) { toast("请填写注销理由（至少2个字）"); return; }
+  try {
+    await adminRpc("admin_delete_user", { p_user_id: pendingDeleteId, p_reason: reason });
+    toast("已注销该用户");
+    closeConfirm();
+    loadUsers();
+  } catch (e) { toast("注销失败：" + e.message); }
+}
+function askPurgeUser(userId) {
+  pendingPurgeId = userId;
+  document.getElementById("confirmTitle").textContent = "彻底删除用户";
+  document.getElementById("confirmMsg").textContent = "将彻底删除该用户的所有信息（账号、云朵、订单、日记、消息全部抹除），不可恢复！确定吗？";
+  document.getElementById("confirmReason").style.display = "none";
+  document.getElementById("confirmModal").style.display = "flex";
+  document.getElementById("confirmBtn").onclick = doPurgeUser;
+}
+async function doPurgeUser() {
+  try {
+    await adminRpc("admin_purge_user", { p_user_id: pendingPurgeId });
+    toast("已彻底删除该用户");
+    closeConfirm();
+    loadUsers();
+  } catch (e) { toast("删除失败：" + e.message); }
+}
+function closeConfirm() {
+  document.getElementById("confirmModal").style.display = "none";
+  pendingDeleteId = null;
+  pendingPurgeId = null;
+  pendingDeleteIds = [];
+}
+
+/* ---------------- 启动 ---------------- */
+if (sessionStorage.getItem("admin_user")) showApp();
+document.getElementById("userModal").addEventListener("click", e => { if (e.target.id === "userModal") e.target.style.display = "none"; });
+</script>
+</body>
+</html>
