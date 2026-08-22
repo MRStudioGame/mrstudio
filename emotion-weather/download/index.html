@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪气象台 · 官方下载</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(180deg, #BEE3F8 0%, #E3F2FD 40%, #F7FBFF 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: #2C3E50;
+  }
+  /* 飘动云朵背景 */
+  .clouds { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  .cloud { position: absolute; background: rgba(255,255,255,0.85); border-radius: 50px; filter: blur(1px); }
+  .cloud::before, .cloud::after { content: ""; position: absolute; background: rgba(255,255,255,0.85); border-radius: 50%; }
+  .cloud1 { width: 140px; height: 46px; top: 12%; left: -180px; animation: drift 70s linear infinite; }
+  .cloud1::before { width: 60px; height: 60px; top: -30px; left: 22px; }
+  .cloud1::after { width: 80px; height: 80px; top: -44px; left: 60px; }
+  .cloud2 { width: 180px; height: 56px; top: 32%; left: -220px; animation: drift 95s linear infinite 10s; }
+  .cloud2::before { width: 70px; height: 70px; top: -36px; left: 30px; }
+  .cloud2::after { width: 100px; height: 100px; top: -52px; left: 78px; }
+  .cloud3 { width: 120px; height: 40px; top: 58%; left: -160px; animation: drift 60s linear infinite 20s; }
+  .cloud3::before { width: 50px; height: 50px; top: -26px; left: 20px; }
+  .cloud3::after { width: 66px; height: 66px; top: -36px; left: 52px; }
+  .cloud4 { width: 160px; height: 50px; top: 78%; left: -200px; animation: drift 85s linear infinite 30s; }
+  .cloud4::before { width: 64px; height: 64px; top: -32px; left: 26px; }
+  .cloud4::after { width: 84px; height: 84px; top: -46px; left: 70px; }
+  @keyframes drift { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 400px)); } }
+
+  .wrap { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 48px 20px 60px; text-align: center; }
+  .logo {
+    width: 92px; height: 92px; margin: 0 auto 18px; border-radius: 26px;
+    background: linear-gradient(135deg, #6CB4EE, #FFD3B4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 46px; box-shadow: 0 10px 30px rgba(108,180,238,0.35);
+  }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: 2px; }
+  .sub { margin-top: 8px; font-size: 14px; color: #78909C; }
+  .version-tag {
+    display: inline-block; margin-top: 14px; padding: 6px 16px;
+    background: rgba(108,180,238,0.15); color: #4A90C4;
+    border-radius: 20px; font-size: 13px; font-weight: 600;
+  }
+
+  .card {
+    margin-top: 32px; background: rgba(255,255,255,0.92);
+    border-radius: 20px; padding: 28px 24px;
+    box-shadow: 0 8px 30px rgba(44,62,80,0.08);
+    backdrop-filter: blur(6px);
+  }
+  .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .card .hint { font-size: 12px; color: #90A4AE; margin-bottom: 18px; }
+
+  .dl-btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; padding: 18px 20px; border: none; border-radius: 16px;
+    font-size: 18px; font-weight: 700; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, #6CB4EE, #4A90C4);
+    box-shadow: 0 8px 22px rgba(108,180,238,0.4);
+    transition: transform .15s, box-shadow .15s; text-decoration: none;
+  }
+  .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(108,180,238,0.5); }
+  .dl-btn:active { transform: translateY(0); }
+  .dl-btn .icon { font-size: 26px; }
+  .dl-btn .small { display: block; font-size: 12px; font-weight: 400; opacity: .85; margin-top: 2px; }
+  .dl-info { margin-top: 12px; font-size: 12px; color: #90A4AE; }
+
+  .mirror { margin-top: 14px; font-size: 13px; color: #4A90C4; }
+  .mirror a { color: #4A90C4; text-decoration: underline; }
+
+  .features { margin-top: 24px; text-align: left; }
+  .features .item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #455A64; }
+  .features .item .e { font-size: 18px; }
+
+  .music-btn {
+    position: fixed; right: 18px; bottom: 18px; z-index: 10;
+    width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,0.92); font-size: 20px;
+    box-shadow: 0 4px 14px rgba(44,62,80,0.18);
+  }
+  .footer { margin-top: 34px; font-size: 12px; color: #B0BEC5; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 25px; }
+    .wrap { padding: 32px 16px 50px; }
+    .dl-btn { font-size: 16px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+  <div class="clouds">
+    <div class="cloud cloud1"></div><div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div><div class="cloud cloud4"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="logo">☁️</div>
+    <h1>情绪气象台</h1>
+    <div class="sub">匿名记录心情 · 温暖每一片天空</div>
+    <div class="version-tag" id="verTag">正在获取最新版本…</div>
+
+    <div class="card">
+      <h2>📱 安卓版下载</h2>
+      <div class="hint">适用于 Android 8.0 及以上 · 安装包约 66MB</div>
+      <a class="dl-btn" id="dlBtn" href="#" onclick="return false;">
+        <span class="icon">🤖</span>
+        <span>立即下载安卓版<span class="small" id="dlVersion">情绪气象台 最新版</span></span>
+      </a>
+      <div class="dl-info" id="dlInfo">正在获取下载地址…</div>
+      <div class="mirror">下载速度慢？<a id="mirrorLink" href="#" onclick="return false;">备用高速通道</a></div>
+    </div>
+
+    <div class="card features">
+      <h2>✨ 功能介绍</h2>
+      <div class="item"><span class="e">🗺️</span>情绪地图：把心情变成云朵，飘在城市的天空</div>
+      <div class="item"><span class="e">🎡</span>情绪轮盘：8 种心情一键记录</div>
+      <div class="item"><span class="e">🏮</span>温暖榜：给喜欢的云朵点亮路灯</div>
+      <div class="item"><span class="e">🎨</span>皮肤商店：彩虹云朵、星光云朵、极光路灯…</div>
+      <div class="item"><span class="e">💬</span>云友互动：关注、私信、温柔陪伴</div>
+      <div class="item"><span class="e">📖</span>心情日记：写下只属于自己的悄悄话</div>
+    </div>
+
+    <div class="footer">情绪气象台 · MR工作室出品 · 你的心情，值得被温柔以待</div>
+  </div>
+
+  <button class="music-btn" id="musicBtn" title="背景音乐">🎵</button>
+  <audio id="bgm" src="sunwoo_audio.mp3" loop preload="auto"></audio>
+
+<script>
+// ========== 从 GitHub Releases 拉取最新客户端版本（公开 API，无需密钥，发版即同步） ==========
+const GITHUB_API = "https://api.github.com/repos/MRStudioGame/mrstudio/releases?per_page=10";
+const GH_DL = "https://github.com/MRStudioGame/mrstudio/releases/download";
+const ACCEL = "https://ghfast.top/";
+
+async function loadVersion() {
+  try {
+    const r = await fetch(GITHUB_API);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const releases = await r.json();
+    // 找最新的客户端 release（tag 前缀 emotion-weather-v，asset 不含 admin）
+    let found = null;
+    for (const rel of releases || []) {
+      if (!rel.tag_name || !rel.tag_name.startsWith("emotion-weather-v")) continue;
+      const asset = (rel.assets || []).find(a =>
+        a.name && a.name.startsWith("emotion-weather-") && a.name.endsWith(".apk") && !a.name.includes("admin")
+      );
+      if (asset) { found = { tag: rel.tag_name, name: asset.name, ver: rel.tag_name.replace("emotion-weather-v", "") }; break; }
+    }
+    if (found) {
+      const direct = GH_DL + "/" + found.tag + "/" + found.name;
+      const accel = ACCEL + direct;
+      document.getElementById("verTag").textContent = "最新版本 v" + found.ver;
+      document.getElementById("dlVersion").textContent = "情绪气象台 v" + found.ver;
+      document.getElementById("dlBtn").href = accel; // 加速下载（快）
+      document.getElementById("dlInfo").textContent = "加速下载 · 文件约 66MB · 直接下载 APK 安装即可";
+      document.getElementById("mirrorLink").href = direct; // 备用直连
+      document.getElementById("mirrorLink").onclick = null;
+      // 尝试自动播放背景音乐
+      tryBgm();
+    } else {
+      document.getElementById("verTag").textContent = "暂无可用版本";
+      document.getElementById("dlInfo").textContent = "请稍后刷新重试";
+    }
+  } catch (e) {
+    document.getElementById("verTag").textContent = "网络异常，请刷新";
+    document.getElementById("dlInfo").textContent = "无法连接服务器";
+  }
+}
+
+// ========== 背景音乐 ==========
+let bgmOn = false;
+function tryBgm() {
+  const bgm = document.getElementById("bgm");
+  bgm.volume = 0.5;
+  bgm.play().then(() => { bgmOn = true; updateMusicBtn(); }).catch(() => { bgmOn = false; });
+}
+function toggleBgm() {
+  const bgm = document.getElementById("bgm");
+  if (bgmOn) { bgm.pause(); bgmOn = false; }
+  else { bgm.volume = 0.5; bgm.play().then(() => { bgmOn = true; }).catch(() => {}); }
+  updateMusicBtn();
+}
+function updateMusicBtn() {
+  document.getElementById("musicBtn").textContent = bgmOn ? "🔊" : "🎵";
+  document.getElementById("musicBtn").title = bgmOn ? "暂停背景音乐" : "播放背景音乐";
+}
+document.getElementById("musicBtn").onclick = toggleBgm;
+loadVersion();
+</script>
+</body>
+</html>
