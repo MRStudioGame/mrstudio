@@ -1,7 +1,7 @@
 {
-  "version": "1.0.6",
-  "changelog": "v1.0.6 更新\n- 修复管理端更新检查失败（版本清单地址不可达）\n- 手机竖屏适配：底部导航、卡片列表、聊天单栏\n- 修复定位权限弹窗与机器人云朵随地图移动",
+  "version": "1.0.7",
+  "changelog": "v1.0.7 更新\n- 修复更新后无法安装：新增安装未知来源权限引导（Android 8.0+）\n- 移除订单管理模块（改为微信扫码付款模式）\n- 修复发放物品失败（支持匿名ID/UUID自动匹配）\n- 私信界面手机竖屏改上下布局",
   "force_update": false,
   "file_url": "https://mrstudiogame.github.io/mrstudio/emotion-weather/admin/admin.html",
-  "apk_url": "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/releases/download/emotion-weather-admin-v1.0.6/emotion-weather-admin-1.0.6.apk"
+  "apk_url": "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/releases/download/emotion-weather-admin-v1.0.7/emotion-weather-admin-1.0.7.apk"
 }
