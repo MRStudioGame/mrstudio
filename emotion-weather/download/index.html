@@ -113,6 +113,17 @@
     margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: underline;
   }
 
+  /* 左上角制作标识 */
+  .badge {
+    position: fixed; top: 0; left: 0; z-index: 20;
+    background: linear-gradient(135deg, #6CB4EE, #4A90C4);
+    color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    padding: 6px 18px 6px 12px;
+    border-bottom-right-radius: 16px;
+    box-shadow: 0 3px 10px rgba(74,144,196,0.35);
+    cursor: default;
+  }
+
   @media (max-width: 480px) {
     h1 { font-size: 25px; }
     .wrap { padding: 32px 16px 50px; }
@@ -136,6 +147,9 @@
     </div>
     <div class="close" onclick="document.getElementById('wxGuide').style.display='none'">我知道了，继续查看</div>
   </div>
+
+  <!-- 左上角制作标识 -->
+  <div class="badge">🏠 龙岗制作</div>
 
   <div class="wrap">
     <div class="logo">☁️</div>
