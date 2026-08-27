@@ -1,7 +1,7 @@
 {
-  "versionCode": 4,
-  "versionName": "2.0.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-4.apk",
-  "size": 49155,
-  "note": "支持远程更新 + 管理端数据上报"
+  "versionCode": 5,
+  "versionName": "2.0.1",
+  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-5.apk",
+  "size": 49727,
+  "note": "实时上报增强：启动即上报/失败重试/5分钟心跳"
 }
