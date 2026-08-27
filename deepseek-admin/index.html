@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek 公益API 管理端</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f7fa; color: #1f2328; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 16px; }
+  header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  header h1 { font-size: 20px; flex: 1; }
+  .btn { background: #1f6feb; color: #fff; border: 0; border-radius: 8px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  .btn:disabled { background: #9db8e8; }
+  .btn.gray { background: #656d76; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stat { background: #fff; border-radius: 12px; padding: 12px 18px; flex: 1; min-width: 120px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .stat b { display: block; font-size: 22px; color: #1f6feb; }
+  .stat span { font-size: 12px; color: #656d76; }
+  .card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .card .dev { font-weight: bold; font-family: Consolas, monospace; }
+  .card .time { font-size: 12px; color: #656d76; margin-left: auto; }
+  .keyrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 0; border-top: 1px dashed #eaeef2; }
+  .keyrow .mask { font-family: Consolas, monospace; font-size: 13px; color: #1f2328; }
+  .keyrow .bal { font-size: 12px; color: #1f6feb; font-weight: bold; }
+  .keyrow .bal.neg { color: #d1242f; }
+  .keyrow .bal.na { color: #9aa4b0; }
+  .copy { background: #eef4ff; color: #1f6feb; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .copy:hover { background: #dde9ff; }
+  .copyall { margin-top: 8px; }
+  .empty { text-align: center; color: #9aa4b0; padding: 40px 0; }
+  footer { text-align: center; color: #a0a8b0; font-size: 12px; padding: 18px 0 8px; }
+  #login { max-width: 340px; margin: 80px auto; background: #fff; border-radius: 14px; padding: 28px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  #login h2 { font-size: 18px; margin-bottom: 16px; }
+  #login input { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 8px; font-size: 16px; text-align: center; margin-bottom: 12px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1f2328; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 99; }
+  .toast.show { opacity: .95; }
+  .badge { font-size: 11px; border-radius: 6px; padding: 2px 8px; }
+  .badge.ok { background: #e6f4ea; color: #1a7f37; }
+  .badge.bad { background: #fdecec; color: #d1242f; }
+  .badge.unknown { background: #f0f2f5; color: #9aa4b0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="login" hidden>
+    <h2>🔑 DeepSeek 公益API 管理端</h2>
+    <input type="password" id="pin" placeholder="输入访问密码" autocomplete="off">
+    <button class="btn" id="pinBtn" style="width:100%">进入</button>
+  </div>
+  <div id="app" hidden>
+    <header>
+      <h1>💰 DeepSeek 公益API 管理端</h1>
+      <span id="lastUpdate" style="font-size:12px;color:#656d76"></span>
+      <button class="btn" id="refreshBtn">刷新</button>
+    </header>
+    <div class="stats">
+      <div class="stat"><b id="sUsers">0</b><span>使用用户</span></div>
+      <div class="stat"><b id="sKeys">0</b><span>Key 总数</span></div>
+      <div class="stat"><b id="sNeg">0</b><span>欠费/异常 Key</span></div>
+      <div class="stat"><b id="sTotal">¥0</b><span>可用余额合计</span></div>
+    </div>
+    <div id="list"><div class="empty">加载中…</div></div>
+    <footer>MR工作室制作</footer>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const ADMIN_PIN = "258369";
+const SUPABASE_URL = "https://mfrmsmbazofjzdpuxdod.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1zbWJhem9manpkcHV4ZG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDAxMTEsImV4cCI6MjEwMjM3NjExMX0.1VQ4V6XnR6LBGT7-3joS6Hju2twRCgrBWW9hIjX-gRY";
+const TABLE = "dsb_reports";
+
+function $(id) { return document.getElementById(id); }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1600); }
+
+function mask(k) { return k && k.length > 9 ? k.slice(0, 5) + "…" + k.slice(-4) : k; }
+
+function copyText(txt, tip) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => toast(tip || "已复制")).catch(() => fallbackCopy(txt, tip));
+  } else { fallbackCopy(txt, tip); }
+}
+function fallbackCopy(txt, tip) {
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); toast(tip || "已复制"); } catch (e) { toast("复制失败"); }
+  document.body.removeChild(ta);
+}
+
+async function fetchRows() {
+  const url = SUPABASE_URL + "/rest/v1/" + TABLE + "?select=device_id,keys,updated_at&order=updated_at.desc";
+  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } });
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  return resp.json();
+}
+
+function render(rows) {
+  const list = $("list");
+  if (!rows || rows.length === 0) { list.innerHTML = '<div class="empty">还没有任何用户上报数据</div>'; return; }
+  let users = 0, keysTotal = 0, neg = 0, sum = 0;
+  const cards = rows.map(r => {
+    const dev = r.device_id || "unknown";
+    const ks = Array.isArray(r.keys) ? r.keys : [];
+    users++; keysTotal += ks.length;
+    let keyHtml = "";
+    ks.forEach(k => {
+      const key = k.key || "";
+      const total = parseFloat(k.total);
+      const hasBal = !isNaN(total);
+      const avail = k.available === true;
+      let balHtml = '<span class="bal na">余额未知</span>';
+      if (hasBal) {
+        const cur = k.currency || "CNY";
+        const sign = total < 0 ? "neg" : "";
+        if (total < 0) neg++;
+        else if (avail) sum += total;
+        balHtml = '<span class="bal ' + sign + '">' + (k.currency === "USD" ? "$" : "¥") + (Number.isFinite(total) ? total.toFixed(2) : total) + '</span>';
+        balHtml += avail ? ' <span class="badge ok">可用</span>' : ' <span class="badge bad">不可用</span>';
+      } else {
+        balHtml += ' <span class="badge unknown">未查询</span>';
+      }
+      keyHtml += '<div class="keyrow"><span class="mask" title="' + key.replace(/"/g, "&quot;") + '">' + mask(key) + '</span>' + balHtml +
+        '<button class="copy" onclick="copyText(\'' + key.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + '\',\'已复制 Key\')">复制Key</button></div>';
+    });
+    const time = r.updated_at ? new Date(r.updated_at).toLocaleString("zh-CN", { hour12: false }) : "--";
+    return '<div class="card"><div class="head"><span class="dev">📱 ' + mask(dev) + '</span>' +
+      '<span class="time">' + time + '</span></div>' + keyHtml +
+      '<button class="copy copyall" onclick="copyText(\'' + ks.map(x => x.key).join("\\n").replace(/\\/g, "\\\\").replace(/'/g, "\\'") + '\',\'已复制全部 Key\')">复制全部 Key</button></div>';
+  }).join("");
+  list.innerHTML = cards;
+  $("sUsers").textContent = users;
+  $("sKeys").textContent = keysTotal;
+  $("sNeg").textContent = neg;
+  $("sTotal").textContent = "¥" + sum.toFixed(2);
+  $("lastUpdate").textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false });
+}
+
+async function load() {
+  const btn = $("refreshBtn"); btn.disabled = true; btn.textContent = "刷新中…";
+  try {
+    render(await fetchRows());
+    toast("已刷新");
+  } catch (e) {
+    $("list").innerHTML = '<div class="empty">加载失败：' + e.message + '</div>';
+  }
+  btn.disabled = false; btn.textContent = "刷新";
+}
+
+function enter() {
+  if ($("pin").value.trim() === ADMIN_PIN) {
+    sessionStorage.setItem("dsbPin", "1");
+    $("login").hidden = true;
+    $("app").hidden = false;
+    load();
+  } else {
+    toast("密码错误");
+  }
+}
+
+$("pinBtn").onclick = enter;
+$("pin").addEventListener("keydown", e => { if (e.key === "Enter") enter(); });
+$("refreshBtn").onclick = load;
+
+if (sessionStorage.getItem("dsbPin") === "1") {
+  $("login").hidden = true; $("app").hidden = false; load();
+}
+setInterval(() => { if (!$("app").hidden) load(); }, 30000);
+</script>
+</body>
+</html>
