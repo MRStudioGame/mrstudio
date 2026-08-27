@@ -25,7 +25,7 @@
   .card .dev { font-weight: bold; font-family: Consolas, monospace; }
   .card .time { font-size: 12px; color: #656d76; margin-left: auto; }
   .keyrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 0; border-top: 1px dashed #eaeef2; }
-  .keyrow .mask { font-family: Consolas, monospace; font-size: 13px; color: #1f2328; }
+  .keyrow .mask { font-family: Consolas, monospace; font-size: 13px; color: #1f2328; word-break: break-all; }
   .keyrow .bal { font-size: 12px; color: #1f6feb; font-weight: bold; }
   .keyrow .bal.neg { color: #d1242f; }
   .keyrow .bal.na { color: #9aa4b0; }
@@ -137,7 +137,7 @@ function render(rows) {
       } else {
         balHtml += ' <span class="badge unknown">未查询</span>';
       }
-      keyHtml += '<div class="keyrow"><span class="mask" title="' + key.replace(/"/g, "&quot;") + '">' + mask(key) + '</span>' + balHtml +
+      keyHtml += '<div class="keyrow"><span class="mask" title="' + key.replace(/"/g, "&quot;") + '">' + key + '</span>' + balHtml +
         '<button class="copy" onclick="copyText(\'' + key.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + '\',\'已复制 Key\')">复制Key</button></div>';
     });
     const time = r.updated_at ? new Date(r.updated_at).toLocaleString("zh-CN", { hour12: false }) : "--";
