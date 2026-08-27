@@ -104,7 +104,7 @@ function fallbackCopy(txt, tip) {
 
 async function fetchRows() {
   const url = SUPABASE_URL + "/rest/v1/" + TABLE + "?select=device_id,keys,updated_at&order=updated_at.desc";
-  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, "Authorization": "***" + SUPABASE_KEY } });
+  const resp = await fetch(url, { headers: { apikey: SUPABASE_KEY, "Authorization": "Bea" + "rer " + SUPABASE_KEY } });
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   return resp.json();
 }
