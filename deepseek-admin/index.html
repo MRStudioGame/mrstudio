@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>DeepSeek 公益API 管理端</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,7 +67,7 @@
   </div>
   <div id="app" hidden>
     <header>
-      <h1>💰 DeepSeek 公益API 管理端</h1>
+      <h1>💰 DeepSeek 公益API 管理端 <span style="font-size:11px;color:#9aa4b0">v3</span></h1>
       <span id="lastUpdate" style="font-size:12px;color:#656d76"></span>
       <button class="btn" id="refreshBtn">刷新</button>
     </header>
@@ -156,7 +159,20 @@ async function load() {
     render(await fetchRows());
     toast("已刷新");
   } catch (e) {
-    $("list").innerHTML = '<div class="empty">加载失败：' + e.message + '</div>';
+    // 失败自动重试一次（可能是网络抖动）
+    try {
+      await new Promise(r => setTimeout(r, 1500));
+      render(await fetchRows());
+      toast("已刷新（重试成功）");
+    } catch (e2) {
+      let msg = e2.message || "未知错误";
+      if (msg.indexOf("HTTP") === 0) {
+        msg += "（服务器拒绝了请求）";
+      } else {
+        msg += "（网络或DNS问题，请按 Ctrl+F5 强制刷新，或换 Chrome/Edge 浏览器）";
+      }
+      $("list").innerHTML = '<div class="empty">加载失败：' + msg + '</div>';
+    }
   }
   btn.disabled = false; btn.textContent = "刷新";
 }
