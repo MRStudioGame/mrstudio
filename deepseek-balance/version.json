@@ -1,7 +1,7 @@
 {
-  "versionCode": 6,
-  "versionName": "2.0.2",
-  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-6.apk",
-  "size": 49931,
-  "note": "修复管理端加载 + 每次进入自动检查更新 + 设备ID兜底"
+  "versionCode": 7,
+  "versionName": "2.1.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-7.apk",
+  "size": 52447,
+  "note": "新用户公告系统：未添加Key的用户按顺序弹出公告（含添加教程），管理端可实时增删改排序"
 }
