@@ -1,7 +1,7 @@
 {
-  "versionCode": 7,
-  "versionName": "2.1.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-7.apk",
-  "size": 52447,
-  "note": "新用户公告系统：未添加Key的用户按顺序弹出公告（含添加教程），管理端可实时增删改排序"
+  "versionCode": 8,
+  "versionName": "2.2.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/deepseek-balance/deepseek-balance-8.apk",
+  "size": 52603,
+  "note": "公告升级：内置公告永远第一（仅新用户），普通公告人人每次打开弹出，管理端支持预览模拟"
 }
