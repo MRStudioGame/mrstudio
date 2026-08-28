@@ -69,6 +69,7 @@
     <header>
       <h1>💰 DeepSeek 公益API 管理端 <span style="font-size:11px;color:#9aa4b0">v3</span></h1>
       <span id="lastUpdate" style="font-size:12px;color:#656d76"></span>
+      <button class="btn gray" id="annBtn">公告管理</button>
       <button class="btn" id="refreshBtn">刷新</button>
     </header>
     <div class="stats">
@@ -76,6 +77,13 @@
       <div class="stat"><b id="sKeys">0</b><span>Key 总数</span></div>
       <div class="stat"><b id="sNeg">0</b><span>欠费/异常 Key</span></div>
       <div class="stat"><b id="sTotal">¥0</b><span>可用余额合计</span></div>
+    </div>
+    <div id="annPanel" class="card" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>📢 公告管理</b>
+        <button class="btn" id="annAdd">＋ 添加公告</button>
+      </div>
+      <div id="annList"></div>
     </div>
     <div id="list"><div class="empty">加载中…</div></div>
     <footer>MR工作室制作</footer>
@@ -111,6 +119,101 @@ async function fetchRows() {
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   return resp.json();
 }
+
+async function supa(method, path, body) {
+  const opt = { method: method, headers: { apikey: SUPABASE_KEY, "Authorization": "Bea" + "rer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" } };
+  if (body !== undefined) opt.body = JSON.stringify(body);
+  const resp = await fetch(SUPABASE_URL + path, opt);
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  return resp;
+}
+
+/* ---------- 公告管理 ---------- */
+let annItems = [];
+
+async function loadAnnouncements() {
+  try {
+    const resp = await fetch(SUPABASE_URL + "/rest/v1/dsb_announcements?select=id,title,content,sort,enabled&order=sort.asc", { headers: { apikey: SUPABASE_KEY, "Authorization": "Bea" + "rer " + SUPABASE_KEY } });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    annItems = await resp.json();
+    renderAnnouncements();
+  } catch (e) {
+    $("annList").innerHTML = '<div class="empty">加载失败：' + e.message + '</div>';
+  }
+}
+
+function renderAnnouncements() {
+  const list = $("annList");
+  if (!annItems.length) { list.innerHTML = '<div class="empty">暂无公告</div>'; return; }
+  list.innerHTML = annItems.map((a, i) => {
+    const id = a.id;
+    return '<div style="border:1px solid #eaeef2;border-radius:10px;padding:10px;margin-bottom:10px">' +
+      '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">' +
+        '<button class="copy" onclick="annMove(' + i + ',-1)">↑</button>' +
+        '<button class="copy" onclick="annMove(' + i + ',1)">↓</button>' +
+        '<span style="font-size:12px;color:#9aa4b0">ID ' + id + ' · 排序 ' + a.sort + '</span>' +
+        '<label style="font-size:12px;margin-left:auto">启用 <input type="checkbox" ' + (a.enabled ? 'checked' : '') + ' onchange="annSave(' + i + ',this.checked)"></label>' +
+      '</div>' +
+      '<input id="at' + id + '" style="width:100%;padding:6px;border:1px solid #d0d7de;border-radius:6px;margin-bottom:6px" value="' + (a.title || '').replace(/"/g, '&quot;') + '" placeholder="标题">' +
+      '<textarea id="ac' + id + '" rows="2" style="width:100%;padding:6px;border:1px solid #d0d7de;border-radius:6px;margin-bottom:6px" placeholder="公告内容">' + (a.content || '') + '</textarea>' +
+      '<button class="copy" onclick="annSave(' + i + ')">保存</button> ' +
+      '<button class="copy" style="color:#d1242f;background:#fdecec" onclick="annDel(' + i + ')">删除</button>' +
+    '</div>';
+  }).join("");
+}
+
+async function annMove(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= annItems.length) return;
+  const a = annItems[i], b = annItems[j];
+  try {
+    await supa("PATCH", "/rest/v1/dsb_announcements?id=eq." + a.id, { sort: b.sort });
+    await supa("PATCH", "/rest/v1/dsb_announcements?id=eq." + b.id, { sort: a.sort });
+    toast("顺序已调整");
+    loadAnnouncements();
+  } catch (e) { toast("操作失败：" + e.message); }
+}
+
+async function annSave(i, enabledOnly) {
+  const a = annItems[i];
+  const body = {};
+  if (enabledOnly !== undefined) { body.enabled = enabledOnly; }
+  else {
+    body.title = $("at" + a.id).value;
+    body.content = $("ac" + a.id).value;
+    body.enabled = a.enabled;
+  }
+  try {
+    await supa("PATCH", "/rest/v1/dsb_announcements?id=eq." + a.id, body);
+    toast("已保存");
+    loadAnnouncements();
+  } catch (e) { toast("保存失败：" + e.message); }
+}
+
+async function annDel(i) {
+  const a = annItems[i];
+  if (!confirm("确定删除这条公告？")) return;
+  try {
+    await supa("DELETE", "/rest/v1/dsb_announcements?id=eq." + a.id);
+    toast("已删除");
+    loadAnnouncements();
+  } catch (e) { toast("删除失败：" + e.message); }
+}
+
+$("annAdd").onclick = async function () {
+  try {
+    const max = annItems.reduce((m, x) => Math.max(m, x.sort || 0), 0);
+    await supa("POST", "/rest/v1/dsb_announcements", { title: "新公告", content: "公告内容", sort: max + 10, enabled: true });
+    toast("已添加，请编辑内容");
+    loadAnnouncements();
+  } catch (e) { toast("添加失败：" + e.message); }
+};
+
+$("annBtn").onclick = function () {
+  const p = $("annPanel");
+  p.hidden = !p.hidden;
+  if (!p.hidden) loadAnnouncements();
+};
 
 function render(rows) {
   const list = $("list");
