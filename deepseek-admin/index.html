@@ -133,7 +133,7 @@ let annItems = [];
 
 async function loadAnnouncements() {
   try {
-    const resp = await fetch(SUPABASE_URL + "/rest/v1/dsb_announcements?select=id,title,content,sort,enabled&order=sort.asc", { headers: { apikey: SUPABASE_KEY, "Authorization": "Bea" + "rer " + SUPABASE_KEY } });
+    const resp = await fetch(SUPABASE_URL + "/rest/v1/dsb_announcements?select=id,title,content,sort,enabled,builtin&order=builtin.desc,sort.asc", { headers: { apikey: SUPABASE_KEY, "Authorization": "Bea" + "rer " + SUPABASE_KEY } });
     if (!resp.ok) throw new Error("HTTP " + resp.status);
     annItems = await resp.json();
     renderAnnouncements();
@@ -149,13 +149,12 @@ function renderAnnouncements() {
     const id = a.id;
     return '<div style="border:1px solid #eaeef2;border-radius:10px;padding:10px;margin-bottom:10px">' +
       '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">' +
-        '<button class="copy" onclick="annMove(' + i + ',-1)">↑</button>' +
-        '<button class="copy" onclick="annMove(' + i + ',1)">↓</button>' +
-        '<span style="font-size:12px;color:#9aa4b0">ID ' + id + ' · 排序 ' + a.sort + '</span>' +
+        (a.builtin ? '<span style="font-size:12px;color:#f5a623;font-weight:bold">⭐ 内置公告（永远第一个）</span>' : '<button class="copy" onclick="annMove(' + i + ',-1)">↑</button>' + '<button class="copy" onclick="annMove(' + i + ',1)">↓</button>' + '<span style="font-size:12px;color:#9aa4b0">ID ' + id + ' · 排序 ' + a.sort + '</span>') +
         '<label style="font-size:12px;margin-left:auto">启用 <input type="checkbox" ' + (a.enabled ? 'checked' : '') + ' onchange="annSave(' + i + ',this.checked)"></label>' +
       '</div>' +
       '<input id="at' + id + '" style="width:100%;padding:6px;border:1px solid #d0d7de;border-radius:6px;margin-bottom:6px" value="' + (a.title || '').replace(/"/g, '&quot;') + '" placeholder="标题">' +
       '<textarea id="ac' + id + '" rows="2" style="width:100%;padding:6px;border:1px solid #d0d7de;border-radius:6px;margin-bottom:6px" placeholder="公告内容">' + (a.content || '') + '</textarea>' +
+      '<button class="copy" onclick="annPreview(' + i + ')">👁 预览</button> ' +
       '<button class="copy" onclick="annSave(' + i + ')">保存</button> ' +
       '<button class="copy" style="color:#d1242f;background:#fdecec" onclick="annDel(' + i + ')">删除</button>' +
     '</div>';
@@ -214,6 +213,14 @@ $("annBtn").onclick = function () {
   p.hidden = !p.hidden;
   if (!p.hidden) loadAnnouncements();
 };
+
+function annPreview(i) {
+  const a = annItems[i];
+  document.getElementById('pvTitle').textContent = a.title || '公告';
+  document.getElementById('pvContent').textContent = a.content || '';
+  document.getElementById('pvGuide').hidden = !a.builtin;
+  document.getElementById('pvMask').hidden = false;
+}
 
 function render(rows) {
   const list = $("list");
@@ -333,5 +340,13 @@ if (sessionStorage.getItem("dsbPin") === "1") {
 }
 setInterval(() => { if (!$("app").hidden) load(); }, 15000);
 </script>
+<div id="pvMask" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:98;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="background:#fff;border-radius:16px;max-width:340px;width:100%;padding:16px 18px 12px;box-shadow:0 8px 30px rgba(0,0,0,.2)">
+    <div style="display:flex;align-items:center"><span style="cursor:pointer;color:#656d76;font-size:20px;padding-right:10px" onclick="document.getElementById('pvMask').hidden=true">✕</span><b id="pvTitle" style="font-size:16px;color:#1f2328">公告</b></div>
+    <p id="pvContent" style="font-size:14px;color:#1f2328;line-height:1.7;margin:10px 0;white-space:pre-wrap"></p>
+    <div id="pvGuide" hidden style="background:#eef4ff;border-radius:10px;padding:10px 12px;font-size:13px;color:#1f2328;line-height:1.6;margin-bottom:10px"><b style="color:#1958c4">📖 添加教程</b><br>1. 点右上角「＋ 添加」<br>2. 粘贴 DeepSeek API Key（sk- 开头）<br>3. 添加后自动查询余额<br><br>🎁 新用户添加第一个 Key 即可获得 3 元 API 余额！</div>
+    <button style="width:100%;background:#1f6feb;color:#fff;border:0;border-radius:10px;padding:10px;font-size:14px;font-weight:bold;cursor:pointer" onclick="document.getElementById('pvMask').hidden=true">知道了</button>
+  </div>
+</div>
 </body>
 </html>
