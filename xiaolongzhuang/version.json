@@ -1,12 +1,12 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 3,
-  "versionName": "1.0.2",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.2.apk",
+  "versionCode": 4,
+  "versionName": "1.0.3",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.3.apk",
   "mirror": "",
   "size": 3863567,
   "force": false,
-  "note": "修复背景图片与背景音乐不显示/不播放的问题",
-  "updated": "2026-09-15 16:05:52"
+  "note": "移除拦截页解码提示；更新时申请「安装未知应用」权限并增加下载进度条",
+  "updated": "2026-09-15 16:15:20"
 }
