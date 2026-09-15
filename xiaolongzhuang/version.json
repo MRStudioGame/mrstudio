@@ -1,12 +1,12 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.0.apk",
+  "versionCode": 2,
+  "versionName": "1.0.1",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.1.apk",
   "mirror": "",
-  "size": 3834836,
+  "size": 3847124,
   "force": false,
-  "note": "软件名与文档严格对齐：小龙直装.公益防封",
-  "updated": "2026-09-15 15:50:02"
+  "note": "修复安装兼容性：修正 resources.arsc 压缩问题（Android 11+ 可正常安装）",
+  "updated": "2026-09-15 15:57:10"
 }
