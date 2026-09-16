@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>和平精英.小龙直装.公益防封</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{margin:0;background:#0a0e11;color:#eaf6ef;font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;user-select:none;}
+  .icon{width:118px;height:118px;border-radius:26px;box-shadow:0 0 34px rgba(0,255,150,.28);}
+  h1{margin:22px 0 0;font-size:clamp(22px,5.6vw,40px);letter-spacing:2px;color:#fff;
+     text-shadow:0 0 20px rgba(0,255,150,.35);line-height:1.35;}
+  .btn{display:inline-block;margin-top:34px;padding:18px 54px;border-radius:14px;font-size:20px;font-weight:700;
+       letter-spacing:1px;color:#04120b;background:linear-gradient(180deg,#4dffa8,#00c853);text-decoration:none;
+       box-shadow:0 0 26px rgba(0,255,140,.45),0 6px 0 #067a3b;}
+  .btn:active{transform:translateY(2px);box-shadow:0 0 16px rgba(0,255,140,.4),0 4px 0 #067a3b;}
+  .meta{margin-top:16px;font-size:13px;color:#85a294;max-width:520px;line-height:1.7;}
+  .mirrors{margin-top:10px;font-size:12px;color:#5d7a6d;}
+  .mirrors a{color:#5d7a6d;margin:0 7px;text-decoration:underline;text-underline-offset:2px;}
+  .note{margin-top:26px;font-size:11px;color:#3f554a;}
+  #mute{position:fixed;right:14px;top:10px;font-size:22px;color:#3f6b55;cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="mute">♪</div>
+<img class="icon" src="icon.png" alt="小龙直装">
+<h1>和平精英.小龙直装.公益防封</h1>
+<a class="btn" id="dl" href="javascript:;">下载最新版</a>
+<div class="meta" id="meta">正在获取最新版本…</div>
+<div class="mirrors" id="mirrors"></div>
+<div class="note" id="note">MR工作室制作 · 本软件为整蛊娱乐软件，无任何真实外挂功能</div>
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<script>
+var DIR = "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/";
+var RAW = "https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/";
+var MIRROR = [
+  ["gh-proxy", "https://gh-proxy.com/" + RAW],
+  ["gcore", "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/"],
+  ["ghfast", "https://ghfast.top/" + RAW]
+];
+function $(id){return document.getElementById(id);}
+
+function apply(v){
+  var f = "xiaolongzhuang-v" + v.versionName + ".apk";
+  var u = v.url || (DIR + f);
+  var dl = $("dl");
+  dl.href = u;
+  dl.textContent = "下载最新版 v" + v.versionName;
+  dl.setAttribute("download", f);
+  var size = v.size ? (v.size / 1048576).toFixed(2) + " MB" : "";
+  $("meta").textContent = "版本 v" + v.versionName + (size ? "  ·  " + size : "") + (v.note ? "  ·  " + v.note : "");
+  $("mirrors").innerHTML = "备用下载：" + MIRROR.map(function(m){
+    return '<a href="' + m[1] + f + '">' + m[0] + '</a>';
+  }).join("");
+}
+
+fetch("version.json?t=" + Date.now())
+  .then(function(r){ return r.json(); })
+  .then(apply)
+  .catch(function(){
+    fetch(MIRROR[0][1] + "version.json?t=" + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(apply)
+      .catch(function(){
+        $("meta").textContent = "获取版本信息失败，请刷新重试";
+        $("dl").href = DIR;
+      });
+  });
+
+// 背景音乐（鸳鸯戏 DJ版）：自动播放 + 首次点击兜底 + 右上角开关
+var bgm = $("bgm"), on = true;
+bgm.volume = 0.6;
+function play(){ var p = bgm.play(); if (p && p.catch) p.catch(function(){}); }
+play();
+document.addEventListener("click", function(){ if (on) play(); }, {passive:true});
+document.addEventListener("touchstart", function(){ if (on) play(); }, {passive:true});
+$("mute").onclick = function(e){
+  e.stopPropagation();
+  on = !on;
+  if (on) { play(); $("mute").textContent = "♪"; $("mute").style.color = "#3f6b55"; }
+  else { bgm.pause(); $("mute").textContent = "✕"; $("mute").style.color = "#7a3f3f"; }
+};
+</script>
+</body>
+</html>
