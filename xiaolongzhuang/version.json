@@ -1,17 +1,17 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 5,
-  "versionName": "1.0.4",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
-  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
+  "versionCode": 6,
+  "versionName": "1.0.5",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.5.apk",
+  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.5.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.5.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.5.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.5.apk"
   ],
   "size": 3863567,
   "force": false,
-  "note": "试用期分享链接改为官网下载站；更新支持多线路自动切换（提速/防断）",
-  "updated": "2026-09-16 05:17:06"
+  "note": "修复更新卡在「即将安装」不弹安装界面的问题（改为前台直接调起系统安装器）",
+  "updated": "2026-09-16 05:24:35"
 }
