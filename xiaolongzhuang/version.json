@@ -1,17 +1,17 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 12,
-  "versionName": "1.0.11",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.11.apk",
-  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.11.apk",
+  "versionCode": 13,
+  "versionName": "1.0.12",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
+  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.11.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.11.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.11.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk"
   ],
   "size": 3863567,
   "force": false,
-  "note": "分享转发文案改为「和平精英小龙直装.公益防封 下载链接：（链接）」",
-  "updated": "2026-09-16 05:52:27"
+  "note": "更新优先跳转官网下载；软件内下载改为镜像优先并加\"太慢自动换线路\"",
+  "updated": "2026-09-16 06:02:25"
 }
