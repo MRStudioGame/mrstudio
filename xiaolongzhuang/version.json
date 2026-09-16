@@ -1,12 +1,17 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 4,
-  "versionName": "1.0.3",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.3.apk",
-  "mirror": "",
+  "versionCode": 5,
+  "versionName": "1.0.4",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
+  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
+  "mirrors": [
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.4.apk"
+  ],
   "size": 3863567,
   "force": false,
-  "note": "移除拦截页解码提示；更新时申请「安装未知应用」权限并增加下载进度条",
-  "updated": "2026-09-15 16:15:20"
+  "note": "试用期分享链接改为官网下载站；更新支持多线路自动切换（提速/防断）",
+  "updated": "2026-09-16 05:17:06"
 }
