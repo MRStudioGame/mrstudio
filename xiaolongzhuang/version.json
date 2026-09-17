@@ -1,17 +1,17 @@
 {
   "app": "xiaolongzhuang",
   "name": "小龙直装.公益防封",
-  "versionCode": 13,
-  "versionName": "1.0.12",
-  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
-  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
+  "versionCode": 14,
+  "versionName": "1.0.13",
+  "url": "https://mrstudiogame.github.io/mrstudio/xiaolongzhuang/xiaolongzhuang-v1.0.13.apk",
+  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.13.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.12.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.13.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/xiaolongzhuang/xiaolongzhuang-v1.0.13.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/xiaolongzhuang/xiaolongzhuang-v1.0.13.apk"
   ],
-  "size": 3863567,
+  "size": 3867663,
   "force": false,
-  "note": "更新优先跳转官网下载；软件内下载改为镜像优先并加\"太慢自动换线路\"",
-  "updated": "2026-09-16 06:02:25"
+  "note": "新增顶部流动广播 + 管理员模式(201301：在线人数/下载量/改广播/开关广播)；更新不再显示更新内容",
+  "updated": "2026-09-17 05:29:18"
 }
