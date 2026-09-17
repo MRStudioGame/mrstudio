@@ -83,6 +83,25 @@ $("mute").onclick = function(e){
   if (on) { play(); $("mute").textContent = "♪"; $("mute").style.color = "#3f6b55"; }
   else { bgm.pause(); $("mute").textContent = "✕"; $("mute").style.color = "#7a3f3f"; }
 };
+
+// 下载量统计（网站下载 +1）
+var SB = "https://mfrmsmbazofjzdpuxdod.supabase.co/rest/v1/rpc/";
+var ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1zbWJhem9manpkcHV4ZG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDAxMTEsImV4cCI6MjEwMjM3NjExMX0.1VQ4V6XnR6LBGT7-3joS6Hju2twRCgrBWW9hIjX-gRY";
+var devId = localStorage.getItem("xl_web_dev") || ("web-" + Math.random().toString(36).slice(2, 10));
+localStorage.setItem("xl_web_dev", devId);
+function dlAdd(){
+  try {
+    fetch(SB + "xl_dl_add", {
+      method: "POST",
+      headers: {"apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json"},
+      body: JSON.stringify({p_device: devId, p_source: "web"})
+    });
+  } catch (e) {}
+}
+document.getElementById("dl").addEventListener("click", dlAdd);
+document.getElementById("mirrors").addEventListener("click", function(e){
+  if (e.target && e.target.tagName === "A") dlAdd();
+});
 </script>
 </body>
 </html>
