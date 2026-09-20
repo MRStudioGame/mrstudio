@@ -1,12 +1,12 @@
 {
-  "versionCode": 4,
-  "versionName": "1.0.3",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.3.apk",
+  "versionCode": 5,
+  "versionName": "1.0.4",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.4.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.3.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.3.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.3.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.4.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.4.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.4.apk"
   ],
   "size": 70570,
-  "notes": "1. 修复设置里保存一直提示失败的问题；2. 修复任务/技能/记忆的新建、编辑、删除点不动的问题；3. 接入语音输入与语音播报；4. 设置里新增「检查更新」按钮。"
+  "notes": "1. 左上角新增会话菜单：点开可看全部对话、随时切换，历史对话全部保留；2. 长按对话可重命名或删除；3. 对话/记忆/技能/任务按账号分开保存。"
 }
