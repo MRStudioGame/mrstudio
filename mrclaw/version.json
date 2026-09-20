@@ -1,12 +1,12 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.2",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.2.apk",
+  "versionCode": 4,
+  "versionName": "1.0.3",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.3.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.2.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.2.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.2.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.3.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.3.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.3.apk"
   ],
-  "size": 66474,
-  "notes": "1. 首次发消息先引导填 API Key，再逐项申请权限；2. 每项权限都有用途说明；3. 无障碍服务上线：打开应用/点击/滑动/输入/读屏；4. 每步操作弹窗确认，可开独自操控免确认；5. 支持 root 检测与 shell。"
+  "size": 70570,
+  "notes": "1. 修复设置里保存一直提示失败的问题；2. 修复任务/技能/记忆的新建、编辑、删除点不动的问题；3. 接入语音输入与语音播报；4. 设置里新增「检查更新」按钮。"
 }
