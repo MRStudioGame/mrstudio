@@ -1,12 +1,12 @@
 {
-  "versionCode": 5,
-  "versionName": "1.0.4",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.4.apk",
+  "versionCode": 6,
+  "versionName": "1.0.5",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw-v1.0.5.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.4.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.4.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.4.apk"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.5.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw-v1.0.5.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw-v1.0.5.apk"
   ],
   "size": 70570,
-  "notes": "1. 左上角新增会话菜单：点开可看全部对话、随时切换，历史对话全部保留；2. 长按对话可重命名或删除；3. 对话/记忆/技能/任务按账号分开保存。"
+  "notes": "1. 修复执行多步任务时过早中断（原上限 8 步，现放宽到 24 步 / 5 分钟，到限也会先总结再停）；2. AI 操控时显示「正在执行任务」，结束显示「任务已完成 / 任务已中断 / 任务失败」；3. 新增「中断任务」按钮，随时一键停止。"
 }
