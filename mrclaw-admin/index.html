@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0E1116">
+<title>MRClaw 管理端</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0E1116;color:#E7ECF3;
+  font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+a{color:#4C8BFF}
+.hide{display:none!important}
+button,input{font:inherit;color:inherit;outline:none;border:none;background:none}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 16px 60px}
+h1{font-size:20px;margin:0}
+.sub{color:#6E7A8C;font-size:12px;letter-spacing:2px}
+.btn{background:#2F6BFF;color:#fff;border-radius:10px;padding:9px 16px;font-weight:600;
+  cursor:pointer;white-space:nowrap}
+.btn:active{opacity:.85}
+.btn.g{background:#1B2029;border:1px solid #2A313D;color:#C9D3E0}
+.btn.d{background:#2A1519;color:#FF7A8A;border:1px solid #40202A}
+.btn.s{padding:6px 11px;font-size:12.5px;border-radius:8px}
+.inp{background:#0F1319;border:1px solid #2A313D;border-radius:10px;padding:11px 13px;width:100%}
+.card{background:#151A21;border:1px solid #232A34;border-radius:16px;padding:16px;margin:12px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.stat{background:#151A21;border:1px solid #232A34;border-radius:16px;padding:16px}
+.stat b{display:block;font-size:26px;line-height:1.2}
+.stat span{color:#7C8798;font-size:12.5px}
+.u{border-bottom:1px solid #1F242C;padding:14px 0}
+.u:last-child{border-bottom:none}
+.u .top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.name{font-weight:600;font-size:15px}
+.tag{display:inline-block;background:#1B2230;border:1px solid #26364F;color:#8FB4FF;
+  border-radius:7px;padding:2px 8px;font-size:11.5px;margin-left:6px}
+.tag.on{background:#12251A;border-color:#1E4630;color:#6BE39B}
+.key{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;word-break:break-all;
+  background:#0F1319;border:1px solid #2A313D;border-radius:10px;padding:9px 11px;margin-top:9px}
+.meta{color:#7C8798;font-size:12px;margin-top:6px}
+.sw{width:44px;height:25px;border-radius:13px;background:#2A313D;position:relative;
+  flex:0 0 44px;cursor:pointer;transition:.2s}
+.sw.on{background:#2F6BFF}
+.sw i{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;
+  background:#fff;transition:.2s}
+.sw.on i{left:22px}
+#gate{max-width:340px;margin:18vh auto;padding:0 20px;text-align:center}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);
+  background:#243044;border:1px solid #33507F;color:#CFE0FF;padding:10px 16px;
+  border-radius:12px;opacity:0;transition:.25s;pointer-events:none}
+#toast.on{opacity:1;bottom:48px}
+.empty{text-align:center;color:#5D6A7C;padding:40px 0}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div style="font-size:22px;font-weight:700">MRClaw 管理端</div>
+  <div class="sub" style="margin:6px 0 22px">MR STUDIO</div>
+  <input id="pw" class="inp" type="password" placeholder="访问密码"
+         onkeydown="if(event.key==='Enter')Gate.go()">
+  <div style="height:12px"></div>
+  <button class="btn" style="width:100%" onclick="Gate.go()">进入</button>
+  <div id="gmsg" class="meta" style="margin-top:12px"></div>
+</div>
+
+<div id="main" class="hide">
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between">
+      <div><h1>MRClaw 管理端</h1><div class="sub">MR STUDIO</div></div>
+      <div class="row">
+        <button class="btn g s" onclick="Panel.load()">刷新</button>
+        <button class="btn g s" onclick="Gate.out()">退出</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="row">
+        <input id="q" class="inp" style="flex:1;min-width:160px" placeholder="搜索用户名 / 厂商 / 模型"
+               oninput="Panel.render()">
+        <label class="meta" style="display:flex;gap:6px;align-items:center;white-space:nowrap">
+          <input type="checkbox" id="auto" checked onchange="Panel.auto()"> 自动刷新 30s
+        </label>
+      </div>
+      <div class="meta" id="upd"></div>
+    </div>
+
+    <div class="card" id="list"><div class="empty">加载中…</div></div>
+
+    <div class="meta" style="text-align:center;padding:16px">MRClaw · MR工作室制作</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SB_URL = "https://mfrmsmbazofjzdpuxdod.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1zbWJhem9manpkcHV4ZG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDAxMTEsImV4cCI6MjEwMjM3NjExMX0.1VQ4V6XnR6LBGT7-3joS6Hju2twRCgrBWW9hIjX-gRY";
+
+const PASS = "2013";
+const AUTO_KEY = "mrclaw_admin_auto";
+
+let DATA = [];
+
+async function rpc(fn, args){
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, {
+    method: "POST",
+    headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY,
+               "Content-Type": "application/json" },
+    body: JSON.stringify(args || {})
+  });
+  const t = await r.text();
+  try { return JSON.parse(t); } catch(e){ return { __err: t.slice(0,200) }; }
+}
+
+function toast(m){
+  const t = document.getElementById("toast");
+  t.textContent = m; t.className = "on";
+  clearTimeout(t._h); t._h = setTimeout(()=>{ t.className = ""; }, 1400);
+}
+
+const Gate = {
+  go(){
+    const v = document.getElementById("pw").value;
+    if(v !== PASS){
+      document.getElementById("gmsg").textContent = "密码错误";
+      return;
+    }
+    sessionStorage.setItem("mrclaw_admin_ok", "1");
+    this.open();
+  },
+  open(){
+    document.getElementById("gate").classList.add("hide");
+    document.getElementById("main").classList.remove("hide");
+    Panel.load();
+    Panel.auto();
+  },
+  out(){
+    sessionStorage.removeItem("mrclaw_admin_ok");
+    location.reload();
+  }
+};
+
+const Panel = {
+  timer: null,
+  async load(){
+    document.getElementById("upd").textContent = "更新中…";
+    const [list, stats] = await Promise.all([
+      rpc("mrclaw_admin_list"),
+      rpc("mrclaw_admin_stats")
+    ]);
+    if(list && list.__err){
+      document.getElementById("list").innerHTML = "<div class='empty'>读取失败：" +
+        String(list.__err).replace(/[<>]/g,"") + "</div>";
+      document.getElementById("upd").textContent = "";
+      return;
+    }
+    DATA = Array.isArray(list) ? list : [];
+    this.stats(stats);
+    this.render();
+    document.getElementById("upd").textContent = "最后更新 " + new Date().toLocaleTimeString();
+    Panel.auto();
+  },
+  auto(){
+    if(this.timer){ clearInterval(this.timer); this.timer = null; }
+    if(document.getElementById("auto").checked){
+      this.timer = setInterval(()=>Panel.load(), 30000);
+    }
+  },
+  stats(s){
+    s = (s && !s.__err) ? s : {};
+    const box = document.getElementById("stats");
+    box.innerHTML =
+      cell(s.users||0, "注册用户") +
+      cell(s.with_key||0, "已填 Key") +
+      cell(s.autonomy||0, "已开独自操控") +
+      cell(s.today||0, "今日新增");
+    function cell(v,k){ return "<div class='stat'><b>" + v + "</b><span>" + k + "</span></div>"; }
+  },
+  render(){
+    const q = document.getElementById("q").value.trim().toLowerCase();
+    const list = DATA.filter(u=>{
+      if(!q) return true;
+      return [u.username, u.provider, u.model, u.device].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    const box = document.getElementById("list");
+    if(!list.length){ box.innerHTML = "<div class='empty'>没有数据</div>"; return; }
+    box.innerHTML = list.map((u,i)=>this.card(u, DATA.indexOf(u))).join("");
+  },
+  card(u, idx){
+    const key = u.api_key || "";
+    const shown = key ? (this._show && this._show[idx] ? key : key.slice(0,6) + "••••••••" + key.slice(-4)) : "未填写";
+    return "<div class='u'>" +
+      "<div class='top'>" +
+        "<div class='name'>" + esc(u.username) +
+          (u.autonomy ? "<span class='tag on'>独自操控</span>" : "") +
+          ((u.api_key) ? "<span class='tag'>已配 Key</span>" : "") +
+        "</div>" +
+        "<div class='row'>" +
+          "<span class='meta'>独自操控</span>" +
+          "<div class='sw " + (u.autonomy?"on":"") + "' onclick='Panel.toggle(" + idx + ")'><i></i></div>" +
+        "</div>" +
+      "</div>" +
+      "<div class='key'>" + esc(shown) + "</div>" +
+      "<div class='row' style='margin-top:9px'>" +
+        "<button class='btn g s' onclick='Panel.copy(" + idx + ")'>复制 Key</button>" +
+        (key ? "<button class='btn g s' onclick='Panel.reveal(" + idx + ")'>" +
+          (this._show && this._show[idx] ? "隐藏" : "显示明文") + "</button>" : "") +
+      "</div>" +
+      "<div class='meta'>服务商 " + esc(u.provider || "-") + " · 模型 " + esc(u.model || "-") +
+        " · 设备 " + esc(u.device || "-") + " · 版本 " + esc(u.app_version || "-") + "</div>" +
+      "<div class='meta'>注册 " + fmt(u.created_at) + " · 最近登录 " + fmt(u.last_login) +
+        " · 更新 " + fmt(u.updated_at) + "</div>" +
+    "</div>";
+  },
+  reveal(i){
+    this._show = this._show || {};
+    this._show[i] = !this._show[i];
+    this.render();
+  },
+  copy(i){
+    const k = (DATA[i] && DATA[i].api_key) || "";
+    if(!k){ toast("该用户还没有填 Key"); return; }
+    const done = ()=>toast("已复制 " + (DATA[i].username) + " 的 Key");
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(k).then(done).catch(()=>fallback());
+    } else fallback();
+    function fallback(){
+      const ta = document.createElement("textarea");
+      ta.value = k; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); done(); }catch(e){ toast("复制失败"); }
+      document.body.removeChild(ta);
+    }
+  },
+  async toggle(i){
+    const u = DATA[i];
+    const next = !u.autonomy;
+    u.autonomy = next;
+    this.render();
+    const r = await rpc("mrclaw_save_config", {
+      p_user: u.username, p_provider: u.provider || "",
+      p_api_key: u.api_key || "", p_base_url: u.base_url || "",
+      p_model: u.model || "", p_temp: u.temperature || "0.7",
+      p_autonomy: next, p_device: u.device || "", p_ver: u.app_version || ""
+    });
+    if(r && r.__err){ toast("保存失败"); u.autonomy = !next; this.render(); return; }
+    toast(next ? "已为该用户开启独自操控" : "已关闭独自操控");
+    this.load();
+  }
+};
+
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmt(t){
+  if(!t) return "-";
+  try{ return new Date(t).toLocaleString("zh-CN", {hour12:false}); }catch(e){ return t; }
+}
+
+(function boot(){
+  if(sessionStorage.getItem("mrclaw_admin_ok") === "1") Gate.open();
+  else document.getElementById("pw").focus();
+})();
+</script>
+</body>
+</html>
