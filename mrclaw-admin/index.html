@@ -50,6 +50,16 @@ h1{font-size:20px;margin:0}
   border-radius:12px;opacity:0;transition:.25s;pointer-events:none}
 #toast.on{opacity:1;bottom:48px}
 .empty{text-align:center;color:#5D6A7C;padding:40px 0}
+#sup{position:fixed;inset:0;background:rgba(6,9,13,.72);z-index:80;
+  display:flex;align-items:center;justify-content:center;padding:18px}
+.supbox{width:100%;max-width:620px;max-height:86vh;display:flex;flex-direction:column;
+  background:#151A21;border:1px solid #232A34;border-radius:18px;padding:16px}
+.suplist{flex:1;overflow-y:auto;min-height:200px;max-height:60vh;padding:8px 2px;margin:10px 0}
+.smsg{max-width:78%;padding:10px 13px;border-radius:14px;margin:6px 0;
+  white-space:pre-wrap;word-break:break-word;font-size:13.5px}
+.smsg .meta{margin-top:4px}
+.smsg.me{background:#2F6BFF;color:#fff;margin-left:auto}
+.smsg.op{background:#1A2028;border:1px solid #262E39}
 </style>
 </head>
 <body>
@@ -90,6 +100,21 @@ h1{font-size:20px;margin:0}
     <div class="card" id="list"><div class="empty">加载中…</div></div>
 
     <div class="meta" style="text-align:center;padding:16px">MRClaw · MR工作室制作</div>
+  </div>
+</div>
+
+<div id="sup" class="hide">
+  <div class="supbox">
+    <div class="row" style="justify-content:space-between">
+      <b id="sup-title">客服会话</b>
+      <button class="btn g s" onclick="Panel.supClose()">关闭</button>
+    </div>
+    <div id="sup-list" class="suplist"></div>
+    <div class="row">
+      <input id="sup-in" class="inp" style="flex:1" placeholder="回复用户…"
+             onkeydown="if(event.key==='Enter')Panel.supSend()">
+      <button class="btn s" onclick="Panel.supSend()">发送</button>
+    </div>
   </div>
 </div>
 
@@ -158,6 +183,9 @@ const Panel = {
       return;
     }
     DATA = Array.isArray(list) ? list : [];
+    const inbox = await rpc("mrclaw_support_inbox");
+    Panel._inbox = {};
+    if(Array.isArray(inbox)) inbox.forEach(function(x){ Panel._inbox[x.username] = x; });
     this.stats(stats);
     this.render();
     document.getElementById("upd").textContent = "最后更新 " + new Date().toLocaleTimeString();
@@ -172,11 +200,15 @@ const Panel = {
   stats(s){
     s = (s && !s.__err) ? s : {};
     const box = document.getElementById("stats");
+    const bans = DATA.filter(banned).length;
+    const sups = Object.keys(this._inbox || {}).length;
     box.innerHTML =
       cell(s.users||0, "注册用户") +
       cell(s.with_key||0, "已填 Key") +
       cell(s.autonomy||0, "已开独自操控") +
-      cell(s.today||0, "今日新增");
+      cell(s.today||0, "今日新增") +
+      cell(bans, "封禁中") +
+      cell(sups, "客服会话");
     function cell(v,k){ return "<div class='stat'><b>" + v + "</b><span>" + k + "</span></div>"; }
   },
   render(){
@@ -197,6 +229,7 @@ const Panel = {
         "<div class='name'>" + esc(u.username) +
           (u.autonomy ? "<span class='tag on'>独自操控</span>" : "") +
           ((u.api_key) ? "<span class='tag'>已配 Key</span>" : "") +
+          (Panel._inbox && Panel._inbox[u.username] ? "<span class='tag'>客服 " + Panel._inbox[u.username].total + "</span>" : "") +
         "</div>" +
         "<div class='row'>" +
           "<span class='meta'>独自操控</span>" +
@@ -209,6 +242,19 @@ const Panel = {
         (key ? "<button class='btn g s' onclick='Panel.reveal(" + idx + ")'>" +
           (this._show && this._show[idx] ? "隐藏" : "显示明文") + "</button>" : "") +
       "</div>" +
+      "<div class='row' style='margin-top:9px'>" +
+        "<button class='btn g s' onclick='Panel.copy(" + idx + ")'>复制 Key</button>" +
+        (key ? "<button class='btn g s' onclick='Panel.reveal(" + idx + ")'>" +
+          (this._show && this._show[idx] ? "隐藏" : "显示明文") + "</button>" : "") +
+      "</div>" +
+      "<div class='row' style='margin-top:9px'>" +
+        "<button class='btn g s' onclick='Panel.pts(" + idx + ")'>加减积分</button>" +
+        "<button class='btn g s' onclick='Panel.support(" + idx + ")'>客服会话</button>" +
+        (banned(u) ? "<button class='btn d s' onclick='Panel.unban(" + idx + ")'>解封</button>"
+                   : "<button class='btn d s' onclick='Panel.ban(" + idx + ")'>封号</button>") +
+      "</div>" +
+      "<div class='meta'>积分 " + Number(u.points || 0).toLocaleString() +
+        (banned(u) ? " · <span style='color:#FF7A8A'>已封禁 " + esc(banLabel(u)) + "</span>" : "") + "</div>" +
       "<div class='meta'>服务商 " + esc(u.provider || "-") + " · 模型 " + esc(u.model || "-") +
         " · 设备 " + esc(u.device || "-") + " · 版本 " + esc(u.app_version || "-") + "</div>" +
       "<div class='meta'>注册 " + fmt(u.created_at) + " · 最近登录 " + fmt(u.last_login) +
@@ -249,8 +295,81 @@ const Panel = {
     if(r && r.__err){ toast("保存失败"); u.autonomy = !next; this.render(); return; }
     toast(next ? "已为该用户开启独自操控" : "已关闭独自操控");
     this.load();
-  }
+  },
+  async pts(i){
+    const u = DATA[i];
+    const v = prompt("给「" + u.username + "」加/减积分（正数加分，负数减分）\n当前余额：" +
+      Number(u.points || 0).toLocaleString(), "100000");
+    if(v === null) return;
+    const d = parseInt(v, 10);
+    if(isNaN(d) || d === 0){ toast("请输入非零整数"); return; }
+    const note = prompt("备注（可选）", "") || "";
+    const r = await rpc("mrclaw_points_op", { p_user: u.username, p_delta: d, p_note: note });
+    if(r && r.__err){ toast("操作失败"); return; }
+    toast("已调整，余额 " + Number(r.points || 0).toLocaleString());
+    this.load();
+  },
+  async ban(i){
+    const u = DATA[i];
+    const v = prompt("封禁「" + u.username + "」多少天？（0 = 永久封禁）", "3");
+    if(v === null) return;
+    const days = parseInt(v, 10);
+    if(isNaN(days) || days < 0){ toast("请输入 0 或正整数"); return; }
+    const reason = prompt("封禁理由（必填，会显示给用户）", "");
+    if(!reason || !reason.trim()){ toast("必须填写封禁理由"); return; }
+    const r = await rpc("mrclaw_ban", { p_user: u.username, p_days: days, p_reason: reason.trim() });
+    if(r && r.__err){ toast("封禁失败"); return; }
+    toast(days === 0 ? "已永久封禁" : ("已封禁 " + days + " 天"));
+    this.load();
+  },
+  async unban(i){
+    const u = DATA[i];
+    const r = await rpc("mrclaw_unban", { p_user: u.username });
+    if(r && r.__err){ toast("解封失败"); return; }
+    toast("已解封");
+    this.load();
+  },
+  supUser: null,
+  support(i){
+    const u = DATA[i];
+    Panel.supUser = u.username;
+    document.getElementById("sup-title").textContent = u.username + " · 客服会话";
+    document.getElementById("sup").classList.remove("hide");
+    document.getElementById("sup-in").value = "";
+    Panel.supLoad();
+  },
+  async supLoad(){
+    const list = await rpc("mrclaw_support_list", { p_user: Panel.supUser });
+    const box = document.getElementById("sup-list");
+    if(list && list.__err){ box.innerHTML = "<div class='empty'>读取失败</div>"; return; }
+    const a = Array.isArray(list) ? list : [];
+    box.innerHTML = a.length ? a.map(function(m){
+      return "<div class='smsg " + (m.sender === "user" ? "op" : "me") + "'>" + esc(m.body) +
+        "<div class='meta'>" + fmt(m.created_at) + "</div></div>";
+    }).join("") : "<div class='empty'>暂无消息</div>";
+    box.scrollTop = box.scrollHeight;
+  },
+  async supSend(){
+    const i = document.getElementById("sup-in");
+    const v = (i.value || "").trim();
+    if(!v) return;
+    i.value = "";
+    const r = await rpc("mrclaw_support_reply", { p_user: Panel.supUser, p_body: v });
+    if(r && r.__err){ toast("发送失败"); return; }
+    Panel.supLoad();
+  },
+  supClose(){ document.getElementById("sup").classList.add("hide"); }
 };
+
+function banned(u){
+  return !!u.ban_until && new Date(u.ban_until).getTime() > Date.now();
+}
+function banLabel(u){
+  if(!u.ban_until) return "";
+  const ms = new Date(u.ban_until).getTime() - Date.now();
+  if(ms > 3.0e9) return "永久";
+  return Math.max(1, Math.ceil(ms / 86400000)) + " 天（至 " + new Date(u.ban_until).toLocaleString("zh-CN", {hour12:false}) + "）";
+}
 
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
   c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
