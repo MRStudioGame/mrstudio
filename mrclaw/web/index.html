@@ -116,6 +116,25 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .toolbtn{background:var(--chip);border:1px solid var(--ghost-bd);color:var(--ghost-fg);
   border-radius:14px;width:44px;height:44px;flex:0 0 44px;font-size:17px}
 .toolbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.skbar{padding:12px 12px 4px}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:8px 12px 4px;
+  -webkit-overflow-scrolling:touch}
+.cats .cat{flex:0 0 auto;background:var(--panel);border:1px solid var(--border);
+  color:var(--muted);border-radius:999px;padding:7px 14px;font-size:13px}
+.cats .cat.act{background:var(--accent);border-color:var(--accent);color:#fff}
+.cats .cat i{font-style:normal;opacity:.7;font-size:11.5px}
+.scard{display:flex;align-items:center;gap:12px;background:var(--panel);
+  border:1px solid var(--border);border-radius:16px;padding:14px;margin:10px 12px}
+.scard:active{background:var(--panel2)}
+.sic{width:42px;height:42px;border-radius:12px;background:var(--panel2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex:0 0 42px}
+.stx{flex:1;min-width:0}
+.sn{font-size:14.5px;font-weight:600;margin-bottom:3px}
+.sd{font-size:12.5px;color:var(--muted)}
+.tagmini{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:400;
+  color:var(--tip-fg);background:var(--tip-bg);border:1px solid var(--tip-bd);
+  border-radius:5px;padding:0 5px}
 .spk{text-align:left;margin:-2px 0 8px}
 .spk span{font-size:11.5px;color:var(--muted2);border:1px solid var(--border);
   border-radius:8px;padding:2px 9px;background:var(--panel)}
@@ -288,6 +307,9 @@ zh:{
   task_del_q:"删除任务「{0}」？", task_hint:"定时任务与多步目标",
   skill_title:"技能", skill_empty:"还没有技能", skill_hint:"技能决定 AI 可以做什么",
   skill_name_q:"技能名称", skill_prompt_q:"技能提示词（AI 何时 / 如何使用这个技能）",
+  skill_search:"搜索技能…", skill_none:"没有匹配的技能", skill_custom:"自定义",
+  skill_enable:"启用", skill_disable:"停用", skill_send:"用它聊天",
+  skill_del_q:"删除这个自定义技能？", skill_no_del:"内置技能不能删除，可以停用",
   sk_open_n:"打开应用", sk_open_d:"让 AI 打开指定 App",
   sk_open_p:"用户要求打开某 App 时，确认目标 App 后执行打开操作。",
   sk_tap_n:"屏幕操作", sk_tap_d:"点击 / 滑动 / 输入",
@@ -381,6 +403,9 @@ en:{
   task_del_q:"Delete task \"{0}\"?", task_hint:"Scheduled tasks and multi-step goals",
   skill_title:"Skills", skill_empty:"No skills yet", skill_hint:"Skills define what the AI can do",
   skill_name_q:"Skill name", skill_prompt_q:"Skill prompt (when / how the AI should use it)",
+  skill_search:"Search skills…", skill_none:"No matching skill", skill_custom:"Custom",
+  skill_enable:"Enable", skill_disable:"Disable", skill_send:"Chat with it",
+  skill_del_q:"Delete this custom skill?", skill_no_del:"Built-in skills cannot be deleted, only disabled",
   sk_open_n:"Open apps", sk_open_d:"Let the AI open an app",
   sk_open_p:"When the user asks to open an app, confirm the target and open it.",
   sk_tap_n:"Screen control", sk_tap_d:"Tap / swipe / type",
@@ -869,7 +894,7 @@ const App = {
     el("menu-btn").style.display = (x === "chat") ? "" : "none";
     if(x==="chat") Chat.render();
     if(x==="task") Task.render();
-    if(x==="skill") Skill.render();
+    if(x==="skill"){ Skill.render(); Skill.paint(); }
     if(x==="mem") Mem.render();
     if(x==="me") Me.render();
   },
@@ -1301,59 +1326,173 @@ const Task = {
 };
 
 /* ================= 技能 ================= */
-const DEFAULT_SKILLS = [
-  { id:"s1", key:"open",  on:true,  builtin:true },
-  { id:"s2", key:"tap",   on:true,  builtin:true },
-  { id:"s3", key:"query", on:true,  builtin:true },
-  { id:"s4", key:"note",  on:true,  builtin:true },
-  { id:"s5", key:"file",  on:false, builtin:true }
+const SKILL_CATS = [
+  { id:"all",   zh:"全部", en:"All" },
+  { id:"news",  zh:"资讯", en:"News" },
+  { id:"study", zh:"学习", en:"Study" },
+  { id:"work",  zh:"办公", en:"Work" },
+  { id:"money", zh:"金融", en:"Finance" },
+  { id:"media", zh:"媒体", en:"Media" },
+  { id:"dev",   zh:"开发", en:"Dev" },
+  { id:"life",  zh:"生活", en:"Life" },
+  { id:"sys",   zh:"系统", en:"System" }
 ];
+
+const SKILL_CATALOG = [
+  { id:"hot", cat:"news", icon:"🔥", zh:["今日热搜","汇总各平台今日热搜榜"], en:["Trending today","Top trending across platforms"],
+    prompt:"用户想看热搜时，先确认浏览器状态，打开 tophub.today，汇总前 10 条标题。" },
+  { id:"technews", cat:"news", icon:"📰", zh:["科技资讯","科技与互联网要闻速览"], en:["Tech news","Daily tech headlines"],
+    prompt:"用户要科技新闻时，搜索当日科技要闻并列出 5 条，附上标题原文。" },
+  { id:"weather", cat:"news", icon:"🌤", zh:["天气查询","查当天与明日天气"], en:["Weather","Today and tomorrow"],
+    prompt:"用户问天气时，若没说城市先询问；再查当天与明日天气并给穿衣建议。" },
+  { id:"word", cat:"study", icon:"📚", zh:["单词打卡","每天背 10 个单词"], en:["Vocab drill","10 words a day"],
+    prompt:"用户说背单词时，给 10 个单词（英文+词性+中文+例句），并把今天学的记入记忆。" },
+  { id:"english", cat:"study", icon:"🔤", zh:["英语陪练","用英语对话并纠错"], en:["English tutor","Chat and correct"],
+    prompt:"用户想练英语时，用简单英文回复，并在末尾用中文指出错误与更自然的说法。" },
+  { id:"explain", cat:"study", icon:"💡", zh:["知识讲解","把复杂概念讲明白"], en:["Explain","Simplify concepts"],
+    prompt:"用户问概念时，先一句话结论，再给 3 个要点，最后给一个生活化类比。" },
+  { id:"note", cat:"work", icon:"📝", zh:["备忘录","记录与读取待办"], en:["Notes","Save and read to-dos"],
+    prompt:"用户说记一下或查待办时，写入或读取记忆，并在回复中列出当前待办清单。" },
+  { id:"todo", cat:"work", icon:"✅", zh:["任务拆解","把目标拆成可执行步骤"], en:["Task breakdown","Turn goals into steps"],
+    prompt:"用户给一个目标时，拆成 3-6 个可执行步骤，逐步执行并在每步后回报进度。" },
+  { id:"stock", cat:"money", icon:"📈", zh:["股票行情","查个股价格与涨跌"], en:["Stock quotes","Price and change"],
+    prompt:"用户问股价时，说明数据仅供参考，打开行情页面读取屏幕内容后汇报最新价与涨跌幅。" },
+  { id:"fx", cat:"money", icon:"💱", zh:["汇率换算","实时汇率计算"], en:["Currency","Live FX conversion"],
+    prompt:"用户要换算汇率时，查询当前汇率并给出换算结果。" },
+  { id:"music", cat:"media", icon:"🎵", zh:["音乐播放","搜索并播放歌曲"], en:["Play music","Search and play songs"],
+    prompt:"用户要听歌时，先确认目标应用，打开它→搜索歌名→点击播放，并在关键步骤后确认当前界面。" },
+  { id:"video", cat:"media", icon:"🎬", zh:["视频搜索","找视频并打开"], en:["Find video","Search and open"],
+    prompt:"用户要找视频时，打开视频应用搜索关键词并打开第一个结果。" },
+  { id:"ocr", cat:"media", icon:"🔍", zh:["截屏取字","读出屏幕上的文字"], en:["Screen text","Read text on screen"],
+    prompt:"用户要取屏幕文字时，用 screen 读取当前界面文本并整理成可复制的段落。" },
+  { id:"code", cat:"dev", icon:"💻", zh:["代码解释","逐段讲解代码"], en:["Explain code","Walk through code"],
+    prompt:"用户给代码时，逐段解释作用、指出潜在问题，并给出改进后的写法。" },
+  { id:"regex", cat:"dev", icon:"🧩", zh:["正则生成","按需求写正则"], en:["Regex","Build a regex"],
+    prompt:"用户要正则时，给出正则、逐部分说明含义，并用 2 个通过 + 1 个不通过的例子验证。" },
+  { id:"bug", cat:"dev", icon:"🐞", zh:["报错排查","根据报错定位问题"], en:["Debug","Diagnose errors"],
+    prompt:"用户贴报错时，先给最可能的原因（前三），再给具体修改建议。" },
+  { id:"express", cat:"life", icon:"📦", zh:["快递查询","查快递物流进度"], en:["Parcel","Track deliveries"],
+    prompt:"用户要查快递时，打开快递 App 或搜索单号，汇报最新物流节点。" },
+  { id:"food", cat:"life", icon:"🍜", zh:["菜谱推荐","按现有食材给做法"], en:["Recipes","Cook with what you have"],
+    prompt:"用户给食材时，推荐 3 道家常菜，每道给用料与 3-5 步简做法。" },
+  { id:"translate", cat:"life", icon:"🌐", zh:["翻译助手","中英互译并润色"], en:["Translate","CN/EN with polish"],
+    prompt:"用户要翻译时，先给直译，再给更自然的意译，专有名词保留原文或音译。" },
+  { id:"app", cat:"sys", icon:"📱", zh:["打开应用","让 AI 打开指定 App"], en:["Open apps","Launch an app"],
+    prompt:"用户要求打开某个 App 时，确认名称后用 open_app 打开，并确认是否成功。" },
+  { id:"tap", cat:"sys", icon:"👆", zh:["屏幕操作","点击 / 滑动 / 输入"], en:["Screen control","Tap / swipe / type"],
+    prompt:"需要操作界面时，先用 screen 看当前内容，再精准点击或输入，每步确认结果。" },
+  { id:"battery", cat:"sys", icon:"🔋", zh:["手机状态","电量 / 存储 / 网络"], en:["Device status","Battery / storage / network"],
+    prompt:"用户问手机状态时，读取电量、存储与网络情况并汇报。" },
+  { id:"files", cat:"sys", icon:"📁", zh:["文件整理","查找与整理文件"], en:["Files","Find and tidy files"],
+    prompt:"用户要操作文件时，先说明路径再执行读写，涉及删除必须先征得用户同意。" }
+];
+
+const SKILL_DEFAULT_ON = ["app", "tap", "note"];
+
 const Skill = {
   all(){
-    if(!S.skills){
-      S.skills = DEFAULT_SKILLS.map(function(s){ return Object.assign({}, s); });
+    if(!S.skills || !S.skills.length || !S.skills[0].cat){
+      const custom = (S.skills || []).filter(function(s){ return s && s.builtin === false && s.name; });
+      S.skills = SKILL_CATALOG.map(function(s){
+        return { id:s.id, cat:s.cat, icon:s.icon, zh:s.zh, en:s.en, prompt:s.prompt,
+                 builtin:true, on: SKILL_DEFAULT_ON.indexOf(s.id) >= 0 };
+      }).concat(custom);
       saveSkills();
-    } else {
-      let changed = false;
-      S.skills.forEach(function(s){
-        if(s.builtin && !s.key){
-          const d = DEFAULT_SKILLS.filter(function(x){ return x.id === s.id; })[0];
-          if(d){ s.key = d.key; changed = true; }
-        }
-      });
-      if(changed) saveSkills();
     }
     return S.skills;
   },
-  name(s){ return s.builtin ? t("sk_" + s.key + "_n") : s.name; },
-  desc(s){ return s.builtin ? t("sk_" + s.key + "_d") : (s.desc || ""); },
-  prompt(s){ return s.builtin ? t("sk_" + s.key + "_p") : (s.prompt || ""); },
+  name(s){
+    const a = (LANG === "en" && s.en) ? s.en : s.zh;
+    return a ? a[0] : (s.name || "");
+  },
+  desc(s){
+    const a = (LANG === "en" && s.en) ? s.en : s.zh;
+    return a ? a[1] : (s.desc || "");
+  },
+  prompt(s){ return s.prompt || ""; },
+  catName(id){
+    const c = SKILL_CATS.filter(function(x){ return x.id === id; })[0];
+    return c ? (LANG === "en" ? c.en : c.zh) : id;
+  },
+  filter: "all", q: "",
+  list(){
+    const q = String(this.q || "").trim().toLowerCase();
+    return this.all().filter(function(s){
+      if(Skill.filter !== "all" && s.cat !== Skill.filter) return false;
+      if(!q) return true;
+      return (Skill.name(s) + " " + Skill.desc(s) + " " + Skill.prompt(s)).toLowerCase().indexOf(q) >= 0;
+    });
+  },
   render(){
     App.title(t("skill_title"));
     App.topBtn(t("new"));
-    let h = "<div class='hd'>" + t("skill_hint") + "</div>";
-    const a = this.all();
-    a.forEach(function(s,i){
-      h += "<div class='item'><div class='row' style='padding:0;border:none'>" +
-        "<div style='flex:1'><h4>" + esc(Skill.name(s)) + "</h4><p>" + esc(Skill.desc(s)) + "</p></div>" +
-        "<div class='sw " + (s.on?"on":"") + "' onclick='Skill.toggle(" + i + ")'><i></i></div></div></div>";
-    });
+    let h = "<div class='skbar'><input class='inp' placeholder='" + esc(t("skill_search")) +
+      "' value='" + esc(this.q) + "' oninput='Skill.q=this.value;Skill.paint()'></div>";
+    h += "<div class='cats'>" + SKILL_CATS.map(function(c){
+      const n = c.id === "all" ? Skill.all().length
+        : Skill.all().filter(function(s){ return s.cat === c.id; }).length;
+      if(!n) return "";
+      return "<button class='cat" + (Skill.filter === c.id ? " act" : "") +
+        "' onclick=\"Skill.filter='" + c.id + "';Skill.paint()\">" +
+        Skill.catName(c.id) + " <i>" + n + "</i></button>";
+    }).join("") + "</div>";
+    h += "<div id='sk-list'></div>";
     App.content(h);
   },
-  toggle(i){ const a = this.all(); a[i].on = !a[i].on; saveSkills(); this.render(); Cloud.push(true); },
+  paint(){
+    const box = el("sk-list");
+    if(!box) return;
+    const a = this.list();
+    if(!a.length){ box.innerHTML = "<div class='empty'>" + t("skill_none") + "</div>"; return; }
+    box.innerHTML = a.map(function(s){
+      const i = Skill.all().indexOf(s);
+      return "<div class='scard' onclick='Skill.detail(" + i + ")'>" +
+        "<div class='sic'>" + esc(s.icon || "🧩") + "</div>" +
+        "<div class='stx'><div class='sn'>" + esc(Skill.name(s)) +
+          (s.builtin ? "" : "<span class='tagmini'>" + t("skill_custom") + "</span>") + "</div>" +
+          "<div class='sd'>" + esc(Skill.desc(s)) + "</div></div>" +
+        "<div class='sw " + (s.on ? "on" : "") + "' onclick=\"event.stopPropagation();Skill.toggle(" + i + ")\"><i></i></div>" +
+      "</div>";
+    }).join("");
+  },
+  toggle(i){
+    const a = this.all();
+    a[i].on = !a[i].on;
+    saveSkills(); this.paint(); Cloud.push(true);
+  },
+  async detail(i){
+    const s = this.all()[i];
+    if(!s) return;
+    const act = await uiSheet(Skill.name(s), [
+      { label: s.on ? t("skill_disable") : t("skill_enable"), value: "toggle" },
+      { label: t("skill_send"), value: "run" },
+      { label: t("del"), value: "del", danger: true }
+    ]);
+    if(act === "toggle"){ s.on = !s.on; saveSkills(); this.paint(); }
+    else if(act === "run"){
+      App.tab("chat");
+      el("ta").value = (LANG === "en" ? "[Skill] " : "【技能】") + Skill.name(s) + "\n";
+      Chat.syncSendBtn();
+    } else if(act === "del"){
+      if(s.builtin){ Native.toast(t("skill_no_del")); return; }
+      const ok = await uiAsk(t("skill_del_q"), null, { input:false });
+      if(ok !== true) return;
+      S.skills.splice(i, 1); saveSkills(); this.paint();
+    }
+  },
   async create(){
     const name = await uiAsk(t("skill_name_q"), "");
     if(name === null || !String(name).trim()) return;
     const pr = await uiAsk(t("skill_prompt_q"), "");
     if(pr === null) return;
-    this.all().push({ id:"s"+nowMs(), name:String(name).trim(),
-      desc:String(pr).slice(0,20), prompt:String(pr), on:true });
-    saveSkills(); this.render();
+    this.all().push({ id:"c" + nowMs(), cat:"work", icon:"⭐", name:String(name).trim(),
+      desc:String(pr).slice(0, 24), prompt:String(pr), builtin:false, on:true });
+    saveSkills(); this.paint();
   },
   activeText(){
     const on = this.all().filter(function(s){ return s.on; });
     if(!on.length) return "";
-    return (LANG==="en" ? "\n\n[Enabled skills]\n" : "\n\n【已启用技能】\n") +
+    return (LANG === "en" ? "\n\n[Enabled skills]\n" : "\n\n【已启用技能】\n") +
       on.map(function(s){ return "- " + Skill.name(s) + "：" + Skill.prompt(s); }).join("\n");
   }
 };
@@ -1797,7 +1936,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.17";
+const WEB_VERSION = "1.0.19";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
