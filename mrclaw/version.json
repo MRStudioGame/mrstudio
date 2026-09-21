@@ -1,12 +1,12 @@
 {
-  "versionCode": 15,
-  "versionName": "1.0.14",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.14",
+  "versionCode": 16,
+  "versionName": "1.0.15",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.15",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.14",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.14",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.14"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.15",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.15",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.15"
   ],
-  "size": 144298,
-  "notes": "会话菜单顶部新增「充值积分」按钮，点击直接跳转充值页面。"
+  "size": 127914,
+  "notes": "1. 图标改为正中白色圆；2. 新增附件功能：聊天与客服都能发多张图片/文件（上传到云端存储），AI 与客服都能收到；3. 管理端客服会话可直接查看图片并回复附件。"
 }
