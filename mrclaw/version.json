@@ -1,12 +1,12 @@
 {
-  "versionCode": 20,
-  "versionName": "1.0.19",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.19",
+  "versionCode": 21,
+  "versionName": "1.0.20",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.20",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.19",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.19",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.19"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.20",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.20",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.20"
   ],
   "size": 136106,
-  "notes": "技能页重做：分类浏览 + 搜索 + 详情卡片（启用/停用/用它聊天/删除），内置 20+ 技能，支持自定义技能。"
+  "notes": "1. 修复用「自己的Key」时的请求头（之前 Bearer 前缀被写坏，导致 404/401）；2. 设置新增「测试连接」：一键检查 Key 与接口地址，直接显示真实错误；3. 设置里显示将请求的地址，豆包会提示需填 ep- 接入点。"
 }
