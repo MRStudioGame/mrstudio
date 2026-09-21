@@ -50,11 +50,14 @@ h1{font-size:20px;margin:0}
   border-radius:12px;opacity:0;transition:.25s;pointer-events:none}
 #toast.on{opacity:1;bottom:48px}
 .empty{text-align:center;color:#5D6A7C;padding:40px 0}
+.mbtn{background:#1A212B;border:1px solid #2A313D;color:#C9D3E0;border-radius:10px;
+  width:36px;height:36px;flex:0 0 36px;font-size:16px;display:none}
 .badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;
   background:#FF3B4E;color:#fff;font-size:11px;font-weight:700;text-align:center;
   padding:0 5px;margin-left:6px;box-shadow:0 0 0 2px #151A21}
 .chatwrap{display:grid;grid-template-columns:290px 1fr;gap:14px;height:calc(100vh - 300px);
   min-height:420px}
+#pane-back{display:none}
 .conv{background:#151A21;border:1px solid #232A34;border-radius:16px;overflow-y:auto}
 .cv{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid #1F242C;cursor:pointer}
 .cv:hover{background:#1A212B}
@@ -91,6 +94,41 @@ h1{font-size:20px;margin:0}
 .att img{max-width:180px;max-height:180px;border-radius:10px;display:block}
 .att a{font-size:12px;color:#8FB4FF;border:1px solid #26364F;background:#1A2230;
   border-radius:9px;padding:5px 9px;text-decoration:none}
+
+/* ===== 手机自适应 ===== */
+@media (max-width: 860px){
+  body{font-size:15px}
+  .wrap{padding:12px 12px 40px}
+  h1{font-size:19px}
+  .sub{font-size:11px;letter-spacing:1.5px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat{padding:13px}
+  .stat b{font-size:22px}
+  .card{padding:13px;margin:10px 0;border-radius:14px}
+  .row{gap:8px;flex-wrap:wrap}
+  #tabs, #logtabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;
+    padding-bottom:4px}
+  #tabs .btn, #logtabs .btn{flex:0 0 auto}
+  input{font-size:16px}
+  .btn{padding:9px 14px;font-size:14px}
+  .btn.s{padding:8px 12px}
+  .chatwrap{display:block;height:auto;min-height:0}
+  .chatwrap .pane{display:none}
+  .chatwrap.showchat .conv{display:none}
+  .chatwrap.showchat .pane{display:flex;height:calc(100vh - 240px);min-height:380px}
+  #pane-back{display:inline-flex}
+  .conv{max-height:calc(100vh - 240px)}
+  .cv{padding:11px 12px}
+  .msgs{padding:10px}
+  .smsg{max-width:88%}
+  .sendbar{padding:10px;gap:6px}
+  .sendbar .btn.s{padding:8px 12px}
+  .suplist{max-height:52vh}
+  #sup{width:100%}
+  .u{padding:12px 0}
+  .u .top{gap:8px}
+  .key{font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -155,7 +193,8 @@ h1{font-size:20px;margin:0}
       <div class="chatwrap">
         <div class="conv" id="conv"><div class="empty">加载中…</div></div>
         <div class="pane">
-          <div class="panehead"><b id="pane-title">选择一个会话</b>
+          <div class="panehead"><button class="mbtn" id="pane-back" onclick="Panel.backConv()">←</button>
+            <b id="pane-title">选择一个会话</b>
             <span class="meta" id="pane-sub"></span></div>
           <div class="msgs" id="pane-msgs"><div class="empty">左侧选择用户开始聊天</div></div>
           <div id="pan-chips" class="row hide"></div>
@@ -529,7 +568,12 @@ const Panel = {
     Panel.markSeen(u, new Date().toISOString());
     document.getElementById("pane-title").textContent = u;
     document.getElementById("pane-sub").textContent = '';
+    try{ document.querySelector(".chatwrap").classList.add("showchat"); }catch(e){}
     Panel.supLoad();
+    Panel.convs();
+  },
+  backConv(){
+    try{ document.querySelector(".chatwrap").classList.remove("showchat"); }catch(e){}
     Panel.convs();
   },
   support(i){
