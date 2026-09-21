@@ -1,12 +1,12 @@
 {
-  "versionCode": 9,
-  "versionName": "1.0.8",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.8",
+  "versionCode": 10,
+  "versionName": "1.0.9",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.9",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.8",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.8",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.8"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.9",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.9",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.9"
   ],
-  "size": 78762,
-  "notes": "1. 新增语言选择（中文默认 / English），切换后软件内全部文案、启动页、权限弹窗、提示框都变英文；2. 新增主题颜色（默认深色 / 可切换白色）。"
+  "size": 82858,
+  "notes": "1. 新用户注册送 30 万积分，没填 Key 也能直接聊（走服务端，管理员 Key 不下发到手机）；2. 兑换码兑换：右上角按钮，粘贴卡密自动识别，每个卡密 +30 万积分，一次性使用；3. 输入框旁改为「积分 / 我的Key」切换；4. 新增咨询客服（消息直达管理端，管理端可回复）；5. 管理端可加减积分、封号（永久或按天，必须填理由）；6. 被封号用户进入即显示天数与理由且无法使用；7. 更新改为热更新，以后只下网页层，不用重装软件。"
 }
