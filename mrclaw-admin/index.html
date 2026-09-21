@@ -301,23 +301,23 @@ const Panel = {
     const inbox = await rpc("mrclaw_support_inbox");
     Panel._inbox = {};
     if(Array.isArray(inbox)) inbox.forEach(function(x){ Panel._inbox[x.username] = x; });
+
+    let subs = [];
+    try{ const r0 = await rpc("mrclaw_subs_list"); if(Array.isArray(r0)) subs = r0; }catch(e){}
+    Panel._subsN = subs.length;
+    const seenAt = localStorage.getItem("mrclaw_subs_seen");
+    let nSub = 0;
+    subs.forEach(function(s){ if(!seenAt || new Date(s.created_at) > new Date(seenAt)) nSub++; });
+
     this.stats(stats);
+    const seen = Panel.seen();
+    let un = 0;
+    Object.keys(Panel._inbox).forEach(function(k){ if(Panel.unread(Panel._inbox[k], seen)) un++; });
+    Panel.badge(un);
+    if(Panel.tabView === "log") Panel.logBadge(0);
+    else Panel.logBadge(nSub);
     if(Panel.tabView === "sup") Panel.convs();
-    else {
-      const seen = Panel.seen();
-      let un = 0;
-      Object.keys(Panel._inbox).forEach(function(k){ if(Panel.unread(Panel._inbox[k], seen)) un++; });
-      Panel.badge(un);
-    }
-    try{
-      const subs = await rpc("mrclaw_subs_list");
-      const seenAt = localStorage.getItem("mrclaw_subs_seen");
-      let n = 0;
-      if(Array.isArray(subs)) subs.forEach(function(s){
-        if(!seenAt || new Date(s.created_at) > new Date(seenAt)) n++;
-      });
-      Panel.logBadge(n);
-    }catch(e){}
+    else if(Panel.tabView === "log") Panel.log(Panel.logKind);
     this.render();
     document.getElementById("upd").textContent = "最后更新 " + new Date().toLocaleTimeString();
     Panel.auto();
@@ -337,7 +337,7 @@ const Panel = {
       cell(s.users||0, "注册用户") +
       cell(s.with_key||0, "已填 Key") +
       cell(s.autonomy||0, "已开独自操控") +
-      cell(s.today||0, "今日新增") +
+      cell(Panel._subsN || 0, "订阅邮箱") +
       cell(bans, "封禁中") +
       cell(sups, "客服会话");
     function cell(v,k){ return "<div class='stat'><b>" + v + "</b><span>" + k + "</span></div>"; }
@@ -488,7 +488,7 @@ const Panel = {
         return "<div class='u'><div class='top'><div class='name'>" + esc(s.email) +
           "</div><div class='meta'>" + fmt(s.created_at) + "</div></div>" +
           (s.source ? "<div class='meta'>来源 " + esc(s.source) + "</div>" : "") + "</div>";
-      }).join("") : "<div class='empty'>还没有订阅</div>";
+      }).join("") : "<div class='empty'>还没有订阅（官网订阅后会自动出现在这里，30 秒刷新一次）</div>";
       localStorage.setItem("mrclaw_subs_seen", new Date().toISOString());
       Panel.logBadge(0);
     } else if(k === "codes"){
