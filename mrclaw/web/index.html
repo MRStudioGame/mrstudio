@@ -324,7 +324,7 @@ zh:{
   web_fail:"更新失败", balance:"余额 {0}",
   auto_saved:"已自动保存", save_failed:"保存失败，请检查网络",
   support_fail:"发送失败，请重试", cloud_syncing:"正在同步…",
-  attach:"添加图片/文件", attach_img:"图片", attach_file:"文件",
+  official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"图片", attach_file:"文件",
   uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
   no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
   attach_only:"（附件）", remove:"移除"
@@ -414,7 +414,7 @@ en:{
   web_fail:"Update failed", balance:"Balance {0}",
   auto_saved:"Auto-saved", save_failed:"Save failed, check your network",
   support_fail:"Send failed, please retry", cloud_syncing:"Syncing…",
-  attach:"Add image/file", attach_img:"Image", attach_file:"File",
+  official_site:"Official website", attach:"Add image/file", attach_img:"Image", attach_file:"File",
   uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
   no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
   attach_only:"(attachment)", remove:"Remove"
@@ -1413,7 +1413,8 @@ const Me = {
          "<div><div>" + t("autonomy") + "</div><div class='tiny'>" + t("autonomy_sub") + "</div></div>" +
          "<div class='sw " + (S.cfg.autonomy?"on":"") + "' onclick='Me.autonomy()'><i></i></div></div></div>";
 
-    h += "<div class='card'><button class='btn ghost' onclick='Me.sync()'>" + t("sync") + "</button>" +
+    h += "<div class='card'><button class='btn ghost' onclick='Me.site()'>" + t("official_site") + "</button>" +
+         "<div style='height:10px'></div><button class='btn ghost' onclick='Me.sync()'>" + t("sync") + "</button>" +
          "<div style='height:10px'></div><button class='btn danger' onclick='Me.out()'>" + t("logout") + "</button></div>";
     h += "<div class='tiny' style='text-align:center;padding:18px'>" + t("made_by") + "</div>";
     App.content(h);
@@ -1449,7 +1450,13 @@ const Me = {
     Native.toast(S.cfg.autonomy ? (LANG==="en"?"Autonomous control on":"已开启 AI 独自操控")
                                 : (LANG==="en"?"Autonomous control off":"已关闭"));
   },
-  out(){ Auth.logout(); }
+  out(){ Auth.logout(); },
+  site(){
+    try{
+      if(native && native.openUrl){ native.openUrl(OFFICIAL_SITE); return; }
+      window.open(OFFICIAL_SITE, "_blank");
+    }catch(e){ Native.toast(OFFICIAL_SITE); }
+  }
 };
 
 /* ================= 更新 ================= */
@@ -1666,7 +1673,8 @@ const Attach = {
 };
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.15";
+const WEB_VERSION = "1.0.16";
+const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
   at:0,
