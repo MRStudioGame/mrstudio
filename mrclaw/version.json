@@ -1,12 +1,12 @@
 {
-  "versionCode": 19,
-  "versionName": "1.0.18",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.18",
+  "versionCode": 20,
+  "versionName": "1.0.19",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.19",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.18",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.18",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.18"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.19",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.19",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.19"
   ],
-  "size": 132010,
-  "notes": "1. 修复用户发图片/文件失败（改为原生直传 + 自动压缩大图）；2. 加号入口：上传图片/上传文件；3. 新增「仅聊天/做任务」切换（仅聊天无需权限）；4. 积分未加载时显示「加载中」；5. 「消耗：积分 / 消耗：我的Key」文案更清楚。"
+  "size": 136106,
+  "notes": "技能页重做：分类浏览 + 搜索 + 详情卡片（启用/停用/用它聊天/删除），内置 20+ 技能，支持自定义技能。"
 }
