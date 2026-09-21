@@ -1,12 +1,12 @@
 {
-  "versionCode": 12,
-  "versionName": "1.0.11",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.11",
+  "versionCode": 13,
+  "versionName": "1.0.12",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.12",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.11",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.11",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.11"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.12",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.12",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.12"
   ],
   "size": 144298,
-  "notes": "1. 修复云端连接（内置密钥修复）——注册/登录/积分/客服/Key 保存全部恢复；2. 每次发消息前自动同步最新积分与封禁状态，管理端加的积分立刻可见；3. Key 修改后自动保存到云端，不用再手动点保存；4. 客服消息即时显示，发送失败会有提示。"
+  "notes": "1. 修复兑换码显示「成功 0 失败 0」却不加分：现在云端返回错误会明确提示原因；2. 兑换成功后立即刷新积分；3. 设置页新增「网页层」版本号，方便确认是否已更新；4. 切回前台时也会自动检查更新。"
 }
