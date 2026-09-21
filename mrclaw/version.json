@@ -1,12 +1,12 @@
 {
-  "versionCode": 18,
-  "versionName": "1.0.17",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.17",
+  "versionCode": 19,
+  "versionName": "1.0.18",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.18",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.17",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.17",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.17"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.18",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.18",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.18"
   ],
   "size": 132010,
-  "notes": "1. AI 跳到别的应用执行任务时，屏幕顶部会悬浮显示实时状态（正在执行/已完成/已中断/失败），并可一键中断；2. AI 已内置 MRClaw 官方信息（官网、下载、功能位置、充值入口、版本更新），可自行回答使用问题。"
+  "notes": "1. 修复用户发图片/文件失败（改为原生直传 + 自动压缩大图）；2. 加号入口：上传图片/上传文件；3. 新增「仅聊天/做任务」切换（仅聊天无需权限）；4. 积分未加载时显示「加载中」；5. 「消耗：积分 / 消耗：我的Key」文案更清楚。"
 }
