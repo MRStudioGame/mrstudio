@@ -1,12 +1,12 @@
 {
-  "versionCode": 14,
-  "versionName": "1.0.13",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.13",
+  "versionCode": 15,
+  "versionName": "1.0.14",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.14",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.13",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.13",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.13"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.14",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.14",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.14"
   ],
   "size": 144298,
-  "notes": "1. 修复注册/登录失败时的报错（之前云端错误被当成正常结果）；2. 注册改为防重复提交；3. 老账号（0 积分）登录时自动补发 30 万积分。"
+  "notes": "会话菜单顶部新增「充值积分」按钮，点击直接跳转充值页面。"
 }
