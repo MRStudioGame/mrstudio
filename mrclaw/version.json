@@ -1,12 +1,12 @@
 {
-  "versionCode": 17,
-  "versionName": "1.0.16",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.16",
+  "versionCode": 18,
+  "versionName": "1.0.17",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.17",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.16",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.16",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.16"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.17",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.17",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.17"
   ],
-  "size": 127914,
-  "notes": "1. 设置底部新增「跳转至官网」，用浏览器打开官网下载页；2. 官网已上线（含下载、更新日志、咨询客服、充值积分）。"
+  "size": 132010,
+  "notes": "1. AI 跳到别的应用执行任务时，屏幕顶部会悬浮显示实时状态（正在执行/已完成/已中断/失败），并可一键中断；2. AI 已内置 MRClaw 官方信息（官网、下载、功能位置、充值入口、版本更新），可自行回答使用问题。"
 }
