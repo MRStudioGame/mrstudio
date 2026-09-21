@@ -283,7 +283,7 @@ zh:{
   sk_file_p:"用户要求操作文件时，先说明路径再执行。",
   mem_title:"记忆", mem_empty:"还没有记忆", mem_hint:"AI 会把这些内容带入每次对话",
   mem_what_q:"要记住什么？", mem_edit_q:"修改记忆", mem_del_q:"删除这条记忆？",
-  account:"账号", device:"设备", version:"版本", not_login:"未登录",
+  account:"账号", device:"设备", version:"版本", webver:"网页层", not_login:"未登录",
   model:"模型", base_url:"接口地址", temp:"温度", current_ver:"当前版本",
   check_update:"检查更新", autonomy:"AI 独自操控",
   autonomy_sub:"开启后 AI 每一步都不再向你确认", language:"语言", theme:"主题",
@@ -365,7 +365,7 @@ en:{
   sk_file_p:"When the user asks for file operations, state the path first, then proceed.",
   mem_title:"Memory", mem_empty:"No memory yet", mem_hint:"These are carried into every chat",
   mem_what_q:"What should I remember?", mem_edit_q:"Edit memory", mem_del_q:"Delete this memory?",
-  account:"Account", device:"Device", version:"Version", not_login:"Not signed in",
+  account:"Account", device:"Device", version:"Version", webver:"Web layer", not_login:"Not signed in",
   model:"Model", base_url:"Endpoint", temp:"Temperature", current_ver:"Current version",
   check_update:"Check for updates", autonomy:"Autonomous control",
   autonomy_sub:"When on, the AI no longer asks before each step", language:"Language",
@@ -487,7 +487,15 @@ function rpc(fn, args){
     if(raw && String(raw).indexOf("ERR:") === 0) return { __err: String(raw) };
     const v = (raw === null || raw === undefined) ? "" : String(raw).trim();
     if(v === "") return null;
-    try { return JSON.parse(v); } catch(e){ return { __err: "parse:" + v.slice(0,120) }; }
+    try {
+      const o = JSON.parse(v);
+      if(o && typeof o === "object" && !Array.isArray(o) &&
+         (o.message !== undefined || o.error !== undefined || o.code !== undefined) &&
+         o.ok === undefined && o.points === undefined && o.id === undefined && o.username === undefined){
+        return { __err: String(o.message || o.error || o.code) };
+      }
+      return o;
+    } catch(e){ return { __err: "parse:" + v.slice(0,120) }; }
   });
 }
 
@@ -668,6 +676,7 @@ document.addEventListener("visibilitychange", function(){
   if(!el("guide").classList.contains("hide") && Guide.step === "perm") Guide.perm();
   if(S.tab === "me" && !el("app").classList.contains("hide")) Me.render();
   if(S.user) Acc.refresh();
+  if(Date.now() - (Upd.last || 0) > 300000) Upd.check();
 });
 
 /* ================= 语音 ================= */
@@ -1297,7 +1306,8 @@ const Me = {
     h += "<div class='card'><div class='row'><div>" + t("account") + "</div><div class='muted'>" +
          esc(S.user ? S.user.name : t("not_login")) + "</div></div>" +
          "<div class='row'><div>" + t("device") + "</div><div class='muted'>" + esc(Native.model()) + "</div></div>" +
-         "<div class='row'><div>" + t("version") + "</div><div class='muted'>" + esc(Native.version()) + "</div></div></div>";
+         "<div class='row'><div>" + t("version") + "</div><div class='muted'>" + esc(Native.version()) + "</div></div>" +
+         "<div class='row'><div>" + t("webver") + "</div><div class='muted'>" + esc(webVer()) + "</div></div></div>";
 
     h += "<div class='card'><h4 style='margin:0 0 10px'>" + t("language") + "</h4>" +
          "<div class='seg'><button class='" + (LANG==="zh"?"act":"") + "' onclick=\"setLang('zh')\">中文</button>" +
@@ -1374,9 +1384,10 @@ const Me = {
 
 /* ================= 更新 ================= */
 const Upd = {
-  info:null, list:[], i:0, _tryNext:null,
+  info:null, list:[], i:0, _tryNext:null, last:0,
   check(manual){
     if(!native){ if(manual) Native.toast(t("mobile_only")); return; }
+    Upd.last = Date.now();
     if(manual) Native.toast(t("upd_checking"));
     httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/web.json", {}, "").then(function(raw){
       let hot = false;
@@ -1472,6 +1483,10 @@ window.MR_onWebUpd = function(s){
     Upd._tryNext();
   }
 };
+function webVer(){
+  try{ return (native && native.webVersion) ? (String(native.webVersion()) === "0" ? WEB_VERSION : String(native.webVersion())) : WEB_VERSION; }
+  catch(e){ return WEB_VERSION; }
+}
 function cmpVer(a, b){
   const pa = String(a || "0").split("."), pb = String(b || "0").split(".");
   for(let i = 0; i < 3; i++){
@@ -1483,7 +1498,7 @@ function cmpVer(a, b){
 }
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.11";
+const WEB_VERSION = "1.0.12";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
   at:0,
@@ -1591,14 +1606,22 @@ const Redeem = {
     const yes = await uiAsk(t("redeem_found", codes.length), null, { input:false });
     if(yes !== true) return;
     rpc("mrclaw_redeem", { p_user: S.user.name, p_codes: codes }).then(function(r){
-      if(!r || r.__err){ Native.toast(t("redeem_fail")); return; }
+      if(!r || r.__err){
+        Native.toast(t("redeem_fail") + (r && r.__err ? " " + String(r.__err).slice(0, 90) : ""));
+        return;
+      }
+      if(typeof r.ok !== "number"){ Native.toast(t("redeem_fail")); return; }
       if(r.ok > 0){
         Acc.data.points = r.points;
+        Acc.at = 0;
         Acc.paint();
         Native.toast(t("redeem_ok", r.added, Number(r.points).toLocaleString()));
         Redeem.close();
-      } else {
+        Acc.refresh();
+      } else if((r.bad || []).length){
         Native.toast(t("redeem_part", 0, (r.bad || []).length));
+      } else {
+        Native.toast(t("redeem_fail"));
       }
     });
   }
