@@ -1017,7 +1017,7 @@ const Chat = {
   },
   syncSendBtn(){
     const v = el("ta").value.trim();
-    el("send").className = (v && !Chat.busy) ? "" : "off";
+    el("send").className = (v && !Chat.busy && !Chat.sending) ? "" : "off";
   },
   openLoginGate(){
     Native.toast(t("need_login"));
@@ -1044,21 +1044,28 @@ const Chat = {
   },
   async send(){
     if(!S.user) return this.openLoginGate();
-    if(Acc.banned()){ Show.ban(); return; }
+    if(this.busy || this.sending) return;
     const ta = el("ta");
     const text = ta.value.trim();
-    if(!text || this.busy) return;
+    if(!text) return;
+    this.sending = true;
+    const self = this;
+    const keep = function(){ self.sending = false; };
+    if(Acc.banned()){ keep(); Show.ban(); return; }
     const useOwn = (Acc.data.mode === "own");
-    if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ Guide.key(); return; }
+    if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ keep(); Guide.key(); return; }
     if(native && Mode.on() && !Perm.done()){
-      S.cfg.permAsked = true; saveCfg(); Guide.perm(); return;
+      S.cfg.permAsked = true; saveCfg(); keep(); Guide.perm(); return;
     }
     if(!useOwn){
       const st = await Acc.fetch();
+      this.sending = false;
       if(Acc.banned()){ Show.ban(); return; }
       if(!st && !Acc.data.ready){ Native.toast(t("save_failed")); return; }
       if(Acc.data.points <= 0){ Show.out(); return; }
     }
+    this.sending = false;
+    if(this.busy) return;
     const atts = Attach.take();
     const c = this.cur();
     c.msgs.push({ role:"user", content: text, attach: atts });
@@ -1974,7 +1981,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.20";
+const WEB_VERSION = "1.0.21";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
