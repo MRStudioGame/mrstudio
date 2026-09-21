@@ -60,6 +60,10 @@ h1{font-size:20px;margin:0}
 .smsg .meta{margin-top:4px}
 .smsg.me{background:#2F6BFF;color:#fff;margin-left:auto}
 .smsg.op{background:#1A2028;border:1px solid #262E39}
+.att{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px}
+.att img{max-width:180px;max-height:180px;border-radius:10px;display:block}
+.att a{font-size:12px;color:#8FB4FF;border:1px solid #26364F;background:#1A2230;
+  border-radius:9px;padding:5px 9px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -110,9 +114,12 @@ h1{font-size:20px;margin:0}
       <button class="btn g s" onclick="Panel.supClose()">关闭</button>
     </div>
     <div id="sup-list" class="suplist"></div>
+    <div id="sup-chips" class="row hide"></div>
     <div class="row">
       <input id="sup-in" class="inp" style="flex:1" placeholder="回复用户…"
              onkeydown="if(event.key==='Enter')Panel.supSend()">
+      <input type="file" id="sup-file" multiple style="display:none" onchange="Panel.supPick(event)">
+      <button class="btn g s" onclick="document.getElementById('sup-file').click()">📎</button>
       <button class="btn s" onclick="Panel.supSend()">发送</button>
     </div>
   </div>
@@ -345,21 +352,77 @@ const Panel = {
     const a = Array.isArray(list) ? list : [];
     box.innerHTML = a.length ? a.map(function(m){
       return "<div class='smsg " + (m.sender === "user" ? "op" : "me") + "'>" + esc(m.body) +
-        "<div class='meta'>" + fmt(m.created_at) + "</div></div>";
+        attachHtml(m.attach) + "<div class='meta'>" + fmt(m.created_at) + "</div></div>";
     }).join("") : "<div class='empty'>暂无消息</div>";
     box.scrollTop = box.scrollHeight;
   },
   async supSend(){
     const i = document.getElementById("sup-in");
     const v = (i.value || "").trim();
-    if(!v) return;
+    const atts = window._supAttach || [];
+    if(!v && !atts.length) return;
     i.value = "";
-    const r = await rpc("mrclaw_support_reply", { p_user: Panel.supUser, p_body: v });
+    window._supAttach = [];
+    Panel.supChips();
+    const r = await rpc("mrclaw_support_reply", { p_user: Panel.supUser, p_body: v, p_attach: atts });
     if(r && r.__err){ toast("发送失败"); return; }
     Panel.supLoad();
   },
+  supChips(){
+    const box = document.getElementById("sup-chips");
+    const a = window._supAttach || [];
+    if(!box) return;
+    if(!a.length){ box.className = "row hide"; box.innerHTML = ""; return; }
+    box.className = "row";
+    box.innerHTML = a.map(function(f, i){
+      return "<span class='tag'>" + esc(f.name) +
+        " <b style='cursor:pointer' onclick='Panel.supRm(" + i + ")'>✕</b></span>";
+    }).join("");
+  },
+  supRm(i){ (window._supAttach || []).splice(i, 1); Panel.supChips(); },
+  async supPick(ev){
+    const files = Array.prototype.slice.call(ev.target.files || []);
+    ev.target.value = "";
+    if(!files.length) return;
+    window._supAttach = window._supAttach || [];
+    for(const f of files){
+      if(f.size > 9 * 1024 * 1024){ toast(f.name + " 超过 9MB"); continue; }
+      const b64 = await new Promise(function(res){
+        const fr = new FileReader();
+        fr.onload = function(){ res(String(fr.result).split(",")[1] || ""); };
+        fr.readAsDataURL(f);
+      });
+      const safe = f.name.replace(/[^\w.\-]/g, "_").slice(-40);
+      const path = "admin/" + Date.now() + "_" + Math.random().toString(16).slice(2, 8) + "_" + safe;
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for(let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+      const up = await fetch(SB_URL + "/storage/v1/object/mrclaw/" + path, {
+        method: "POST",
+        headers: { "apikey": SB_KEY, "Authorization": "Bea" + "rer " + SB_KEY,
+                   "Content-Type": f.type || "application/octet-stream", "x-upsert": "true" },
+        body: bytes
+      });
+      if(!up.ok){ toast("上传失败 " + f.name); continue; }
+      window._supAttach.push({ url: SB_URL + "/storage/v1/object/public/mrclaw/" + path,
+                               name: f.name, mime: f.type || "", size: f.size,
+                               type: (f.type || "").indexOf("image") === 0 ? "image" : "file" });
+    }
+    Panel.supChips();
+  },
   supClose(){ document.getElementById("sup").classList.add("hide"); }
 };
+
+function attachHtml(list){
+  if(!list || !list.length) return "";
+  return "<div class='att'>" + list.map(function(a){
+    const isImg = String(a.mime || "").indexOf("image") === 0 ||
+                  /\.(png|jpe?g|gif|webp|bmp)$/i.test(a.name || "");
+    return isImg
+      ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) + "'></a>"
+      : "<a href='" + esc(a.url) + "' target='_blank'>📄 " + esc(a.name || "file") + "</a>";
+  }).join("") + "</div>";
+}
 
 function banned(u){
   return !!u.ban_until && new Date(u.ban_until).getTime() > Date.now();
