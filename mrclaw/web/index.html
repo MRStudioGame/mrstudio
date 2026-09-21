@@ -305,7 +305,9 @@ zh:{
   banned_forever:"永久封禁", banned_days:"封禁 {0} 天", banned_reason:"理由：{0}",
   banned_hint:"账号受限，无法使用任何功能",
   thinking:"思考中…", web_updating:"正在更新…", web_updated:"已更新，正在重启界面",
-  web_fail:"更新失败", balance:"余额 {0}"
+  web_fail:"更新失败", balance:"余额 {0}",
+  auto_saved:"已自动保存", save_failed:"保存失败，请检查网络",
+  support_fail:"发送失败，请重试", cloud_syncing:"正在同步…"
 },
 en:{
   nav_chat:"Chat", nav_task:"Tasks", nav_skill:"Skills", nav_mem:"Memory", nav_me:"Settings",
@@ -389,7 +391,9 @@ en:{
   banned_forever:"Banned permanently", banned_days:"Banned for {0} day(s)",
   banned_reason:"Reason: {0}", banned_hint:"This account is restricted and cannot use any feature",
   thinking:"Thinking…", web_updating:"Updating…", web_updated:"Updated, reloading",
-  web_fail:"Update failed", balance:"Balance {0}"
+  web_fail:"Update failed", balance:"Balance {0}",
+  auto_saved:"Auto-saved", save_failed:"Save failed, check your network",
+  support_fail:"Send failed, please retry", cloud_syncing:"Syncing…"
 }
 };
 let LANG = LS_get("mrclaw_lang", "zh");
@@ -404,7 +408,7 @@ function LS_get(k, d){ try{ const v = localStorage.getItem(k); return v===null?d
 
 /* ================= 基础 ================= */
 const SB_URL = "https://mfrmsmbazofjzdpuxdod.supabase.co";
-const SB_KEY = "eyJhbG…-gRY";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1zbWJhem9manpkcHV4ZG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDAxMTEsImV4cCI6MjEwMjM3NjExMX0.1VQ4V6XnR6LBGT7-3joS6Hju2twRCgrBWW9hIjX-gRY";
 
 const PROVIDERS = [
   { id:"zhipu",    name:"智谱 BigModel",  base:"https://open.bigmodel.cn/api/paas/v4",        model:"glm-4-flash" },
@@ -640,7 +644,7 @@ const Guide = {
     S.cfg.base = providerById(S.cfg.provider).base;
     saveCfg();
     if(!S.cfg.apiKey){ Native.toast(t("need_key")); return; }
-    Cloud.push(true);
+    Cloud.push(false);
     Guide.perm();
   },
   perm(){
@@ -663,6 +667,7 @@ document.addEventListener("visibilitychange", function(){
   if(document.hidden) return;
   if(!el("guide").classList.contains("hide") && Guide.step === "perm") Guide.perm();
   if(S.tab === "me" && !el("app").classList.contains("hide")) Me.render();
+  if(S.user) Acc.refresh();
 });
 
 /* ================= 语音 ================= */
@@ -791,10 +796,8 @@ const Cloud = {
       p_base_url: S.cfg.base, p_model: S.cfg.model, p_temp: String(S.cfg.temp),
       p_autonomy: !!S.cfg.autonomy, p_device: Native.model(), p_ver: Native.version()
     }).then(function(r){
-      if(!quiet){
-        if(r && r.__err) Native.toast((LANG==="en"?"Save failed: ":"保存失败：") + r.__err);
-        else Native.toast(LANG==="en" ? "Saved" : "已保存");
-      }
+      if(r && r.__err){ Native.toast(t("save_failed")); return; }
+      if(!quiet) Native.toast(LANG==="en" ? "Saved" : "已保存");
     });
   }
 };
@@ -942,17 +945,23 @@ const Chat = {
     sys += Skill.activeText();
     return sys;
   },
-  send(){
+  async send(){
     if(!S.user) return this.openLoginGate();
     if(Acc.banned()){ Show.ban(); return; }
+    const ta = el("ta");
+    const text = ta.value.trim();
+    if(!text || this.busy) return;
     const useOwn = (Acc.data.mode === "own");
     if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ Guide.key(); return; }
     if(native && !Perm.done() && !S.cfg.permAsked){
       S.cfg.permAsked = true; saveCfg(); Guide.perm(); return;
     }
-    const ta = el("ta");
-    const text = ta.value.trim();
-    if(!text || this.busy) return;
+    if(!useOwn){
+      const st = await Acc.fetch();
+      if(Acc.banned()){ Show.ban(); return; }
+      if(!st && !Acc.data.ready){ Native.toast(t("save_failed")); return; }
+      if(Acc.data.points <= 0){ Show.out(); return; }
+    }
     const c = this.cur();
     c.msgs.push({ role:"user", content: text });
     if(c.title === t("new_chat")){ c.title = text.slice(0,14); }
@@ -1301,10 +1310,10 @@ const Me = {
          "<label class='f'>" + t("provider") + "</label><select id='c-prov' class='inp' onchange='Me.provChange()'>" + opts + "</select>" +
          "<label class='f' style='display:flex;justify-content:space-between;align-items:center'><span>" + t("api_key") + "</span>" +
          "<span id='key-eye' style='color:var(--accent);font-size:12px' onclick='Me.eye()'>" + t("show") + "</span></label>" +
-         "<input id='c-key' class='inp mask' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' value='" + esc(S.cfg.apiKey) + "'>" +
-         "<label class='f'>" + t("base_url") + "</label><input id='c-base' class='inp' value='" + esc(base) + "'>" +
-         "<label class='f'>" + t("model_name") + "</label><input id='c-model' class='inp' value='" + esc(model) + "'>" +
-         "<label class='f'>" + t("temp") + "</label><input id='c-temp' class='inp' value='" + esc(S.cfg.temp) + "'>" +
+         "<input id='c-key' class='inp mask' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' onchange='Me.autoSave()' value='" + esc(S.cfg.apiKey) + "'>" +
+         "<label class='f'>" + t("base_url") + "</label><input id='c-base' class='inp' onchange='Me.autoSave()' value='" + esc(base) + "'>" +
+         "<label class='f'>" + t("model_name") + "</label><input id='c-model' class='inp' onchange='Me.autoSave()' value='" + esc(model) + "'>" +
+         "<label class='f'>" + t("temp") + "</label><input id='c-temp' class='inp' onchange='Me.autoSave()' value='" + esc(S.cfg.temp) + "'>" +
          "<div style='height:14px'></div><button class='btn' onclick='Me.save()'>" + t("save_cfg") + "</button></div>";
 
     h += "<div class='card'><h4 style='margin:0 0 6px'>" + t("perm_section") + "</h4>";
@@ -1344,6 +1353,7 @@ const Me = {
     this.render();
   },
   save(){ this.collect(); Cloud.push(false); },
+  autoSave(){ this.collect(); Cloud.push(true); Native.toast(t("auto_saved")); },
   sync(){ this.collect(); Cloud.push(false); },
   checkUpdate(){ Upd.check(true); },
   eye(){
@@ -1473,23 +1483,34 @@ function cmpVer(a, b){
 }
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.10";
+const WEB_VERSION = "1.0.11";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
-  refresh(cb){
-    if(!S.user){ if(cb) cb(); return; }
-    rpc("mrclaw_state", { p_user: S.user.name }).then(function(st){
-      if(st && !st.__err && typeof st === "object" && !Array.isArray(st)){
-        Acc.data.points = st.points || 0;
-        Acc.data.banUntil = st.ban_until || null;
-        Acc.data.banReason = st.ban_reason || "";
-        Acc.data.mode = st.use_mode || "points";
-        Acc.data.ready = true;
-        Acc.paint();
-        Acc.banCheck();
-      }
-      if(cb) cb();
+  at:0,
+  fetch(){
+    return new Promise(function(res){
+      if(!S.user){ res(null); return; }
+      rpc("mrclaw_state", { p_user: S.user.name }).then(function(st){
+        if(st && !st.__err && typeof st === "object" && !Array.isArray(st)){
+          Acc.data.points = st.points || 0;
+          Acc.data.banUntil = st.ban_until || null;
+          Acc.data.banReason = st.ban_reason || "";
+          Acc.data.mode = st.use_mode || "points";
+          Acc.data.ready = true;
+          Acc.at = Date.now();
+          Acc.paint();
+          Acc.banCheck();
+          res(st);
+        } else {
+          res(null);
+        }
+      });
     });
+  },
+  refresh(cb){ Acc.fetch().then(function(){ if(cb) cb(); }); },
+  ensure(cb){
+    if(Date.now() - Acc.at < 12000){ if(cb) cb(Acc.data); return; }
+    Acc.fetch().then(function(){ if(cb) cb(Acc.data); });
   },
   paint(){
     const c = el("pts-chip");
@@ -1588,6 +1609,7 @@ const Support = {
   timer:null,
   open(){
     if(!S.user) return Chat.openLoginGate();
+    Support.msgs = [];
     const b = el("sup");
     b.classList.remove("hide");
     b.innerHTML = "<div class='sup-top'><button class='mbtn' onclick='Support.close()'>←</button>" +
@@ -1603,10 +1625,11 @@ const Support = {
     this.timer = setInterval(function(){ self.load(); }, 5000);
   },
   close(){ el("sup").classList.add("hide"); if(this.timer){ clearInterval(this.timer); this.timer = null; } },
+  msgs: [],
   load(){
     if(el("sup").classList.contains("hide")) return;
     rpc("mrclaw_support_list", { p_user: S.user.name }).then(function(a){
-      if(Array.isArray(a)) Support.render(a);
+      if(Array.isArray(a)){ Support.msgs = a; Support.render(a); }
     });
   },
   render(a){
@@ -1625,7 +1648,12 @@ const Support = {
     const v = String(i.value || "").trim();
     if(!v) return;
     i.value = "";
-    rpc("mrclaw_support_send", { p_user: S.user.name, p_body: v }).then(function(){ Support.load(); });
+    Support.msgs = Support.msgs.concat([{ sender:"user", body:v, created_at:new Date().toISOString() }]);
+    Support.render(Support.msgs);
+    rpc("mrclaw_support_send", { p_user: S.user.name, p_body: v }).then(function(r){
+      if(r && r.__err){ Native.toast(t("support_fail")); return; }
+      Support.load();
+    });
   }
 };
 
@@ -1691,6 +1719,10 @@ el("send").addEventListener("click", function(){ Chat.send(); });
     Auth.tab("reg");
   }
   setTimeout(function(){ Upd.check(); }, 1200);
+  setInterval(function(){
+    if(document.hidden || !S.user) return;
+    Acc.refresh();
+  }, 20000);
 })();
 </script>
 </body>
