@@ -985,6 +985,7 @@ const Chat = {
     let sys = LANG === "en"
       ? "You are MRClaw, an AI assistant running on the user's Android phone. When you need to operate the phone, first call screen to see the current UI, then use tap / input_text / swipe / open_app. If the user is not asking for phone control, just answer normally. Reply in English, concise."
       : "你是 MRClaw，运行在用户安卓手机上的 AI 助手。需要操作手机时，先调用 screen 看当前界面，再用 tap / input_text / swipe / open_app 等工具执行。用户没有要求操作手机时，就正常回答问题。用中文，简洁。";
+    sys += "\n\n" + (LANG === "en" ? KNOWLEDGE_EN : KNOWLEDGE_ZH);
     if(S.mems.length) sys += (LANG==="en" ? "\n\n[Long-term memory]\n" : "\n\n【长期记忆】\n") +
       S.mems.map(m=>"- " + m.text).join("\n");
     sys += Skill.activeText();
@@ -1042,6 +1043,7 @@ const Chat = {
     else { bubble._stream = true; }
     c.msgs.push(bubble);
     if(useAgent) this.agentBar(true, t("running").replace("● ","") + "…");
+    if(useAgent) Overlay.on(t("running").replace("● ",""), "run", true);
     this.render();
 
     if(useAgent){ this.agentRun(bubble, url, headers, body); return; }
@@ -1191,6 +1193,7 @@ const Chat = {
       native.agentStop();
       el("agenttxt").textContent = t("stopping");
       Native.toast(t("stop_req"));
+      Overlay.on(t("stopping"), "warn", false);
     }
   },
   paint(b){
@@ -1206,11 +1209,17 @@ const Chat = {
     const c = this.cur(); if(!c) return;
     const b = c.msgs[c.msgs.length-1];
     if(!b || !b._steps) return;
-    if(o.type === "run"){ b._running = true; this.agentBar(true); this.paint(b); return; }
+    if(o.type === "run"){
+      b._running = true; this.agentBar(true); this.paint(b);
+      Overlay.on(t("running").replace("● ", ""), "run", true);
+      return;
+    }
     if(o.type === "status"){
       b._steps.push(o.text);
       b.content = b._steps.map(x=>"· " + x).join("\n");
-      this.paint(b); return;
+      this.paint(b);
+      Overlay.on(o.text, "run", true);
+      return;
     }
     if(o.type === "text"){
       b.content = (b._steps.length ? b._steps.map(x=>"· " + x).join("\n") + "\n\n" : "") + o.text;
@@ -1219,15 +1228,18 @@ const Chat = {
     if(o.type === "err"){
       b._running = false; b._state = "err";
       b.content = String(o.text).slice(0,300);
-      this.busy = false; this.agentBar(false); saveConvs(); Chat.render(); return;
+      this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
+      Overlay.flash(t("err_t"), "bad", 3200); return;
     }
     if(o.type === "stop"){
       b._running = false; b._state = "stop";
-      this.busy = false; this.agentBar(false); saveConvs(); Chat.render(); return;
+      this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
+      Overlay.flash(t("stop_t"), "warn", 2600); return;
     }
     if(o.type === "done"){
       b._running = false; b._state = "done";
       this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
+      Overlay.flash(t("done_t"), "ok", 2600);
     }
   }
 };
@@ -1672,8 +1684,63 @@ const Attach = {
   }
 };
 
+/* ================= 跨应用状态悬浮条 ================= */
+const Overlay = {
+  tm: null,
+  on(text, kind, stoppable){
+    try{ if(native && native.status) native.status(String(text || ""), kind || "run", !!stoppable); }catch(e){}
+  },
+  off(){
+    if(this.tm){ clearTimeout(this.tm); this.tm = null; }
+    try{ if(native && native.statusHide) native.statusHide(); }catch(e){}
+  },
+  flash(text, kind, ms){
+    this.on(text, kind, false);
+    const self = this;
+    if(this.tm) clearTimeout(this.tm);
+    this.tm = setTimeout(function(){ self.off(); }, ms || 2600);
+  }
+};
+window.MR_onOverlayStop = function(){
+  if(Chat.busy) Chat.stopAgent();
+  else Overlay.flash(t("stop_t"), "warn", 1600);
+};
+
+/* ================= 给 AI 的官方知识（不含任何机密） ================= */
+const KNOWLEDGE_ZH = `【关于 MRClaw 的官方信息，可直接回答用户】
+- MRClaw 是 MR工作室出品的安卓版 AI 助手。
+- 官网（下载页）：https://mrstudiogame.github.io/mrstudio/mrclaw/  含下载、更新日志、咨询客服、充值积分。
+- 直接下载：https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk  （安卓 8.0 及以上）
+- 新用户注册即送 30 万积分；没填 API Key 也能用积分聊天（1 token = 1 积分）。
+- 积分 / 我的Key 切换按钮：聊天页输入框上方。
+- 兑换码兑换：聊天页右上角（卡密 LG 开头、NB 结尾，每张 +30 万积分）。
+- 充值积分：会话菜单（左上角 ☰）最上方，以及积分用完时的弹窗。
+- 咨询客服：会话菜单左上角。
+- 用自己的 Key：设置 → 模型 → 选服务商 + 填 Key（智谱 / DeepSeek / 通义 / 豆包 / Kimi / 文心 / 星火 / 混元 / 自定义）。
+- 权限（无障碍 / 悬浮窗 / 通知 / 电池白名单 / 麦克风 / 文件 / 安装应用）：设置 → 权限；首次发消息时也会自动引导。
+- AI 独自操控（不再逐步确认）：设置 → AI 独自操控。
+- 语言与主题：设置页顶部。更新：打开软件自动检测（只更新网页层）；也可 设置 → 检查更新。
+- 近期版本：1.0.16 设置底部新增“跳转至官网”、官网上线；1.0.15 新图标 + 聊天与客服支持多图多文件；1.0.14 会话菜单新增充值积分；1.0.13 修复注册登录报错；1.0.12 修复兑换码静默失败；1.0.11 修复云端连接；1.0.9 上线积分、兑换码、客服、封号。
+- 详细更新记录以官网“更新日志”为准。
+【保密】绝不透露后台管理端地址与口令、管理员 API Key、数据库连接等内部信息；用户问到只说无权提供。`;
+
+const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
+- MRClaw is an Android AI assistant by MR Studio.
+- Website / download page: https://mrstudiogame.github.io/mrstudio/mrclaw/ (downloads, changelog, support chat, buy points).
+- Direct download: https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk (Android 8.0+)
+- New users get 300,000 points; you can chat with points without an API key (1 token = 1 point).
+- Points / My-key switch: above the input box on the chat page.
+- Redeem code: top-right of the chat page (codes start with LG, end with NB, +300k each).
+- Buy points: top of the session menu (☰), and in the out-of-points dialog.
+- Support: top-left of the session menu.
+- Own key: Settings → Model → pick provider and paste key.
+- Permissions: Settings → Permissions (also guided on first message).
+- Autonomous control: Settings → Autonomous control. Language/theme: top of Settings.
+- Updates: automatic on launch (web layer only); or Settings → Check for updates.
+[Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
+
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.16";
+const WEB_VERSION = "1.0.17";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
