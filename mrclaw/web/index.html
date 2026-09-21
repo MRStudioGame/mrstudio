@@ -95,6 +95,18 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
 #pts-chip{font-size:12px;color:var(--muted2)}
 .tb2{font-size:12px;padding:7px 10px}
+#chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#chips .chip{display:flex;align-items:center;gap:6px;background:var(--chip);
+  border:1px solid var(--ghost-bd);border-radius:10px;padding:5px 8px;font-size:11.5px;
+  max-width:48%}
+#chips .chip img{width:26px;height:26px;object-fit:cover;border-radius:6px}
+#chips .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chips .chip i{cursor:pointer;font-style:normal;color:var(--muted)}
+.att{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.att img{max-width:170px;max-height:170px;border-radius:10px;display:block}
+.att a{font-size:12px;color:var(--tip-fg);border:1px solid var(--tip-bd);
+  background:var(--tip-bg);border-radius:9px;padding:5px 9px;text-decoration:none}
+.att .up{opacity:.55}
 #toolrow .btn.mini{width:auto;font-size:12.5px;padding:6px 12px}
 #bar textarea{flex:1;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:14px;
   padding:11px 14px;max-height:120px;resize:none;color:var(--fg)}
@@ -208,9 +220,13 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
       <button class="btn mini danger" id="stop-btn" onclick="Chat.stopAgent()"></button>
     </div>
     <div id="bar" class="hide">
+      <div id="chips" class="hide"></div>
       <div id="toolrow">
         <span id="pts-chip"></span>
-        <button id="mode-btn" class="btn ghost mini" onclick="Acc.mode()"></button>
+        <div style="display:flex;gap:8px">
+          <button id="att-btn" class="btn ghost mini" onclick="Attach.pick(false)"></button>
+          <button id="mode-btn" class="btn ghost mini" onclick="Acc.mode()"></button>
+        </div>
       </div>
       <div class="barline">
         <textarea id="ta" rows="1" placeholder=""></textarea>
@@ -307,7 +323,11 @@ zh:{
   thinking:"思考中…", web_updating:"正在更新…", web_updated:"已更新，正在重启界面",
   web_fail:"更新失败", balance:"余额 {0}",
   auto_saved:"已自动保存", save_failed:"保存失败，请检查网络",
-  support_fail:"发送失败，请重试", cloud_syncing:"正在同步…"
+  support_fail:"发送失败，请重试", cloud_syncing:"正在同步…",
+  attach:"添加图片/文件", attach_img:"图片", attach_file:"文件",
+  uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
+  no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
+  attach_only:"（附件）", remove:"移除"
 },
 en:{
   nav_chat:"Chat", nav_task:"Tasks", nav_skill:"Skills", nav_mem:"Memory", nav_me:"Settings",
@@ -393,7 +413,11 @@ en:{
   thinking:"Thinking…", web_updating:"Updating…", web_updated:"Updated, reloading",
   web_fail:"Update failed", balance:"Balance {0}",
   auto_saved:"Auto-saved", save_failed:"Save failed, check your network",
-  support_fail:"Send failed, please retry", cloud_syncing:"Syncing…"
+  support_fail:"Send failed, please retry", cloud_syncing:"Syncing…",
+  attach:"Add image/file", attach_img:"Image", attach_file:"File",
+  uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
+  no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
+  attach_only:"(attachment)", remove:"Remove"
 }
 };
 let LANG = LS_get("mrclaw_lang", "zh");
@@ -928,7 +952,9 @@ const Chat = {
     if(!m.length) h += "<div class='empty'>" + t("chat_empty") + "</div>";
     m.forEach(function(x,i){
       if(x.role==="system") h += "<div class='msg sys'>" + esc(x.content) + "</div>";
-      else if(x.role==="user") h += "<div class='msg u'>" + esc(x.content) + "</div>";
+      else if(x.role==="user"){
+        h += "<div class='msg u'>" + esc(x.content) + Attach.html(x.attach) + "</div>";
+      }
       else {
         h += "<div class='msg a'>" + Chat.headHtml(x) + esc(x.content) + "</div>";
         if(x.content) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
@@ -981,8 +1007,9 @@ const Chat = {
       if(!st && !Acc.data.ready){ Native.toast(t("save_failed")); return; }
       if(Acc.data.points <= 0){ Show.out(); return; }
     }
+    const atts = Attach.take();
     const c = this.cur();
-    c.msgs.push({ role:"user", content: text });
+    c.msgs.push({ role:"user", content: text, attach: atts });
     if(c.title === t("new_chat")){ c.title = text.slice(0,14); }
     c.t = nowMs();
     ta.value = ""; ta.style.height = "auto";
@@ -1002,8 +1029,7 @@ const Chat = {
     });
     const body = JSON.stringify({
       model: S.cfg.model || providerById(S.cfg.provider).model,
-      messages: [{ role:"system", content: this.systemText() }].concat(
-        c.msgs.filter(x=>x.role!=="system").slice(-30).map(x=>({ role:x.role, content:x.content }))),
+      messages: this.apiMsgs(c, null, atts),
       stream: true,
       temperature: parseFloat(S.cfg.temp) || 0.7
     });
@@ -1022,14 +1048,40 @@ const Chat = {
     this.streamId = "s"+nowMs();
     if(!Native.stream(this.streamId, url, headers, body)){ this.fallbackFetch(url, headers, body); }
   },
+  /* -------- 组装请求消息（支持图片） -------- */
+  apiMsgs(c, bubble, atts){
+    const model = S.cfg.model || providerById(S.cfg.provider).model;
+    const vision = /vl|vision|4v|omni|glm-4v|gpt-4/i.test(String(model));
+    const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-24);
+    const out = [{ role:"system", content: this.systemText() }];
+    hist.forEach(function(x, i){
+      const last = (i === hist.length - 1);
+      if(x.role === "user" && last && atts && atts.length){
+        const imgs = atts.filter(function(a){ return Attach.isImg(a) && a.url; });
+        if(vision && imgs.length){
+          const parts = [];
+          if(x.content) parts.push({ type:"text", text: x.content });
+          imgs.forEach(function(a){ parts.push({ type:"image_url", image_url:{ url:a.url } }); });
+          out.push({ role:"user", content: parts });
+          return;
+        }
+        const extra = atts.map(function(a){ return "[附件] " + (a.name || "") + " " + a.url; }).join("\n");
+        out.push({ role:"user", content: (x.content ? x.content + "\n\n" : "") + extra });
+        return;
+      }
+      out.push({ role: x.role, content: x.content });
+    });
+    return out;
+  },
   /* -------- 积分模式：走服务端代理，Key 不下发 -------- */
   sendPoints(c){
     this.busy = true; this.syncSendBtn();
+    const last = c.msgs[c.msgs.length - 1];
+    const atts = (last && last.attach) ? last.attach : [];
+    if(atts.some(function(a){ return Attach.isImg(a); })) Native.toast(t("no_vision"));
     const bubble = { role:"assistant", content: t("thinking"), _pts:true };
     c.msgs.push(bubble); this.render();
-    const msgs = [{ role:"system", content: this.systemText() }].concat(
-      c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-24)
-        .map(function(x){ return { role:x.role, content:x.content }; }));
+    const msgs = this.apiMsgs(c, bubble, atts);
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
       p_body: { model:"deepseek-chat", messages: msgs, stream:false, max_tokens: 2048 }
@@ -1066,8 +1118,16 @@ const Chat = {
   },
   agentRun(bubble, url, headers, body){
     const c = this.cur();
-    const hist = c.msgs.filter(function(x){ return x!==bubble && x.role!=="system"; }).slice(-12)
-      .map(function(x){ return { role:x.role, content:x.content }; });
+    const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-12)
+      .map(function(x){
+        let txt = x.content || "";
+        if(x.attach && x.attach.length){
+          txt += (txt ? "\n\n" : "") + x.attach.map(function(a){
+            return "[附件] " + (a.name || "") + " " + a.url;
+          }).join("\n");
+        }
+        return { role:x.role, content: txt };
+      });
     native.agent(JSON.stringify({
       url: url, headers: headers,
       model: S.cfg.model || providerById(S.cfg.provider).model,
@@ -1507,6 +1567,104 @@ function cmpVer(a, b){
   return 0;
 }
 
+/* ================= 附件 ================= */
+let _upSeq = 0;
+const _upWait = {};
+window.MR_onUpload = function(id, text){
+  const f = _upWait[id];
+  if(f){ delete _upWait[id]; f(text); }
+};
+window.MR_onPick = function(s){
+  Attach.onPick(s);
+};
+
+const Attach = {
+  pending: [], _target: "chat",
+  pick(forSupport){
+    if(!native || !native.pickFile){ Native.toast(t("mobile_only")); return; }
+    Attach._target = forSupport ? "sup" : "chat";
+    native.pickFile("any", true);
+  },
+  onPick(s){
+    let arr = [];
+    try{ arr = JSON.parse(s); }catch(e){ arr = []; }
+    if(!Array.isArray(arr) || !arr.length){ Native.toast(t("pick_fail")); return; }
+    const list = Attach._target === "sup" ? Attach.supList() : Attach.pending;
+    arr.forEach(function(f){
+      list.push({ name:f.name, mime:f.mime || "", size:f.size || 0,
+                  b64:f.b64, url:"", up:true });
+    });
+    Attach.render();
+    Attach.uploadAll();
+  },
+  supList(){ return Attach.supPending || (Attach.supPending = []); },
+  uploadAll(){
+    const all = Attach.pending.concat(Attach.supList());
+    all.forEach(function(f){
+      if(!f.up || f.url) return;
+      Attach.upload(f, function(url, err){
+        if(url){ f.url = url; f.up = false; }
+        else { Native.toast(t("upload_fail") + " " + String(err || "").slice(0, 60)); f.fail = true; f.up = false; }
+        Attach.render();
+      });
+    });
+  },
+  upload(f, cb){
+    const u = (S.user ? S.user.name : "anon");
+    const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
+    const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
+    const id = "up" + (++_upSeq);
+    _upWait[id] = function(text){
+      if(text && String(text).indexOf("ERR:") === 0) return cb(null, text);
+      cb(SB_URL + "/storage/v1/object/public/mrclaw/" + path, null);
+    };
+    native.uploadAsync(id, SB_URL + "/storage/v1/object/mrclaw/" + path,
+      JSON.stringify({
+        "apikey": SB_KEY,
+        "Authorization": "Bea" + "rer " + SB_KEY,
+        "Content-Type": f.mime || "application/octet-stream",
+        "x-upsert": "true"
+      }), f.b64);
+  },
+  ready(list){ return (list || []).filter(function(f){ return f.url && !f.fail; }); },
+  isImg(f){ return String(f.mime || "").indexOf("image") === 0 || /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || ""); },
+  take(){ const a = Attach.ready(Attach.pending); Attach.pending = []; Attach.render(); return a; },
+  takeSup(){ const a = Attach.ready(Attach.supList()); Attach.supPending = []; Attach.render(); return a; },
+  rm(list, i){
+    const arr = list === "sup" ? Attach.supList() : Attach.pending;
+    arr.splice(i, 1); Attach.render();
+  },
+  render(){
+    function chipHtml(f, kind, i){
+      const thumb = Attach.isImg(f) && f.url ? "<img src='" + esc(f.url) + "'>" : "<span>📄</span>";
+      return "<div class='chip'>" + thumb + "<span>" + esc(f.name) +
+        (f.up ? " · " + t("uploading") : (f.fail ? " · ✕" : "")) + "</span>" +
+        "<i onclick='Attach.rm(\"" + kind + "\"," + i + ")'>✕</i></div>";
+    }
+    const box = el("chips");
+    if(box){
+      const a = Attach.pending;
+      if(!a.length){ box.className = "hide"; box.innerHTML = ""; }
+      else { box.className = ""; box.innerHTML = a.map(function(f, i){ return chipHtml(f, "chat", i); }).join(""); }
+    }
+    const s = el("sup-chips");
+    if(s){
+      const a2 = Attach.supList();
+      if(!a2.length){ s.className = "hide"; s.innerHTML = ""; }
+      else { s.className = ""; s.innerHTML = a2.map(function(f, i){ return chipHtml(f, "sup", i); }).join(""); }
+    }
+  },
+  html(list){
+    if(!list || !list.length) return "";
+    return "<div class='att'>" + list.map(function(a){
+      const isImg = String(a.mime || "").indexOf("image") === 0 || Attach.isImg(a);
+      return isImg
+        ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) + "'></a>"
+        : "<a href='" + esc(a.url) + "' target='_blank'>📄 " + esc(a.name || "file") + "</a>";
+    }).join("") + "</div>";
+  }
+};
+
 /* ================= 积分与账号状态 ================= */
 const WEB_VERSION = "1.0.14";
 const Acc = {
@@ -1650,13 +1808,18 @@ const Support = {
   open(){
     if(!S.user) return Chat.openLoginGate();
     Support.msgs = [];
+    Attach.supPending = [];
     const b = el("sup");
     b.classList.remove("hide");
     b.innerHTML = "<div class='sup-top'><button class='mbtn' onclick='Support.close()'>←</button>" +
       "<b style='font-size:16px'>" + t("support") + "</b></div>" +
       "<div class='sup-list' id='sup-list'><div class='empty'>" + t("support_empty") + "</div></div>" +
-      "<div class='sup-bar'><input id='sup-in' type='text' autocomplete='off' spellcheck='false' placeholder='" + esc(t("support_ph")) + "'>" +
+      "<div id='sup-chips' class='hide' style='padding:0 12px 6px'></div>" +
+      "<div class='sup-bar'><button class='btn ghost mini' onclick='Attach.pick(true)'>📎</button>" +
+      "<input id='sup-in' type='text' autocomplete='off' spellcheck='false' placeholder='" + esc(t("support_ph")) + "'>" +
       "<button class='btn mini' onclick='Support.send()'>" + t("send_btn") + "</button></div>";
+    Attach.supPending = [];
+    Attach.render();
     const i = el("sup-in");
     if(i) i.addEventListener("keydown", function(ev){ if(ev.key === "Enter") Support.send(); });
     this.load();
@@ -1678,7 +1841,8 @@ const Support = {
     let h = "";
     if(!a.length) h = "<div class='empty'>" + t("support_empty") + "</div>";
     a.forEach(function(m){
-      h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" + esc(m.body) + "</div>";
+      h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" +
+        esc(m.body) + Attach.html(m.attach) + "</div>";
     });
     box.innerHTML = h;
     box.scrollTop = box.scrollHeight;
@@ -1686,11 +1850,13 @@ const Support = {
   send(){
     const i = el("sup-in");
     const v = String(i.value || "").trim();
-    if(!v) return;
+    const atts = Attach.takeSup();
+    if(!v && !atts.length) return;
     i.value = "";
-    Support.msgs = Support.msgs.concat([{ sender:"user", body:v, created_at:new Date().toISOString() }]);
+    Support.msgs = Support.msgs.concat([{ sender:"user", body:v, attach:atts,
+                                          created_at:new Date().toISOString() }]);
     Support.render(Support.msgs);
-    rpc("mrclaw_support_send", { p_user: S.user.name, p_body: v }).then(function(r){
+    rpc("mrclaw_support_send", { p_user: S.user.name, p_body: v, p_attach: atts }).then(function(r){
       if(r && r.__err){ Native.toast(t("support_fail")); return; }
       Support.load();
     });
@@ -1726,6 +1892,8 @@ function paintStatic(){
   el("nv-mem").textContent = t("nav_mem");
   el("nv-me").textContent = t("nav_me");
   el("stop-btn").textContent = t("stop_btn");
+  el("att-btn").textContent = "📎";
+  el("att-btn").title = t("attach");
   el("rd-btn").textContent = t("redeem");
   try{ Acc.paint(); }catch(e){}
   el("ta").placeholder = "";
