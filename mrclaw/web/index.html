@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0E1116">
+<title>MRClaw</title>
+<style>
+:root{
+  --bg:#0E1116; --panel:#151A21; --panel2:#11161C; --border:#232A34;
+  --fg:#E7ECF3; --muted:#7C8798; --muted2:#6E7A8C; --inp:#0F1319;
+  --line:#1F242C; --msg:#1A2028; --chip:#1A212B; --accent:#2F6BFF;
+  --tip-bg:#1A2230; --tip-bd:#26364F; --tip-fg:#8FB4FF;
+  --ghost-bg:#1B2029; --ghost-bd:#2A313D; --ghost-fg:#C9D3E0;
+  --danger-bg:#2A1519; --danger-bd:#40202A; --danger-fg:#FF7A8A;
+  --mask:rgba(6,9,13,.62); --sw:#2A313D;
+}
+body.light{
+  --bg:#F4F6F9; --panel:#FFFFFF; --panel2:#FFFFFF; --border:#E3E8EF;
+  --fg:#1B2330; --muted:#6B7688; --muted2:#7B8697; --inp:#F7F9FC;
+  --line:#E9EDF3; --msg:#F1F4F9; --chip:#FFFFFF; --accent:#2F6BFF;
+  --tip-bg:#EAF1FF; --tip-bd:#C7D9FF; --tip-fg:#2A62D6;
+  --ghost-bg:#FFFFFF; --ghost-bd:#DFE5EE; --ghost-fg:#3C4759;
+  --danger-bg:#FDECEF; --danger-bd:#F5C9D1; --danger-fg:#D0394F;
+  --mask:rgba(30,38,50,.35); --sw:#D7DEE8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+  font:15px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  overscroll-behavior:none}
+#root{height:100%;display:flex;flex-direction:column}
+.hide{display:none!important}
+button,input,textarea,select{font:inherit;color:inherit;outline:none;border:none;background:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--accent);color:#fff;border-radius:12px;padding:12px 18px;font-weight:600;
+  width:100%;transition:.15s}
+.btn:active{transform:scale(.98);opacity:.88}
+.btn.ghost{background:var(--ghost-bg);border:1px solid var(--ghost-bd);color:var(--ghost-fg)}
+.btn.mini{width:auto;padding:8px 14px;font-size:13px;border-radius:10px}
+.btn.danger{background:var(--danger-bg);color:var(--danger-fg);border:1px solid var(--danger-bd)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:13px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.muted{color:var(--muted);font-size:13px}
+.tiny{font-size:12px;color:var(--muted2)}
+label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
+.inp{width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;
+  padding:13px 14px;color:var(--fg)}
+.inp:focus{border-color:var(--accent)}
+.mask{-webkit-text-security:disc;text-security:disc}
+.seg{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--border);
+  border-radius:12px;padding:4px}
+.seg button{flex:1;padding:9px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13.5px}
+.seg button.act{background:var(--accent);color:#fff}
+.sw{width:48px;height:28px;border-radius:14px;background:var(--sw);position:relative;
+  flex:0 0 48px;transition:.2s}
+.sw.on{background:var(--accent)}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:#fff;transition:.2s}
+.sw.on i{left:23px}
+#auth{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 26px;overflow-y:auto}
+.logo{text-align:center;margin-bottom:26px}
+.logo b{font-size:30px;letter-spacing:1px}
+.logo span{display:block;color:var(--muted2);font-size:12px;margin-top:6px;letter-spacing:3px}
+#app{height:100%;display:flex;flex-direction:column}
+#top{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;
+  padding-top:calc(14px + env(safe-area-inset-top))}
+#top b{font-size:17px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#nav{display:flex;border-top:1px solid var(--line);background:var(--panel2);
+  padding-bottom:env(safe-area-inset-bottom)}
+#nav button{flex:1;padding:9px 0 11px;color:var(--muted);font-size:11px;
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+#nav button.act{color:var(--accent)}
+#nav b{font-size:19px;font-weight:400}
+#msgs{padding:10px 14px 6px}
+.msg{max-width:86%;padding:11px 14px;border-radius:16px;margin:7px 0;
+  white-space:pre-wrap;word-break:break-word}
+.msg.u{background:var(--accent);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
+.msg.a{background:var(--msg);border:1px solid var(--border);border-bottom-left-radius:5px}
+.msg.sys{background:transparent;color:var(--muted2);font-size:12px;text-align:center;
+  margin:10px auto;max-width:100%}
+.ahead{margin-bottom:7px;font-size:12px}
+.ahead .run{color:var(--tip-fg)}
+.ahead .ok{color:#3AAE6A}
+.ahead .warn{color:#D3920F}
+.ahead .bad{color:#D0394F}
+#agentbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:0 12px 8px;padding:9px 14px;border-radius:12px;font-size:13px;
+  background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
+#agentbar .btn.mini{width:auto;flex:0 0 auto}
+#bar{padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--panel2)}
+.barline{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
+#toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
+#pts-chip{font-size:12px;color:var(--muted2)}
+.tb2{font-size:12px;padding:7px 10px}
+#toolrow .btn.mini{width:auto;font-size:12.5px;padding:6px 12px}
+#bar textarea{flex:1;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:14px;
+  padding:11px 14px;max-height:120px;resize:none;color:var(--fg)}
+#send{background:var(--accent);color:#fff;border-radius:14px;width:46px;height:44px;
+  font-size:18px;flex:0 0 46px}
+#send.off{background:var(--chip);color:var(--muted)}
+.toolbtn{background:var(--chip);border:1px solid var(--ghost-bd);color:var(--ghost-fg);
+  border-radius:14px;width:44px;height:44px;flex:0 0 44px;font-size:17px}
+.toolbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.spk{text-align:left;margin:-2px 0 8px}
+.spk span{font-size:11.5px;color:var(--muted2);border:1px solid var(--border);
+  border-radius:8px;padding:2px 9px;background:var(--panel)}
+.item{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:13px 14px;margin:10px 12px}
+.item h4{margin:0 0 6px;font-size:14.5px}
+.item p{margin:0;color:var(--muted);font-size:12.5px;white-space:pre-wrap}
+.hd{padding:14px 16px 4px;font-size:13px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted2);font-size:13px;padding:40px 20px}
+#updbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:10px 12px 0;padding:10px 14px;border-radius:12px;font-size:13.5px;
+  background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
+#updbar .btn.mini{flex:0 0 auto}
+#guide{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;
+  -webkit-overflow-scrolling:touch}
+.gwrap{max-width:520px;margin:0 auto;padding:28px 22px 48px}
+.gt{margin-bottom:20px}
+.gt b{display:block;font-size:19px}
+.gt span{color:var(--muted);font-size:12.5px}
+.glist{margin-top:6px}
+.gitem{display:flex;align-items:center;gap:12px;background:var(--panel);
+  border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin:10px 0}
+.gn{font-size:14.5px;font-weight:600;margin-bottom:3px}
+.gok{display:inline-block;margin-left:8px;font-size:11px;font-weight:400;
+  background:rgba(58,174,106,.14);border:1px solid rgba(58,174,106,.4);color:#3AAE6A;
+  border-radius:6px;padding:1px 7px}
+#drawer{position:fixed;inset:0;z-index:55}
+.dmask{position:absolute;inset:0;background:var(--mask)}
+.dpanel{position:absolute;top:0;left:0;bottom:0;width:80%;max-width:340px;
+  background:var(--panel2);border-right:1px solid var(--border);overflow-y:auto;
+  -webkit-overflow-scrolling:touch;padding:calc(14px + env(safe-area-inset-top)) 0 24px}
+.dhead{padding:0 16px 12px;display:flex;justify-content:space-between;align-items:center}
+.citem{padding:13px 16px;border-bottom:1px solid var(--line);transition:.12s}
+.citem.act{background:var(--chip)}
+.citem .cn{font-size:14.5px;margin-bottom:3px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.citem .cd{font-size:11.5px;color:var(--muted2)}
+.mbtn{background:var(--chip);border:1px solid var(--ghost-bd);color:var(--ghost-fg);
+  border-radius:12px;width:40px;height:40px;flex:0 0 40px;font-size:17px}
+#dlg{position:fixed;inset:0;background:var(--mask);z-index:60;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.dbox{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border);
+  border-radius:18px;padding:20px}
+.dtitle{font-size:15px;font-weight:600;margin-bottom:14px}
+#redeem,#sup{position:fixed;inset:0;background:var(--bg);z-index:58;
+  display:flex;flex-direction:column}
+#ban{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;
+  align-items:center;justify-content:center;padding:30px}
+#ban.on{display:flex}
+.banbox{max-width:420px;width:100%;text-align:center}
+.banbox .bt{font-size:19px;font-weight:700;margin-bottom:10px}
+.rw{max-width:520px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 22px 40px;width:100%}
+.rw textarea{width:100%;height:150px;background:var(--inp);border:1px solid var(--ghost-bd);
+  border-radius:14px;padding:13px 14px;color:var(--fg);resize:none}
+.sup-top{display:flex;align-items:center;gap:10px;
+  padding:calc(14px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line)}
+.sup-list{flex:1;overflow-y:auto;padding:12px 14px}
+.sup-bar{display:flex;gap:8px;padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sup-bar input{flex:1;background:var(--inp);border:1px solid var(--ghost-bd);
+  border-radius:14px;padding:11px 14px;color:var(--fg)}
+.smsg{max-width:80%;padding:10px 13px;border-radius:14px;margin:6px 0;
+  white-space:pre-wrap;word-break:break-word}
+.smsg.me{background:var(--accent);color:#fff;margin-left:auto}
+.smsg.op{background:var(--msg);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div id="root">
+
+  <div id="auth">
+    <div class="logo"><b>MRClaw</b><span>MR STUDIO</span></div>
+    <div class="seg">
+      <button id="t-reg" class="act" onclick="Auth.tab('reg')"></button>
+      <button id="t-login" onclick="Auth.tab('login')"></button>
+    </div>
+    <label class="f" id="lb-user"></label>
+    <input id="a-user" class="inp" autocapitalize="off" autocomplete="off" placeholder="">
+    <label class="f" id="lb-pwd"></label>
+    <input id="a-pwd" class="inp mask" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="">
+    <div id="a-pwd2-wrap">
+      <label class="f" id="lb-pwd2"></label>
+      <input id="a-pwd2" class="inp mask" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="">
+    </div>
+    <div style="height:20px"></div>
+    <button class="btn" id="a-go" onclick="Auth.go()"></button>
+    <div style="height:14px"></div>
+    <div class="tiny" style="text-align:center" id="a-msg"></div>
+  </div>
+
+  <div id="app" class="hide">
+    <div id="updbar" class="hide"></div>
+    <div id="top">
+      <button class="mbtn" id="menu-btn" onclick="Conv.open()">☰</button>
+      <b id="top-title"></b>
+      <button class="btn ghost mini tb2" id="rd-btn" onclick="Redeem.open()"></button>
+      <button class="btn ghost mini tb2" id="top-btn" onclick="App.topAction()"></button>
+    </div>
+    <div id="content"></div>
+    <div id="agentbar" class="hide">
+      <span id="agenttxt"></span>
+      <button class="btn mini danger" id="stop-btn" onclick="Chat.stopAgent()"></button>
+    </div>
+    <div id="bar" class="hide">
+      <div id="toolrow">
+        <span id="pts-chip"></span>
+        <button id="mode-btn" class="btn ghost mini" onclick="Acc.mode()"></button>
+      </div>
+      <div class="barline">
+        <textarea id="ta" rows="1" placeholder=""></textarea>
+        <button id="send" onclick="Chat.send()">↑</button>
+      </div>
+    </div>
+    <div id="nav">
+      <button data-tab="chat" class="act" onclick="App.tab('chat')"><b>💬</b><span id="nv-chat"></span></button>
+      <button data-tab="task" onclick="App.tab('task')"><b>⏱</b><span id="nv-task"></span></button>
+      <button data-tab="skill" onclick="App.tab('skill')"><b>🧩</b><span id="nv-skill"></span></button>
+      <button data-tab="mem" onclick="App.tab('mem')"><b>🧠</b><span id="nv-mem"></span></button>
+      <button data-tab="me" onclick="App.tab('me')"><b>⚙️</b><span id="nv-me"></span></button>
+    </div>
+  </div>
+
+  <div id="guide" class="hide"></div>
+  <div id="drawer" class="hide"></div>
+  <div id="dlg" class="hide"></div>
+  <div id="redeem" class="hide"></div>
+  <div id="sup" class="hide"></div>
+  <div id="ban" class="hide"></div>
+</div>
+
+<script>
+/* ================= 语言 ================= */
+const I18N = {
+zh:{
+  nav_chat:"聊天", nav_task:"任务", nav_skill:"技能", nav_mem:"记忆", nav_me:"设置",
+  new:"新建", save:"保存", add:"添加", edit:"编辑", del:"删除", run:"运行", ok:"确定",
+  cancel:"取消", go_on:"去开启", finish:"完成", later:"稍后再说", show:"显示", hide:"隐藏",
+  retry:"重试", logout:"退出登录", sync:"同步到云端", save_cfg:"保存模型配置",
+  update_now:"立即更新", refresh:"刷新", made_by:"MRClaw · MR工作室制作",
+  reg:"注册", login:"登录", username:"用户名", password:"密码", password2:"确认密码",
+  need_user:"请输入用户名", pwd_short:"密码至少 4 位", pwd_diff:"两次密码不一致",
+  regging:"注册中…", logining:"登录中…", user_exists:"该用户名已存在",
+  no_user:"用户不存在", bad_pwd:"用户名或密码错误", net_err:"网络异常：", reg_fail:"注册失败：",
+  g1_title:"第一步 · 填写 API Key", g1_sub:"AI 的大脑。填自己的 Key 直连厂商，不经过任何中间服务器。",
+  provider:"服务商", api_key:"API Key", model_name:"模型名", save_continue:"保存并继续",
+  need_key:"请填写 API Key", g2_title:"第二步 · 开启权限",
+  g2_sub:"不开启只能聊天；开启后 AI 才能替你操作手机。", granted:"已开启",
+  perm_hint:"未授权时 AI 只能和你聊天。", perm_section:"权限",
+  p_a11y_n:"无障碍服务", p_a11y_w:"开启后 AI 才能替你点击、滑动、输入文字，这是操控手机的核心权限。",
+  p_overlay_n:"悬浮窗", p_overlay_w:"AI 每做一步都会弹窗让你确认；没有它就没法逐步问你。",
+  p_notif_n:"通知", p_notif_w:"定时任务到点、AI 完成任务时提醒你。",
+  p_battery_n:"电池白名单", p_battery_w:"让软件后台常驻，定时任务到点才能自动跑。",
+  p_mic_n:"麦克风", p_mic_w:"语音输入，把你说的词转成文字发给 AI。",
+  p_file_n:"文件访问", p_file_w:"让 AI 能读写你手机上的文件（只在你要求时）。",
+  p_install_n:"安装应用", p_install_w:"软件自动更新时用它安装新版本。",
+  p_root_n:"是否有 Root", p_root_w:"有 Root 时 AI 可以执行更高级的系统命令；没有就只用无障碍。",
+  chat_empty:"说点什么", need_login:"请先登录", new_chat:"新对话",
+  running:"● 正在执行任务", done_t:"✓ 任务已完成", stop_t:"■ 任务已中断", err_t:"✕ 任务失败",
+  stop_btn:"中断任务", stopping:"正在中断…", stop_req:"已请求中断", exec_fail:"执行失败：",
+  speak:"🔊 朗读", all_chats:"全部对话", no_chats:"还没有对话",
+  rename:"重命名", del_chat:"删除此对话", rename_title:"重命名对话",
+  del_chat_q:"删除对话「{0}」？", task_title:"任务", task_empty:"还没有任务",
+  task_cron:"定时 {0}", task_multi:"多步目标", task_name_q:"任务名称",
+  task_desc_q:"任务目标（AI 会按此拆分执行）", task_when_q:"定时时间（留空 = 仅手动运行，如 09:30）",
+  task_del_q:"删除任务「{0}」？", task_hint:"定时任务与多步目标",
+  skill_title:"技能", skill_empty:"还没有技能", skill_hint:"技能决定 AI 可以做什么",
+  skill_name_q:"技能名称", skill_prompt_q:"技能提示词（AI 何时 / 如何使用这个技能）",
+  sk_open_n:"打开应用", sk_open_d:"让 AI 打开指定 App",
+  sk_open_p:"用户要求打开某 App 时，确认目标 App 后执行打开操作。",
+  sk_tap_n:"屏幕操作", sk_tap_d:"点击 / 滑动 / 输入",
+  sk_tap_p:"根据屏幕当前内容，执行点击、滑动、输入文字等操作。",
+  sk_query_n:"信息查询", sk_query_d:"查天气、时间等",
+  sk_query_p:"需要实时信息时，先请求用户确认再执行。",
+  sk_note_n:"备忘录", sk_note_d:"记录与读取待办",
+  sk_note_p:"用户说记一下 / 查询待办时，写入或读取记忆。",
+  sk_file_n:"文件管理", sk_file_d:"读取 / 写入手机文件",
+  sk_file_p:"用户要求操作文件时，先说明路径再执行。",
+  mem_title:"记忆", mem_empty:"还没有记忆", mem_hint:"AI 会把这些内容带入每次对话",
+  mem_what_q:"要记住什么？", mem_edit_q:"修改记忆", mem_del_q:"删除这条记忆？",
+  account:"账号", device:"设备", version:"版本", not_login:"未登录",
+  model:"模型", base_url:"接口地址", temp:"温度", current_ver:"当前版本",
+  check_update:"检查更新", autonomy:"AI 独自操控",
+  autonomy_sub:"开启后 AI 每一步都不再向你确认", language:"语言", theme:"主题",
+  theme_dark:"深色", theme_light:"白色",
+  upd_found:"发现新版本 v{0}", upd_failed:"更新失败", upd_retry_line:"换线路重试…",
+  upd_downloading:"下载中 {0}%", upd_installing:"正在安装…",
+  upd_latest:"已是最新版本 v{0}", upd_checking:"正在检查更新…", upd_check_fail:"检查失败，请稍后再试",
+  mobile_only:"仅手机端可用", need_install_perm:"请先允许安装未知应用",
+  stt_listen:"请说话…", stt_fail:"识别失败",
+  pts:"积分", mode_pts:"积分", mode_key:"我的Key",
+  mode_to_pts:"已切换为积分模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
+  redeem:"兑换码兑换", redeem_title:"兑换码兑换",
+  redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
+  redeem_none:"未识别到有效卡密", redeem_found:"识别到 {0} 个卡密，是否全部兑换？",
+  redeem_ok:"兑换成功，+{0} 积分，当前余额 {1}",
+  redeem_part:"成功 {0} 个，失败 {1} 个", redeem_fail:"兑换失败，请稍后再试",
+  support:"咨询客服", support_ph:"输入消息…", send_btn:"发送", support_empty:"有问题直接说吧",
+  pts_empty:"您的积分已经消耗完", recharge:"充值积分", set_key:"填写key", contact:"咨询客服",
+  banned_forever:"永久封禁", banned_days:"封禁 {0} 天", banned_reason:"理由：{0}",
+  banned_hint:"账号受限，无法使用任何功能",
+  thinking:"思考中…", web_updating:"正在更新…", web_updated:"已更新，正在重启界面",
+  web_fail:"更新失败", balance:"余额 {0}"
+},
+en:{
+  nav_chat:"Chat", nav_task:"Tasks", nav_skill:"Skills", nav_mem:"Memory", nav_me:"Settings",
+  new:"New", save:"Save", add:"Add", edit:"Edit", del:"Delete", run:"Run", ok:"OK",
+  cancel:"Cancel", go_on:"Enable", finish:"Done", later:"Later", show:"Show", hide:"Hide",
+  retry:"Retry", logout:"Sign out", sync:"Sync to cloud", save_cfg:"Save model settings",
+  update_now:"Update now", refresh:"Refresh", made_by:"MRClaw · Made by MR Studio",
+  reg:"Sign up", login:"Sign in", username:"Username", password:"Password",
+  password2:"Confirm password", need_user:"Please enter a username",
+  pwd_short:"Password must be at least 4 characters", pwd_diff:"Passwords do not match",
+  regging:"Signing up…", logining:"Signing in…", user_exists:"This username already exists",
+  no_user:"User not found", bad_pwd:"Wrong username or password", net_err:"Network error: ",
+  reg_fail:"Sign-up failed: ",
+  g1_title:"Step 1 · Enter your API Key",
+  g1_sub:"The brain of the AI. Your key connects directly to the provider, with no middle server.",
+  provider:"Provider", api_key:"API Key", model_name:"Model", save_continue:"Save and continue",
+  need_key:"Please enter your API Key", g2_title:"Step 2 · Grant permissions",
+  g2_sub:"Without them the AI can only chat; with them it can act on your phone.",
+  granted:"Enabled", perm_hint:"Before granting, the AI can only chat with you.",
+  perm_section:"Permissions",
+  p_a11y_n:"Accessibility service",
+  p_a11y_w:"Lets the AI tap, swipe and type for you. This is the core permission for phone control.",
+  p_overlay_n:"Display over other apps",
+  p_overlay_w:"The AI shows a confirm popup before each step; without it, it cannot ask you.",
+  p_notif_n:"Notifications", p_notif_w:"Reminders when a scheduled task fires or a task finishes.",
+  p_battery_n:"Battery whitelist",
+  p_battery_w:"Keeps the app alive in the background so scheduled tasks can run on time.",
+  p_mic_n:"Microphone", p_mic_w:"Voice input — turns your speech into text for the AI.",
+  p_file_n:"File access", p_file_w:"Lets the AI read and write files on your phone, only when you ask.",
+  p_install_n:"Install apps", p_install_w:"Used to install new versions when the app updates itself.",
+  p_root_n:"Root access",
+  p_root_w:"With root the AI can run advanced system commands; without it, accessibility only.",
+  chat_empty:"Say something", need_login:"Please sign in first", new_chat:"New chat",
+  running:"● Task running", done_t:"✓ Task completed", stop_t:"■ Task stopped",
+  err_t:"✕ Task failed", stop_btn:"Stop task", stopping:"Stopping…", stop_req:"Stop requested",
+  exec_fail:"Failed: ", speak:"🔊 Read aloud", all_chats:"All chats",
+  no_chats:"No chats yet", rename:"Rename", del_chat:"Delete this chat",
+  rename_title:"Rename chat", del_chat_q:"Delete chat \"{0}\"?",
+  task_title:"Tasks", task_empty:"No tasks yet", task_cron:"Scheduled {0}",
+  task_multi:"Multi-step goal", task_name_q:"Task name",
+  task_desc_q:"Goal (the AI will break it into steps)",
+  task_when_q:"Schedule time (leave empty to run manually, e.g. 09:30)",
+  task_del_q:"Delete task \"{0}\"?", task_hint:"Scheduled tasks and multi-step goals",
+  skill_title:"Skills", skill_empty:"No skills yet", skill_hint:"Skills define what the AI can do",
+  skill_name_q:"Skill name", skill_prompt_q:"Skill prompt (when / how the AI should use it)",
+  sk_open_n:"Open apps", sk_open_d:"Let the AI open an app",
+  sk_open_p:"When the user asks to open an app, confirm the target and open it.",
+  sk_tap_n:"Screen control", sk_tap_d:"Tap / swipe / type",
+  sk_tap_p:"Based on the current screen, perform taps, swipes and text input.",
+  sk_query_n:"Lookup", sk_query_d:"Weather, time, and more",
+  sk_query_p:"For real-time information, ask the user first, then proceed.",
+  sk_note_n:"Notes", sk_note_d:"Save and read to-dos",
+  sk_note_p:"When the user says remember this or asks for to-dos, write or read memory.",
+  sk_file_n:"File manager", sk_file_d:"Read / write phone files",
+  sk_file_p:"When the user asks for file operations, state the path first, then proceed.",
+  mem_title:"Memory", mem_empty:"No memory yet", mem_hint:"These are carried into every chat",
+  mem_what_q:"What should I remember?", mem_edit_q:"Edit memory", mem_del_q:"Delete this memory?",
+  account:"Account", device:"Device", version:"Version", not_login:"Not signed in",
+  model:"Model", base_url:"Endpoint", temp:"Temperature", current_ver:"Current version",
+  check_update:"Check for updates", autonomy:"Autonomous control",
+  autonomy_sub:"When on, the AI no longer asks before each step", language:"Language",
+  theme:"Theme", theme_dark:"Dark", theme_light:"Light",
+  upd_found:"New version v{0} available", upd_failed:"Update failed",
+  upd_retry_line:"Retrying another mirror…", upd_downloading:"Downloading {0}%",
+  upd_installing:"Installing…", upd_latest:"You are on the latest version v{0}",
+  upd_checking:"Checking for updates…", upd_check_fail:"Check failed, please try again later",
+  mobile_only:"Available on phone only", need_install_perm:"Please allow installing unknown apps first",
+  stt_listen:"Listening…", stt_fail:"Recognition failed",
+  pts:"Points", mode_pts:"Points", mode_key:"My key",
+  mode_to_pts:"Switched to points", mode_to_key:"Switched to my key",
+  need_key_first:"Please enter your API Key first",
+  redeem:"Redeem code", redeem_title:"Redeem code",
+  redeem_ph:"Paste codes, multiple allowed", redeem_scan:"Scan",
+  redeem_none:"No valid code found", redeem_found:"Found {0} code(s). Redeem all?",
+  redeem_ok:"Redeemed +{0} points, balance {1}",
+  redeem_part:"{0} ok, {1} failed", redeem_fail:"Redeem failed, try again later",
+  support:"Support", support_ph:"Type a message…", send_btn:"Send",
+  support_empty:"Tell us what you need",
+  pts_empty:"Your points are used up", recharge:"Buy points", set_key:"Enter my key",
+  contact:"Contact support",
+  banned_forever:"Banned permanently", banned_days:"Banned for {0} day(s)",
+  banned_reason:"Reason: {0}", banned_hint:"This account is restricted and cannot use any feature",
+  thinking:"Thinking…", web_updating:"Updating…", web_updated:"Updated, reloading",
+  web_fail:"Update failed", balance:"Balance {0}"
+}
+};
+let LANG = LS_get("mrclaw_lang", "zh");
+function t(k){
+  const a = Array.prototype.slice.call(arguments, 1);
+  const m = I18N[LANG] || I18N.zh;
+  let s = (m[k] !== undefined) ? m[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k);
+  for(let i=0;i<a.length;i++) s = s.split("{" + i + "}").join(a[i]);
+  return s;
+}
+function LS_get(k, d){ try{ const v = localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} }
+
+/* ================= 基础 ================= */
+const SB_URL = "https://mfrmsmbazofjzdpuxdod.supabase.co";
+const SB_KEY = "eyJhbG…-gRY";
+
+const PROVIDERS = [
+  { id:"zhipu",    name:"智谱 BigModel",  base:"https://open.bigmodel.cn/api/paas/v4",        model:"glm-4-flash" },
+  { id:"deepseek", name:"DeepSeek",       base:"https://api.deepseek.com/v1",                 model:"deepseek-chat" },
+  { id:"qwen",     name:"通义千问 Qwen",   base:"https://dashscope.aliyuncs.com/compatible-mode/v1", model:"qwen-plus" },
+  { id:"doubao",   name:"豆包 Doubao",     base:"https://ark.cn-beijing.volces.com/api/v3",   model:"doubao-pro-32k" },
+  { id:"kimi",     name:"Kimi",            base:"https://api.moonshot.cn/v1",                  model:"moonshot-v1-8k" },
+  { id:"ernie",    name:"文心 ERNIE",      base:"https://qianfan.baidubce.com/v2",             model:"ernie-4.0-8k" },
+  { id:"spark",    name:"讯飞星火 Spark",   base:"https://spark-api-open.xf-yun.com/v1",        model:"4.0Ultra" },
+  { id:"hunyuan",  name:"腾讯混元 Hunyuan", base:"https://api.hunyuan.cloud.tencent.com/v1",    model:"hunyuan-standard" },
+  { id:"custom",   name:"自定义 / Custom",  base:"",                                            model:"" }
+];
+
+const LS = {
+  get(k, d){ return LS_get(k, d); },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); },
+  del(k){ localStorage.removeItem(k); }
+};
+
+function el(id){ return document.getElementById(id); }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function rnd(n){ let s=""; const h="0123456789abcdef"; for(let i=0;i<n;i++) s+=h[Math.floor(Math.random()*16)]; return s; }
+function nowMs(){ return Date.now(); }
+
+const native = (typeof MR !== "undefined" && MR) ? MR : null;
+const Native = {
+  hash(t){ return native ? native.hash(t) : "web-"+rnd(64); },
+  model(){ try{ return native ? native.model() : "Browser"; }catch(e){ return "Browser"; } },
+  version(){ try{ return native ? native.version() : "1.0.8"; }catch(e){ return "1.0.8"; } },
+  toast(m){ if(native) native.toast(m); else console.log("[toast]", m); },
+  http(method, url, headers, body){
+    if(native) return native.http(method, url, headers||"{}", body||"");
+    return "ERR:no-native";
+  },
+  stream(id, url, headers, body){
+    if(native){ native.stream(id, url, headers||"{}", body||""); return true; }
+    return false;
+  }
+};
+
+/* ---------------- 异步网络 ---------------- */
+let _httpSeq = 0;
+const _httpWait = {};
+function httpReq(method, url, headersObj, bodyStr){
+  return new Promise(function(res){
+    if(!native || !native.httpAsync){
+      res(Native.http(method, url, JSON.stringify(headersObj||{}), bodyStr||""));
+      return;
+    }
+    const id = "h" + (++_httpSeq);
+    let done = false;
+    let timer = null;
+    function finish(x){
+      if(done) return;
+      done = true;
+      if(timer) clearTimeout(timer);
+      delete _httpWait[id];
+      res(x);
+    }
+    timer = setTimeout(function(){ finish("ERR:Timeout"); }, 40000);
+    _httpWait[id] = finish;
+    native.httpAsync(id, method, url, JSON.stringify(headersObj||{}), bodyStr||"");
+  });
+}
+window.MR_onHttp = function(id, text){
+  const f = _httpWait[id];
+  if(f) f(text);
+};
+
+function rpc(fn, args){
+  return httpReq("POST", SB_URL + "/rest/v1/rpc/" + fn,
+    { "apikey": SB_KEY, "Authorization": "***" + SB_KEY, "Content-Type": "application/json" },
+    JSON.stringify(args || {})
+  ).then(function(raw){
+    if(raw && String(raw).indexOf("ERR:") === 0) return { __err: String(raw) };
+    const v = (raw === null || raw === undefined) ? "" : String(raw).trim();
+    if(v === "") return null;
+    try { return JSON.parse(v); } catch(e){ return { __err: "parse:" + v.slice(0,120) }; }
+  });
+}
+
+/* ================= 主题 ================= */
+let THEME = LS.get("mrclaw_theme", "dark");
+function applyTheme(){
+  document.body.className = (THEME === "light") ? "light" : "";
+  if(native && native.setTheme) { try{ native.setTheme(THEME); }catch(e){} }
+}
+function setTheme(x){
+  THEME = x; LS.set("mrclaw_theme", x);
+  applyTheme();
+  if(S.tab === "me") Me.render();
+}
+function setLang(x){
+  LANG = x; LS.set("mrclaw_lang", x);
+  if(native && native.setLang) { try{ native.setLang(x); }catch(e){} }
+  paintStatic();
+  Auth.tab(Auth.mode);
+  if(!el("app").classList.contains("hide")) App.tab(S.tab);
+  if(!el("guide").classList.contains("hide")) (Guide.step === "key" ? Guide.key() : Guide.perm());
+}
+
+/* ================= 状态 ================= */
+const U0 = LS.get("mrclaw_user", null);
+const S = {
+  user: U0,
+  cfg: LS.get("mrclaw_cfg", { provider:"zhipu", apiKey:"", base:"", model:"", temp:"0.7", autonomy:false }),
+  tab: "chat",
+  convs: [], cur: null, mems: [], skills: null, tasks: []
+};
+function ukey(){ return "mrclaw_" + (S.user ? S.user.name : "anon") + "_"; }
+function loadUserData(){
+  const k = ukey();
+  S.convs = LS.get(k + "convs", []);
+  S.cur = LS.get(k + "cur", null);
+  S.mems = LS.get(k + "mems", []);
+  S.skills = LS.get(k + "skills", null);
+  S.tasks = LS.get(k + "tasks", []);
+}
+function saveCfg(){ LS.set("mrclaw_cfg", S.cfg); }
+function saveConvs(){ const k = ukey(); LS.set(k + "convs", S.convs); LS.set(k + "cur", S.cur); }
+function saveMems(){ LS.set(ukey() + "mems", S.mems); }
+function saveSkills(){ LS.set(ukey() + "skills", S.skills); }
+function saveTasks(){ LS.set(ukey() + "tasks", S.tasks); }
+function providerById(id){ return PROVIDERS.filter(p=>p.id===id)[0] || PROVIDERS[0]; }
+
+/* ================= 弹窗 ================= */
+let _dlgResolve = null;
+function uiAsk(title, value, opts){
+  opts = opts || {};
+  return new Promise(function(res){
+    _dlgResolve = res;
+    const d = el("dlg");
+    d.classList.remove("hide");
+    d.innerHTML = "<div class='dbox'><div class='dtitle'>" + esc(title) + "</div>" +
+      (opts.input === false ? "" :
+        "<input id='dlg-in' class='inp' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' value='" + esc(value||"") + "'>") +
+      "<div style='height:16px'></div><div style='display:flex;gap:10px'>" +
+      (opts.cancel === false ? "" : "<button class='btn ghost' onclick='uiClose(null)'>" + t("cancel") + "</button>") +
+      "<button class='btn' onclick='uiOk()'>" + t("ok") + "</button></div></div>";
+    const i = el("dlg-in");
+    if(i){
+      if(opts.mask) i.className = "inp mask";
+      i.addEventListener("keydown", function(ev){ if(ev.key === "Enter") uiOk(); });
+      setTimeout(function(){ i.focus(); }, 60);
+    }
+  });
+}
+function uiOk(){ const i = el("dlg-in"); uiClose(i ? i.value : true); }
+function uiClose(v){ el("dlg").classList.add("hide"); const r = _dlgResolve; _dlgResolve = null; if(r) r(v); }
+let _sheetActions = [];
+function uiSheet(title, actions){
+  return new Promise(function(res){
+    _dlgResolve = res; _sheetActions = actions;
+    const d = el("dlg");
+    d.classList.remove("hide");
+    d.innerHTML = "<div class='dbox'><div class='dtitle'>" + esc(title) + "</div>" +
+      actions.map(function(a,i){
+        return "<button class='btn " + (a.danger?"danger":"ghost") +
+          "' style='margin-bottom:10px' onclick='uiSheetPick(" + i + ")'>" + esc(a.label) + "</button>";
+      }).join("") +
+      "<button class='btn ghost' onclick='uiClose(null)'>" + t("cancel") + "</button></div>";
+  });
+}
+function uiSheetPick(i){ const a = _sheetActions[i]; uiClose(a ? a.value : null); }
+function fmtTime(ts){
+  if(!ts) return "";
+  const d = new Date(ts), n = new Date();
+  const p = x=>(x<10?"0":"")+x;
+  if(d.toDateString() === n.toDateString()) return p(d.getHours())+":"+p(d.getMinutes());
+  return (d.getMonth()+1)+"/"+d.getDate();
+}
+
+/* ================= 权限 ================= */
+const PERMS = [
+  { id:"a11y",    nk:"p_a11y_n",    wk:"p_a11y_w",    state:()=>native?permSafe()[0]:false, req:()=>native&&native.a11yOpen() },
+  { id:"overlay", nk:"p_overlay_n", wk:"p_overlay_w", state:()=>native?permSafe()[1]:false, req:()=>native&&native.overlayReq() },
+  { id:"notif",   nk:"p_notif_n",   wk:"p_notif_w",   state:()=>native?permSafe()[2]:false, req:()=>native&&native.notifReq() },
+  { id:"battery", nk:"p_battery_n", wk:"p_battery_w", state:()=>native?permSafe()[3]:false, req:()=>native&&native.batteryReq() },
+  { id:"mic",     nk:"p_mic_n",     wk:"p_mic_w",     state:()=>native?permSafe()[4]:false, req:()=>native&&native.micReq() },
+  { id:"file",    nk:"p_file_n",    wk:"p_file_w",    state:()=>native?permSafe()[5]:false, req:()=>native&&native.fileReq() },
+  { id:"install", nk:"p_install_n", wk:"p_install_w", state:()=>native?permSafe()[6]:false, req:()=>native&&native.installSettings() },
+  { id:"root",    nk:"p_root_n",    wk:"p_root_w",    state:()=>!!S.cfg.hasRoot, req:null }
+];
+function permSafe(){
+  try{
+    const o = JSON.parse(native.permSnapshot());
+    return [!!o.a11y, !!o.overlay, !!o.notif, !!o.battery, !!o.mic, !!o.file, !!o.install];
+  }catch(e){ return [false,false,false,false,false,false,false]; }
+}
+const Perm = {
+  on(p){ try{ return !!p.state(); }catch(e){ return false; } },
+  req(p){
+    if(p.id === "root"){
+      let v = false;
+      try{ v = native ? native.hasRoot() : false; }catch(e){}
+      S.cfg.hasRoot = v; saveCfg();
+      Native.toast(v ? (LANG==="en"?"Root detected":"检测到 Root") : (LANG==="en"?"No root detected":"未检测到 Root"));
+      Guide.perm();
+      return;
+    }
+    if(p.req) p.req();
+  },
+  done(){ return this.on(PERMS[0]); }
+};
+
+/* ================= 引导 ================= */
+const Guide = {
+  step:"key",
+  key(){
+    this.step = "key";
+    const p = providerById(S.cfg.provider);
+    const opts = PROVIDERS.map(x=>"<option value='"+x.id+"' "+(x.id===S.cfg.provider?"selected":"")+">"+x.name+"</option>").join("");
+    el("guide").classList.remove("hide");
+    el("guide").innerHTML =
+      "<div class='gwrap'><div class='gt'><b>" + t("g1_title") + "</b><span>" + t("g1_sub") + "</span></div>" +
+      "<label class='f'>" + t("provider") + "</label><select id='g-prov' class='inp' onchange='Guide.provChange()'>" + opts + "</select>" +
+      "<label class='f'>" + t("api_key") + "</label><input id='g-key' class='inp mask' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' value='" + esc(S.cfg.apiKey) + "'>" +
+      "<label class='f'>" + t("model_name") + "</label><input id='g-model' class='inp' value='" + esc(S.cfg.model||p.model) + "'>" +
+      "<div style='height:18px'></div><button class='btn' onclick='Guide.saveKey()'>" + t("save_continue") + "</button>" +
+      "<div style='height:10px'></div><button class='btn ghost' onclick='Guide.close()'>" + t("later") + "</button></div>";
+  },
+  provChange(){
+    S.cfg.provider = el("g-prov").value;
+    const p = providerById(S.cfg.provider);
+    el("g-model").value = p.model;
+    S.cfg.base = p.base; saveCfg();
+  },
+  saveKey(){
+    S.cfg.provider = el("g-prov").value;
+    S.cfg.apiKey = el("g-key").value.trim();
+    S.cfg.model = el("g-model").value.trim();
+    S.cfg.base = providerById(S.cfg.provider).base;
+    saveCfg();
+    if(!S.cfg.apiKey){ Native.toast(t("need_key")); return; }
+    Cloud.push(true);
+    Guide.perm();
+  },
+  perm(){
+    this.step = "perm";
+    let h = "<div class='gwrap'><div class='gt'><b>" + t("g2_title") + "</b><span>" + t("g2_sub") + "</span></div><div class='glist'>";
+    PERMS.forEach(function(p,i){
+      const on = Perm.on(p);
+      h += "<div class='gitem'><div style='flex:1'><div class='gn'>" + t(p.nk) +
+        (on ? "<span class='gok'>" + t("granted") + "</span>" : "") + "</div><div class='tiny'>" + t(p.wk) + "</div></div>" +
+        (on ? "" : "<button class='btn mini' onclick='Guide.go(" + i + ")'>" + t("go_on") + "</button>") + "</div>";
+    });
+    h += "</div><div style='height:18px'></div><button class='btn' onclick='Guide.close()'>" + t("finish") + "</button></div>";
+    el("guide").classList.remove("hide");
+    el("guide").innerHTML = h;
+  },
+  go(i){ S.cfg.permAsked = true; saveCfg(); Perm.req(PERMS[i]); },
+  close(){ el("guide").classList.add("hide"); }
+};
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden) return;
+  if(!el("guide").classList.contains("hide") && Guide.step === "perm") Guide.perm();
+  if(S.tab === "me" && !el("app").classList.contains("hide")) Me.render();
+});
+
+/* ================= 语音 ================= */
+const Voice = {
+  listening:false,
+  stt(){
+    if(!native || !native.sttStart){ Native.toast(t("mobile_only")); return; }
+    if(this.listening){ this.listening = false; el("mic").classList.remove("on"); native.sttStop(); return; }
+    this.listening = true;
+    el("mic").classList.add("on");
+    Native.toast(t("stt_listen"));
+    native.sttStart();
+  },
+  speak(x){
+    if(!native || !native.speak){ Native.toast(t("mobile_only")); return; }
+    const v = String(x || "").trim();
+    if(!v) return;
+    native.speak(v.slice(0, 800));
+  },
+  speakMsg(i){
+    const c = Chat.cur(); if(!c) return;
+    const m = c.msgs[i];
+    if(m && m.content) this.speak(m.content.replace(/^[·\s]+/gm, ""));
+  }
+};
+window.MR_onStt = function(s){
+  let o = {};
+  try{ o = JSON.parse(s); }catch(e){ return; }
+  if(o.type === "start") return;
+  if(o.type === "partial"){ el("ta").value = o.text || ""; Chat.syncSendBtn(); return; }
+  if(o.type === "result"){
+    Voice.listening = false; el("mic").classList.remove("on");
+    el("ta").value = o.text || ""; Chat.syncSendBtn(); return;
+  }
+  if(o.type === "err"){
+    Voice.listening = false; el("mic").classList.remove("on");
+    Native.toast(o.text || t("stt_fail"));
+  }
+};
+
+/* ================= 登录 / 注册 ================= */
+const Auth = {
+  mode:"reg",
+  tab(m){
+    this.mode = m;
+    el("t-reg").textContent = t("reg");
+    el("t-login").textContent = t("login");
+    el("t-reg").className = m==="reg" ? "act" : "";
+    el("t-login").className = m==="login" ? "act" : "";
+    el("a-pwd2-wrap").className = m==="reg" ? "" : "hide";
+    el("a-go").textContent = m==="reg" ? t("reg") : t("login");
+    el("a-msg").textContent = "";
+  },
+  msg(x){ el("a-msg").textContent = x || ""; },
+  go(){
+    const u = el("a-user").value.trim();
+    const p = el("a-pwd").value;
+    if(!u){ return this.msg(t("need_user")); }
+    if(p.length < 4){ return this.msg(t("pwd_short")); }
+    const self = this;
+    if(this.mode === "reg"){
+      if(p !== el("a-pwd2").value){ return this.msg(t("pwd_diff")); }
+      this.msg(t("regging"));
+      const salt = rnd(32);
+      rpc("mrclaw_register", { p_user: u, p_salt: salt, p_hash: Native.hash(salt + p) }).then(function(r){
+        if(r && r.__err){ return self.msg(t("net_err") + r.__err); }
+        if(r === "EXISTS"){ return self.msg(t("user_exists")); }
+        if(r !== "OK"){ return self.msg(t("reg_fail") + JSON.stringify(r).slice(0,80)); }
+        self.enter(u);
+      });
+    } else {
+      this.msg(t("logining"));
+      rpc("mrclaw_salt", { p_user: u }).then(function(salt){
+        if(salt && salt.__err){ return self.msg(t("net_err") + salt.__err); }
+        if(!salt || typeof salt !== "string"){ return self.msg(t("no_user")); }
+        rpc("mrclaw_login", { p_user: u, p_hash: Native.hash(salt + p) }).then(function(ok){
+          if(ok === true) self.enter(u);
+          else self.msg(t("bad_pwd"));
+        });
+      });
+    }
+  },
+  enter(u){
+    S.user = { name: u, t: nowMs() };
+    LS.set("mrclaw_user", S.user);
+    loadUserData();
+    rpc("mrclaw_touch", { p_user: u });
+    Cloud.pull(u);
+    Acc.refresh();
+    el("auth").classList.add("hide");
+    el("app").classList.remove("hide");
+    App.tab("chat");
+  },
+  logout(){
+    S.user = null; LS.del("mrclaw_user");
+    loadUserData();
+    el("app").classList.add("hide");
+    el("auth").classList.remove("hide");
+    el("a-pwd").value = ""; el("a-pwd2").value = "";
+    this.tab("login");
+  }
+};
+
+const Cloud = {
+  pull(u){
+    rpc("mrclaw_get_config", { p_user: u }).then(function(c){
+      if(c && !c.__err && typeof c === "object" && !Array.isArray(c)){
+        S.cfg = {
+          provider: c.provider || S.cfg.provider,
+          apiKey: c.api_key || "",
+          base: c.base_url || "",
+          model: c.model || "",
+          temp: c.temperature || "0.7",
+          autonomy: !!c.autonomy,
+          hasRoot: S.cfg.hasRoot
+        };
+        saveCfg();
+        if(S.tab === "me") Me.render();
+      }
+    });
+  },
+  push(quiet){
+    if(!S.user) return;
+    rpc("mrclaw_save_config", {
+      p_user: S.user.name, p_provider: S.cfg.provider, p_api_key: S.cfg.apiKey,
+      p_base_url: S.cfg.base, p_model: S.cfg.model, p_temp: String(S.cfg.temp),
+      p_autonomy: !!S.cfg.autonomy, p_device: Native.model(), p_ver: Native.version()
+    }).then(function(r){
+      if(!quiet){
+        if(r && r.__err) Native.toast((LANG==="en"?"Save failed: ":"保存失败：") + r.__err);
+        else Native.toast(LANG==="en" ? "Saved" : "已保存");
+      }
+    });
+  }
+};
+
+/* ================= 界面 ================= */
+const App = {
+  tab(x){
+    S.tab = x;
+    document.querySelectorAll("#nav button").forEach(function(b){
+      b.className = (b.getAttribute("data-tab") === x) ? "act" : "";
+    });
+    el("bar").classList.toggle("hide", x !== "chat");
+    el("menu-btn").style.display = (x === "chat") ? "" : "none";
+    if(x==="chat") Chat.render();
+    if(x==="task") Task.render();
+    if(x==="skill") Skill.render();
+    if(x==="mem") Mem.render();
+    if(x==="me") Me.render();
+  },
+  topAction(){
+    if(S.tab==="chat") Chat.newConv();
+    else if(S.tab==="task") Task.create();
+    else if(S.tab==="skill") Skill.create();
+    else if(S.tab==="mem") Mem.create();
+    else Cloud.push();
+  },
+  title(x){ el("top-title").textContent = x; },
+  content(html){ el("content").innerHTML = html; el("content").scrollTop = el("content").scrollHeight; },
+  topBtn(label){ el("top-btn").textContent = label; }
+};
+
+/* ================= 会话列表 ================= */
+const Conv = {
+  lp:null,
+  open(){ this.render(); el("drawer").classList.remove("hide"); },
+  close(){ el("drawer").classList.add("hide"); },
+  render(){
+    let h = "<div class='dmask' onclick='Conv.close()'></div><div class='dpanel'>" +
+      "<div class='dhead'><button class='btn mini ghost' onclick='Support.open();Conv.close()'>" + t("support") + "</button>" +
+      "<button class='btn mini' onclick='Conv.add()'>" + t("new") + "</button></div>" +
+      "<div style='padding:0 16px 12px'><b style='font-size:15px'>" + t("all_chats") + "</b></div>";
+    if(!S.convs.length) h += "<div class='empty'>" + t("no_chats") + "</div>";
+    S.convs.forEach(function(c,i){
+      h += "<div class='citem " + (c.id===S.cur?"act":"") + "' data-i='" + i + "'" +
+        " ontouchstart='Conv.press(event," + i + ")' ontouchend='Conv.up()' ontouchmove='Conv.up()'" +
+        " onmousedown='Conv.press(event," + i + ")' onmouseup='Conv.up()' onmouseleave='Conv.up()'" +
+        " onclick='Conv.tap(" + i + ")'>" +
+        "<div class='cn'>" + esc(c.title || t("new_chat")) + "</div>" +
+        "<div class='cd'>" + fmtTime(c.t) + " · " + (c.msgs ? c.msgs.length : 0) + "</div></div>";
+    });
+    h += "</div>";
+    el("drawer").innerHTML = h;
+  },
+  press(e, i){
+    this.up();
+    const self = this;
+    this.lp = setTimeout(function(){ self.lp = null; self.action(i); }, 550);
+  },
+  up(){ if(this.lp){ clearTimeout(this.lp); this.lp = null; this._block = Date.now(); } },
+  tap(i){ if(this._block && Date.now() - this._block < 700) return; this.pick(i); },
+  add(){ Chat.newConv(); this.close(); },
+  pick(i){ const c = S.convs[i]; if(!c) return; S.cur = c.id; saveConvs(); Chat.render(); this.close(); },
+  async action(i){
+    const c = S.convs[i]; if(!c) return;
+    this._block = Date.now();
+    const v = await uiSheet(c.title || t("new_chat"), [
+      { label: t("rename"), value: "rename" },
+      { label: t("del_chat"), value: "del", danger: true }
+    ]);
+    if(v === "rename"){
+      const n = await uiAsk(t("rename_title"), c.title || "");
+      if(n === null) return;
+      const x = String(n).trim();
+      if(!x) return;
+      c.title = x; saveConvs();
+      if(c.id === S.cur) App.title(x);
+      this.render();
+    } else if(v === "del"){
+      const ok = await uiAsk(t("del_chat_q", c.title || t("new_chat")), null, { input:false });
+      if(ok !== true) return;
+      S.convs = S.convs.filter(function(x){ return x.id !== c.id; });
+      if(S.cur === c.id) S.cur = S.convs[0] ? S.convs[0].id : null;
+      saveConvs(); Chat.render(); this.render();
+    }
+  }
+};
+
+/* ================= 聊天 ================= */
+const Chat = {
+  cur(){ return S.convs.filter(c=>c.id===S.cur)[0] || null; },
+  newConv(){
+    const c = { id: "c"+nowMs(), title: t("new_chat"), msgs: [], t: nowMs() };
+    S.convs.unshift(c); S.cur = c.id; saveConvs(); this.render();
+  },
+  headHtml(x){
+    if(!x) return "";
+    if(x._running) return "<div class='ahead'><span class='run'>" + t("running") + "</span></div>";
+    if(x._state === "done") return "<div class='ahead'><span class='ok'>" + t("done_t") + "</span></div>";
+    if(x._state === "stop") return "<div class='ahead'><span class='warn'>" + t("stop_t") + "</span></div>";
+    if(x._state === "err") return "<div class='ahead'><span class='bad'>" + t("err_t") + "</span></div>";
+    return "";
+  },
+  render(){
+    if(!this.cur()) this.newConv();
+    App.title(this.cur().title);
+    App.topBtn(t("new"));
+    const m = this.cur().msgs;
+    let h = "<div id='msgs'>";
+    if(!m.length) h += "<div class='empty'>" + t("chat_empty") + "</div>";
+    m.forEach(function(x,i){
+      if(x.role==="system") h += "<div class='msg sys'>" + esc(x.content) + "</div>";
+      else if(x.role==="user") h += "<div class='msg u'>" + esc(x.content) + "</div>";
+      else {
+        h += "<div class='msg a'>" + Chat.headHtml(x) + esc(x.content) + "</div>";
+        if(x.content) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
+      }
+    });
+    h += "</div>";
+    App.content(h);
+    this.syncSendBtn();
+  },
+  syncSendBtn(){
+    const v = el("ta").value.trim();
+    el("send").className = (v && !Chat.busy) ? "" : "off";
+  },
+  openLoginGate(){
+    Native.toast(t("need_login"));
+    el("app").classList.add("hide");
+    el("auth").classList.remove("hide");
+    Auth.tab("login");
+  },
+  endpoint(){
+    const p = providerById(S.cfg.provider);
+    let base = (S.cfg.base || p.base || "").replace(/\/+$/,"");
+    if(!base) return "";
+    if(/\/chat\/completions$/.test(base)) return base;
+    return base + "/chat/completions";
+  },
+  systemText(){
+    let sys = LANG === "en"
+      ? "You are MRClaw, an AI assistant running on the user's Android phone. When you need to operate the phone, first call screen to see the current UI, then use tap / input_text / swipe / open_app. If the user is not asking for phone control, just answer normally. Reply in English, concise."
+      : "你是 MRClaw，运行在用户安卓手机上的 AI 助手。需要操作手机时，先调用 screen 看当前界面，再用 tap / input_text / swipe / open_app 等工具执行。用户没有要求操作手机时，就正常回答问题。用中文，简洁。";
+    if(S.mems.length) sys += (LANG==="en" ? "\n\n[Long-term memory]\n" : "\n\n【长期记忆】\n") +
+      S.mems.map(m=>"- " + m.text).join("\n");
+    sys += Skill.activeText();
+    return sys;
+  },
+  send(){
+    if(!S.user) return this.openLoginGate();
+    if(Acc.banned()){ Show.ban(); return; }
+    const useOwn = (Acc.data.mode === "own");
+    if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ Guide.key(); return; }
+    if(native && !Perm.done() && !S.cfg.permAsked){
+      S.cfg.permAsked = true; saveCfg(); Guide.perm(); return;
+    }
+    const ta = el("ta");
+    const text = ta.value.trim();
+    if(!text || this.busy) return;
+    const c = this.cur();
+    c.msgs.push({ role:"user", content: text });
+    if(c.title === t("new_chat")){ c.title = text.slice(0,14); }
+    c.t = nowMs();
+    ta.value = ""; ta.style.height = "auto";
+    saveConvs(); this.render();
+
+    if(!useOwn){
+      if(Acc.data.points <= 0){ Show.out(); return; }
+      this.sendPoints(c);
+      return;
+    }
+
+    const url = this.endpoint();
+    if(!url){ Native.toast(LANG==="en" ? "Please configure the endpoint" : "请先配置接口地址"); App.tab("me"); return; }
+    const headers = JSON.stringify({
+      "Content-Type": "application/json",
+      "Authorization": "***" + S.cfg.apiKey
+    });
+    const body = JSON.stringify({
+      model: S.cfg.model || providerById(S.cfg.provider).model,
+      messages: [{ role:"system", content: this.systemText() }].concat(
+        c.msgs.filter(x=>x.role!=="system").slice(-30).map(x=>({ role:x.role, content:x.content }))),
+      stream: true,
+      temperature: parseFloat(S.cfg.temp) || 0.7
+    });
+
+    this.busy = true;
+    this.syncSendBtn();
+    const useAgent = !!(native && Perm.done());
+    const bubble = { role:"assistant", content:"" };
+    if(useAgent){ bubble._agent = true; bubble._steps = []; bubble._running = true; }
+    else { bubble._stream = true; }
+    c.msgs.push(bubble);
+    if(useAgent) this.agentBar(true, t("running").replace("● ","") + "…");
+    this.render();
+
+    if(useAgent){ this.agentRun(bubble, url, headers, body); return; }
+    this.streamId = "s"+nowMs();
+    if(!Native.stream(this.streamId, url, headers, body)){ this.fallbackFetch(url, headers, body); }
+  },
+  /* -------- 积分模式：走服务端代理，Key 不下发 -------- */
+  sendPoints(c){
+    this.busy = true; this.syncSendBtn();
+    const bubble = { role:"assistant", content: t("thinking"), _pts:true };
+    c.msgs.push(bubble); this.render();
+    const msgs = [{ role:"system", content: this.systemText() }].concat(
+      c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-24)
+        .map(function(x){ return { role:x.role, content:x.content }; }));
+    rpc("mrclaw_ai_start", {
+      p_user: S.user.name,
+      p_body: { model:"deepseek-chat", messages: msgs, stream:false, max_tokens: 2048 }
+    }).then(function(st){
+      if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
+      if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
+      if(st.err === "banned"){ Show.ban(); Chat.ptsEnd(bubble, false); return; }
+      if(st.err){ Chat.ptsFail(bubble, st.err); return; }
+      Chat.pollPts(bubble, st.id, 0);
+    });
+  },
+  pollPts(bubble, id, n){
+    if(n > 100){ this.ptsFail(bubble, "timeout"); return; }
+    setTimeout(function(){
+      rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
+        if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
+        bubble.content = Chat.extract(p.body);
+        if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
+        Chat.busy = false; saveConvs(); Chat.render();
+        if(Acc.data.points <= 0) Show.out();
+      });
+    }, 1200);
+  },
+  ptsEnd(bubble, dialog){
+    bubble.role = "system";
+    bubble.content = t("pts_empty");
+    this.busy = false; saveConvs(); Chat.render();
+    if(dialog) Show.out();
+  },
+  ptsFail(bubble, err){
+    bubble.role = "system";
+    bubble.content = t("exec_fail") + String(err).slice(0, 200);
+    this.busy = false; saveConvs(); Chat.render();
+  },
+  agentRun(bubble, url, headers, body){
+    const c = this.cur();
+    const hist = c.msgs.filter(function(x){ return x!==bubble && x.role!=="system"; }).slice(-12)
+      .map(function(x){ return { role:x.role, content:x.content }; });
+    native.agent(JSON.stringify({
+      url: url, headers: headers,
+      model: S.cfg.model || providerById(S.cfg.provider).model,
+      temp: parseFloat(S.cfg.temp) || 0.7,
+      system: this.systemText(), history: hist, autonomy: !!S.cfg.autonomy
+    }));
+  },
+  fallbackFetch(url, headers, body){
+    const c = this.cur();
+    const b = Object.assign({}, JSON.parse(body), { stream:false });
+    const raw = Native.http("POST", url, headers, JSON.stringify(b));
+    this.onDone(this.streamId, this.extract(raw));
+  },
+  extract(raw){
+    try{
+      const o = JSON.parse(raw);
+      if(o.choices && o.choices.length) return o.choices[0].message.content || "";
+      return raw.slice(0,300);
+    }catch(e){ return String(raw).slice(0,300); }
+  },
+  onChunk(id, piece){
+    if(id !== Chat.streamId) return;
+    const c = Chat.cur(); if(!c) return;
+    const last = c.msgs[c.msgs.length-1];
+    if(last && last._stream){
+      last.content += piece;
+      const box = el("msgs");
+      if(box){
+        const nodes = box.querySelectorAll(".msg.a");
+        const n = nodes[nodes.length-1];
+        if(n) n.textContent = last.content;
+        el("content").scrollTop = el("content").scrollHeight;
+      }
+    }
+  },
+  onDone(id, full){
+    if(id !== Chat.streamId) return;
+    const c = Chat.cur(); if(!c) return;
+    const last = c.msgs[c.msgs.length-1];
+    if(last && last._stream){ last.content = full || last.content; delete last._stream; }
+    Chat.busy = false; saveConvs(); Chat.render();
+  },
+  onError(id, err){
+    if(id !== Chat.streamId) return;
+    const c = Chat.cur(); if(!c) return;
+    const last = c.msgs[c.msgs.length-1];
+    if(last && last._stream){
+      last.role = "system";
+      last.content = t("exec_fail") + String(err).slice(0,300);
+      delete last._stream;
+    }
+    Chat.busy = false; saveConvs(); Chat.render();
+  },
+  agentBar(on, text){
+    const b = el("agentbar");
+    if(on){ el("agenttxt").textContent = text || (t("running").replace("● ","") + "…"); b.classList.remove("hide"); }
+    else b.classList.add("hide");
+  },
+  stopAgent(){
+    if(native && native.agentStop){
+      native.agentStop();
+      el("agenttxt").textContent = t("stopping");
+      Native.toast(t("stop_req"));
+    }
+  },
+  paint(b){
+    const box = el("msgs"); if(!box) return;
+    const nodes = box.querySelectorAll(".msg.a");
+    const n = nodes[nodes.length-1];
+    if(n) n.innerHTML = Chat.headHtml(b) + esc(b.content);
+    el("content").scrollTop = el("content").scrollHeight;
+  },
+  agentEvent(s){
+    let o = {};
+    try{ o = JSON.parse(s); }catch(e){ return; }
+    const c = this.cur(); if(!c) return;
+    const b = c.msgs[c.msgs.length-1];
+    if(!b || !b._steps) return;
+    if(o.type === "run"){ b._running = true; this.agentBar(true); this.paint(b); return; }
+    if(o.type === "status"){
+      b._steps.push(o.text);
+      b.content = b._steps.map(x=>"· " + x).join("\n");
+      this.paint(b); return;
+    }
+    if(o.type === "text"){
+      b.content = (b._steps.length ? b._steps.map(x=>"· " + x).join("\n") + "\n\n" : "") + o.text;
+      this.paint(b); return;
+    }
+    if(o.type === "err"){
+      b._running = false; b._state = "err";
+      b.content = String(o.text).slice(0,300);
+      this.busy = false; this.agentBar(false); saveConvs(); Chat.render(); return;
+    }
+    if(o.type === "stop"){
+      b._running = false; b._state = "stop";
+      this.busy = false; this.agentBar(false); saveConvs(); Chat.render(); return;
+    }
+    if(o.type === "done"){
+      b._running = false; b._state = "done";
+      this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
+    }
+  }
+};
+
+/* ================= 任务 ================= */
+const Task = {
+  render(){
+    App.title(t("task_title"));
+    App.topBtn(t("new"));
+    let h = "<div class='hd'>" + t("task_hint") + "</div>";
+    if(!S.tasks.length) h += "<div class='empty'>" + t("task_empty") + "</div>";
+    S.tasks.forEach(function(x,i){
+      h += "<div class='item'><h4>" + esc(x.name) + "</h4>" +
+        "<p>" + esc(x.kind === "cron" ? t("task_cron", x.when || "") : t("task_multi")) + "</p>" +
+        "<div style='height:8px'></div><p class='tiny'>" + esc(x.desc || "") + "</p>" +
+        "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button class='btn mini' onclick='Task.run(" + i + ")'>" + t("run") + "</button>" +
+        "<button class='btn mini danger' onclick='Task.del(" + i + ")'>" + t("del") + "</button></div></div>";
+    });
+    App.content(h);
+  },
+  async create(){
+    const name = await uiAsk(t("task_name_q"), "");
+    if(name === null || !String(name).trim()) return;
+    const desc = await uiAsk(t("task_desc_q"), "");
+    if(desc === null) return;
+    const when = await uiAsk(t("task_when_q"), "");
+    if(when === null) return;
+    S.tasks.unshift({ id:"t"+nowMs(), name:String(name).trim(), desc:String(desc),
+      kind: when.trim() ? "cron" : "manual", when: when.trim() });
+    saveTasks(); this.render();
+  },
+  async del(i){
+    if(await uiAsk(t("task_del_q", S.tasks[i].name), null, { input:false }) !== true) return;
+    S.tasks.splice(i,1); saveTasks(); this.render();
+  },
+  run(i){
+    const x = S.tasks[i];
+    App.tab("chat");
+    el("ta").value = (LANG==="en" ? "[Task] " : "【任务】") + x.name + "\n" + (x.desc||"") +
+      (LANG==="en" ? "\nBreak it into steps and start." : "\n请拆解为步骤并开始执行。");
+    Chat.syncSendBtn();
+  }
+};
+
+/* ================= 技能 ================= */
+const DEFAULT_SKILLS = [
+  { id:"s1", key:"open",  on:true,  builtin:true },
+  { id:"s2", key:"tap",   on:true,  builtin:true },
+  { id:"s3", key:"query", on:true,  builtin:true },
+  { id:"s4", key:"note",  on:true,  builtin:true },
+  { id:"s5", key:"file",  on:false, builtin:true }
+];
+const Skill = {
+  all(){
+    if(!S.skills){
+      S.skills = DEFAULT_SKILLS.map(function(s){ return Object.assign({}, s); });
+      saveSkills();
+    } else {
+      let changed = false;
+      S.skills.forEach(function(s){
+        if(s.builtin && !s.key){
+          const d = DEFAULT_SKILLS.filter(function(x){ return x.id === s.id; })[0];
+          if(d){ s.key = d.key; changed = true; }
+        }
+      });
+      if(changed) saveSkills();
+    }
+    return S.skills;
+  },
+  name(s){ return s.builtin ? t("sk_" + s.key + "_n") : s.name; },
+  desc(s){ return s.builtin ? t("sk_" + s.key + "_d") : (s.desc || ""); },
+  prompt(s){ return s.builtin ? t("sk_" + s.key + "_p") : (s.prompt || ""); },
+  render(){
+    App.title(t("skill_title"));
+    App.topBtn(t("new"));
+    let h = "<div class='hd'>" + t("skill_hint") + "</div>";
+    const a = this.all();
+    a.forEach(function(s,i){
+      h += "<div class='item'><div class='row' style='padding:0;border:none'>" +
+        "<div style='flex:1'><h4>" + esc(Skill.name(s)) + "</h4><p>" + esc(Skill.desc(s)) + "</p></div>" +
+        "<div class='sw " + (s.on?"on":"") + "' onclick='Skill.toggle(" + i + ")'><i></i></div></div></div>";
+    });
+    App.content(h);
+  },
+  toggle(i){ const a = this.all(); a[i].on = !a[i].on; saveSkills(); this.render(); Cloud.push(true); },
+  async create(){
+    const name = await uiAsk(t("skill_name_q"), "");
+    if(name === null || !String(name).trim()) return;
+    const pr = await uiAsk(t("skill_prompt_q"), "");
+    if(pr === null) return;
+    this.all().push({ id:"s"+nowMs(), name:String(name).trim(),
+      desc:String(pr).slice(0,20), prompt:String(pr), on:true });
+    saveSkills(); this.render();
+  },
+  activeText(){
+    const on = this.all().filter(function(s){ return s.on; });
+    if(!on.length) return "";
+    return (LANG==="en" ? "\n\n[Enabled skills]\n" : "\n\n【已启用技能】\n") +
+      on.map(function(s){ return "- " + Skill.name(s) + "：" + Skill.prompt(s); }).join("\n");
+  }
+};
+
+/* ================= 记忆 ================= */
+const Mem = {
+  render(){
+    App.title(t("mem_title"));
+    App.topBtn(t("add"));
+    let h = "<div class='hd'>" + t("mem_hint") + "</div>";
+    if(!S.mems.length) h += "<div class='empty'>" + t("mem_empty") + "</div>";
+    S.mems.forEach(function(x,i){
+      h += "<div class='item'><p>" + esc(x.text) + "</p>" +
+        "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button class='btn mini ghost' onclick='Mem.edit(" + i + ")'>" + t("edit") + "</button>" +
+        "<button class='btn mini danger' onclick='Mem.del(" + i + ")'>" + t("del") + "</button></div></div>";
+    });
+    App.content(h);
+  },
+  async create(){
+    const x = await uiAsk(t("mem_what_q"), "");
+    if(x === null || !String(x).trim()) return;
+    S.mems.unshift({ id:"m"+nowMs(), text:String(x).trim() });
+    saveMems(); this.render();
+  },
+  async edit(i){
+    const x = await uiAsk(t("mem_edit_q"), S.mems[i].text);
+    if(x === null) return;
+    S.mems[i].text = String(x); saveMems(); this.render();
+  },
+  async del(i){
+    if(await uiAsk(t("mem_del_q"), null, { input:false }) !== true) return;
+    S.mems.splice(i,1); saveMems(); this.render();
+  }
+};
+
+/* ================= 设置 ================= */
+const Me = {
+  render(){
+    App.title(t("nav_me"));
+    App.topBtn(t("save"));
+    const p = providerById(S.cfg.provider);
+    const opts = PROVIDERS.map(x=>"<option value='"+x.id+"' "+(x.id===S.cfg.provider?"selected":"")+">"+x.name+"</option>").join("");
+    const base = S.cfg.base || p.base;
+    const model = S.cfg.model || p.model;
+    let h = "";
+    h += "<div class='card'><div class='row'><div>" + t("account") + "</div><div class='muted'>" +
+         esc(S.user ? S.user.name : t("not_login")) + "</div></div>" +
+         "<div class='row'><div>" + t("device") + "</div><div class='muted'>" + esc(Native.model()) + "</div></div>" +
+         "<div class='row'><div>" + t("version") + "</div><div class='muted'>" + esc(Native.version()) + "</div></div></div>";
+
+    h += "<div class='card'><h4 style='margin:0 0 10px'>" + t("language") + "</h4>" +
+         "<div class='seg'><button class='" + (LANG==="zh"?"act":"") + "' onclick=\"setLang('zh')\">中文</button>" +
+         "<button class='" + (LANG==="en"?"act":"") + "' onclick=\"setLang('en')\">English</button></div>" +
+         "<h4 style='margin:18px 0 10px'>" + t("theme") + "</h4>" +
+         "<div class='seg'><button class='" + (THEME==="dark"?"act":"") + "' onclick=\"setTheme('dark')\">" + t("theme_dark") + "</button>" +
+         "<button class='" + (THEME==="light"?"act":"") + "' onclick=\"setTheme('light')\">" + t("theme_light") + "</button></div></div>";
+
+    h += "<div class='card'><h4 style='margin:0 0 4px'>" + t("model") + "</h4>" +
+         "<label class='f'>" + t("provider") + "</label><select id='c-prov' class='inp' onchange='Me.provChange()'>" + opts + "</select>" +
+         "<label class='f' style='display:flex;justify-content:space-between;align-items:center'><span>" + t("api_key") + "</span>" +
+         "<span id='key-eye' style='color:var(--accent);font-size:12px' onclick='Me.eye()'>" + t("show") + "</span></label>" +
+         "<input id='c-key' class='inp mask' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' value='" + esc(S.cfg.apiKey) + "'>" +
+         "<label class='f'>" + t("base_url") + "</label><input id='c-base' class='inp' value='" + esc(base) + "'>" +
+         "<label class='f'>" + t("model_name") + "</label><input id='c-model' class='inp' value='" + esc(model) + "'>" +
+         "<label class='f'>" + t("temp") + "</label><input id='c-temp' class='inp' value='" + esc(S.cfg.temp) + "'>" +
+         "<div style='height:14px'></div><button class='btn' onclick='Me.save()'>" + t("save_cfg") + "</button></div>";
+
+    h += "<div class='card'><h4 style='margin:0 0 6px'>" + t("perm_section") + "</h4>";
+    PERMS.forEach(function(p2,i){
+      const on = Perm.on(p2);
+      h += "<div class='row'><div style='flex:1'><div>" + t(p2.nk) +
+        (on ? " <span class='gok'>" + t("granted") + "</span>" : "") + "</div><div class='tiny'>" + t(p2.wk) + "</div></div>" +
+        (on ? "" : "<button class='btn ghost mini' onclick='Perm.req(PERMS[" + i + "])'>" + t("go_on") + "</button>") + "</div>";
+    });
+    h += "<div class='tiny' style='margin-top:10px'>" + t("perm_hint") + "</div></div>";
+
+    h += "<div class='card'><div class='row' style='padding:0;border:none'>" +
+         "<div><div>" + t("current_ver") + "</div><div class='tiny'>" + esc(Native.version()) + " / " + esc(Native.model()) + "</div></div>" +
+         "<button class='btn ghost mini' onclick='Me.checkUpdate()'>" + t("check_update") + "</button></div></div>";
+
+    h += "<div class='card'><div class='row' style='padding:0;border:none'>" +
+         "<div><div>" + t("autonomy") + "</div><div class='tiny'>" + t("autonomy_sub") + "</div></div>" +
+         "<div class='sw " + (S.cfg.autonomy?"on":"") + "' onclick='Me.autonomy()'><i></i></div></div></div>";
+
+    h += "<div class='card'><button class='btn ghost' onclick='Me.sync()'>" + t("sync") + "</button>" +
+         "<div style='height:10px'></div><button class='btn danger' onclick='Me.out()'>" + t("logout") + "</button></div>";
+    h += "<div class='tiny' style='text-align:center;padding:18px'>" + t("made_by") + "</div>";
+    App.content(h);
+  },
+  collect(){
+    S.cfg.provider = el("c-prov").value;
+    S.cfg.apiKey = el("c-key").value.trim();
+    S.cfg.base = el("c-base").value.trim();
+    S.cfg.model = el("c-model").value.trim();
+    S.cfg.temp = el("c-temp").value.trim();
+    saveCfg();
+  },
+  provChange(){
+    this.collect();
+    const p = providerById(S.cfg.provider);
+    S.cfg.base = p.base; S.cfg.model = p.model; saveCfg();
+    this.render();
+  },
+  save(){ this.collect(); Cloud.push(false); },
+  sync(){ this.collect(); Cloud.push(false); },
+  checkUpdate(){ Upd.check(true); },
+  eye(){
+    const k = el("c-key");
+    const on = k.classList.toggle("mask");
+    el("key-eye").textContent = on ? t("show") : t("hide");
+  },
+  autonomy(){
+    this.collect();
+    S.cfg.autonomy = !S.cfg.autonomy; saveCfg();
+    Cloud.push(true);
+    this.render();
+    Native.toast(S.cfg.autonomy ? (LANG==="en"?"Autonomous control on":"已开启 AI 独自操控")
+                                : (LANG==="en"?"Autonomous control off":"已关闭"));
+  },
+  out(){ Auth.logout(); }
+};
+
+/* ================= 更新 ================= */
+const Upd = {
+  info:null, list:[], i:0, _tryNext:null,
+  check(manual){
+    if(!native){ if(manual) Native.toast(t("mobile_only")); return; }
+    if(manual) Native.toast(t("upd_checking"));
+    httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/web.json", {}, "").then(function(raw){
+      let hot = false;
+      try{
+        if(raw && String(raw).indexOf("ERR:") !== 0){
+          const j = JSON.parse(raw);
+          const cur = (native.webVersion ? native.webVersion() : "0");
+          if(j && j.web && cmpVer(j.web, cur) > 0){ hot = true; Upd.webApply(j); }
+        }
+      }catch(e){}
+      if(!hot) Upd.checkApk(manual);
+      else if(manual) Native.toast(t("upd_found", WEB_VERSION));
+    });
+  },
+  webApply(j){
+    const urls = [j.url].concat(j.mirrors || []).filter(Boolean);
+    let k = 0;
+    const b = el("updbar");
+    b.classList.remove("hide");
+    b.innerHTML = "<span id='upd-txt'>" + t("web_updating") + "</span>";
+    this._tryNext = function(){
+      if(k >= urls.length){ b.innerHTML = "<span>" + t("web_fail") + "</span>"; return; }
+      const u = urls[k]; k++;
+      native.webUpdate(u, j.web);
+    };
+    this._tryNext();
+  },
+  checkApk(manual){
+    if(!native){ if(manual) Native.toast(t("mobile_only")); return; }
+    const url = (native.updateUrl ? native.updateUrl() : "");
+    if(!url){ if(manual) Native.toast(t("upd_check_fail")); return; }
+    httpReq("GET", url, {}, "").then(function(raw){
+      try{
+        if(!raw || String(raw).indexOf("ERR:") === 0){ if(manual) Native.toast(t("upd_check_fail")); return; }
+        const j = JSON.parse(raw);
+        const cur = (native.versionCode ? native.versionCode() : 0);
+        if(j && j.versionCode > cur){
+          Upd.info = j;
+          Upd.list = [j.url].concat(j.mirrors || []).filter(Boolean);
+          Upd.i = 0;
+          const b = el("updbar");
+          b.classList.remove("hide");
+          b.innerHTML = "<span>" + t("upd_found", esc(j.versionName)) + "</span>" +
+            "<button class='btn mini' onclick='Upd.go()'>" + t("update_now") + "</button>";
+          if(manual) Native.toast(t("upd_found", j.versionName));
+        } else if(manual){
+          Native.toast(t("upd_latest", Native.version()));
+        }
+      }catch(e){ if(manual) Native.toast(t("upd_check_fail")); }
+    });
+  },
+  go(){
+    if(!this.info) return;
+    if(native.canInstall && !native.canInstall()){
+      Native.toast(t("need_install_perm"));
+      native.installSettings();
+      return;
+    }
+    el("updbar").innerHTML = "<span id='upd-txt'>" + t("upd_downloading", 0) + "</span>";
+    native.update(this.list[this.i], "MRClaw-v" + this.info.versionName + ".apk");
+  },
+  onUpd(s){
+    let o = {};
+    try{ o = JSON.parse(s); }catch(e){ return; }
+    const b = el("updbar");
+    if(o.p !== undefined){
+      const x = el("upd-txt");
+      if(x) x.textContent = o.p >= 100 ? t("upd_installing") : t("upd_downloading", o.p);
+      return;
+    }
+    if(o.err){
+      this.i++;
+      if(this.i < this.list.length){
+        b.innerHTML = "<span id='upd-txt'>" + t("upd_retry_line") + "</span>";
+        native.update(this.list[this.i], "MRClaw-v" + this.info.versionName + ".apk");
+        return;
+      }
+      b.innerHTML = "<span>" + t("upd_failed") + "</span><button class='btn mini' onclick='Upd.go()'>" + t("retry") + "</button>";
+      return;
+    }
+    if(o.done) b.classList.add("hide");
+  }
+};
+window.MR_onUpd = function(s){ Upd.onUpd(s); };
+window.MR_onWebUpd = function(s){
+  let o = {};
+  try{ o = JSON.parse(s); }catch(e){ return; }
+  if(o.ok){
+    const x = el("upd-txt");
+    if(x) x.textContent = t("web_updated");
+    setTimeout(function(){ if(native && native.webReload) native.webReload(); }, 700);
+  } else if(Upd._tryNext){
+    Upd._tryNext();
+  }
+};
+function cmpVer(a, b){
+  const pa = String(a || "0").split("."), pb = String(b || "0").split(".");
+  for(let i = 0; i < 3; i++){
+    const x = parseInt(pa[i] || "0", 10) || 0, y = parseInt(pb[i] || "0", 10) || 0;
+    if(x > y) return 1;
+    if(x < y) return -1;
+  }
+  return 0;
+}
+
+/* ================= 积分与账号状态 ================= */
+const WEB_VERSION = "1.0.9";
+const Acc = {
+  data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
+  refresh(cb){
+    if(!S.user){ if(cb) cb(); return; }
+    rpc("mrclaw_state", { p_user: S.user.name }).then(function(st){
+      if(st && !st.__err && typeof st === "object" && !Array.isArray(st)){
+        Acc.data.points = st.points || 0;
+        Acc.data.banUntil = st.ban_until || null;
+        Acc.data.banReason = st.ban_reason || "";
+        Acc.data.mode = st.use_mode || "points";
+        Acc.data.ready = true;
+        Acc.paint();
+        Acc.banCheck();
+      }
+      if(cb) cb();
+    });
+  },
+  paint(){
+    const c = el("pts-chip");
+    if(c) c.textContent = t("pts") + " " + Number(Acc.data.points || 0).toLocaleString();
+    const b = el("mode-btn");
+    if(b){
+      const own = Acc.data.mode === "own";
+      b.textContent = own ? t("mode_key") : t("mode_pts");
+      b.className = "btn mini " + (own ? "" : "ghost");
+    }
+  },
+  mode(){
+    if(!S.user) return;
+    const next = (Acc.data.mode === "own") ? "points" : "own";
+    if(next === "own" && !S.cfg.apiKey){ Native.toast(t("need_key_first")); Guide.key(); return; }
+    Acc.data.mode = next;
+    rpc("mrclaw_set_mode", { p_user: S.user.name, p_mode: next });
+    Acc.paint();
+    Native.toast(next === "own" ? t("mode_to_key") : t("mode_to_pts"));
+  },
+  banned(){ return !!Acc.data.banUntil && new Date(Acc.data.banUntil).getTime() > Date.now(); },
+  banDays(){
+    if(!Acc.data.banUntil) return 0;
+    const ms = new Date(Acc.data.banUntil).getTime() - Date.now();
+    if(ms > 3.0e9) return -1;
+    return Math.max(1, Math.ceil(ms / 86400000));
+  },
+  banCheck(){
+    const b = el("ban");
+    if(this.banned()) Show.ban();
+    else { b.className = "hide"; b.innerHTML = ""; }
+  }
+};
+
+const Show = {
+  ban(){
+    const d = Acc.banDays();
+    const head = d < 0 ? t("banned_forever") : t("banned_days", d);
+    const b = el("ban");
+    b.className = "on";
+    b.innerHTML = "<div class='banbox'><div class='bt'>" + head + "</div>" +
+      "<div class='tiny' style='font-size:13.5px'>" + esc(t("banned_reason", Acc.data.banReason || "")) + "</div>" +
+      "<div class='tiny' style='margin-top:16px'>" + t("banned_hint") + "</div></div>";
+  },
+  out(){
+    const d = el("dlg");
+    d.classList.remove("hide");
+    d.innerHTML = "<div class='dbox'><div class='dtitle'>" + t("pts_empty") + "</div>" +
+      "<button class='btn' style='margin-bottom:10px' onclick='Show.pay()'>" + t("recharge") + "</button>" +
+      "<button class='btn ghost' style='margin-bottom:10px' onclick='Show.key()'>" + t("set_key") + "</button>" +
+      "<button class='btn ghost' onclick='Show.service()'>" + t("contact") + "</button></div>";
+  },
+  pay(){ uiClose(null); if(native && native.openUrl) native.openUrl("https://www.kufaka.com/item/lizls5"); },
+  key(){ uiClose(null); Guide.key(); },
+  service(){ uiClose(null); Support.open(); }
+};
+
+/* ================= 兑换码 ================= */
+const Redeem = {
+  open(){
+    if(!S.user) return Chat.openLoginGate();
+    const b = el("redeem");
+    b.classList.remove("hide");
+    b.innerHTML = "<div class='rw'><div class='gt'><b>" + t("redeem_title") + "</b></div>" +
+      "<textarea id='rd-in' placeholder='" + esc(t("redeem_ph")) + "' autocorrect='off' autocapitalize='off' spellcheck='false'></textarea>" +
+      "<div style='height:16px'></div><button class='btn' onclick='Redeem.scan()'>" + t("redeem_scan") + "</button>" +
+      "<div style='height:10px'></div><button class='btn ghost' onclick='Redeem.close()'>" + t("cancel") + "</button></div>";
+  },
+  close(){ el("redeem").classList.add("hide"); },
+  scan(){
+    const raw = String(el("rd-in").value || "").toUpperCase();
+    const found = raw.match(/LG\d{4}NB/g) || [];
+    const uniq = found.filter(function(v, i){ return found.indexOf(v) === i; });
+    if(!uniq.length){ Native.toast(t("redeem_none")); return; }
+    Redeem.go(uniq);
+  },
+  async go(codes){
+    const yes = await uiAsk(t("redeem_found", codes.length), null, { input:false });
+    if(yes !== true) return;
+    rpc("mrclaw_redeem", { p_user: S.user.name, p_codes: codes }).then(function(r){
+      if(!r || r.__err){ Native.toast(t("redeem_fail")); return; }
+      if(r.ok > 0){
+        Acc.data.points = r.points;
+        Acc.paint();
+        Native.toast(t("redeem_ok", r.added, Number(r.points).toLocaleString()));
+        Redeem.close();
+      } else {
+        Native.toast(t("redeem_part", 0, (r.bad || []).length));
+      }
+    });
+  }
+};
+
+/* ================= 客服 ================= */
+const Support = {
+  timer:null,
+  open(){
+    if(!S.user) return Chat.openLoginGate();
+    const b = el("sup");
+    b.classList.remove("hide");
+    b.innerHTML = "<div class='sup-top'><button class='mbtn' onclick='Support.close()'>←</button>" +
+      "<b style='font-size:16px'>" + t("support") + "</b></div>" +
+      "<div class='sup-list' id='sup-list'><div class='empty'>" + t("support_empty") + "</div></div>" +
+      "<div class='sup-bar'><input id='sup-in' type='text' autocomplete='off' spellcheck='false' placeholder='" + esc(t("support_ph")) + "'>" +
+      "<button class='btn mini' onclick='Support.send()'>" + t("send_btn") + "</button></div>";
+    const i = el("sup-in");
+    if(i) i.addEventListener("keydown", function(ev){ if(ev.key === "Enter") Support.send(); });
+    this.load();
+    const self = this;
+    if(this.timer) clearInterval(this.timer);
+    this.timer = setInterval(function(){ self.load(); }, 5000);
+  },
+  close(){ el("sup").classList.add("hide"); if(this.timer){ clearInterval(this.timer); this.timer = null; } },
+  load(){
+    if(el("sup").classList.contains("hide")) return;
+    rpc("mrclaw_support_list", { p_user: S.user.name }).then(function(a){
+      if(Array.isArray(a)) Support.render(a);
+    });
+  },
+  render(a){
+    const box = el("sup-list");
+    if(!box) return;
+    let h = "";
+    if(!a.length) h = "<div class='empty'>" + t("support_empty") + "</div>";
+    a.forEach(function(m){
+      h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" + esc(m.body) + "</div>";
+    });
+    box.innerHTML = h;
+    box.scrollTop = box.scrollHeight;
+  },
+  send(){
+    const i = el("sup-in");
+    const v = String(i.value || "").trim();
+    if(!v) return;
+    i.value = "";
+    rpc("mrclaw_support_send", { p_user: S.user.name, p_body: v }).then(function(){ Support.load(); });
+  }
+};
+
+/* ================= 系统回调 ================= */
+window.MR_onChunk = function(id, x){ Chat.onChunk(id, x); };
+window.MR_onDone  = function(id, x){ Chat.onDone(id, x); };
+window.MR_onError = function(id, x){ Chat.onError(id, x); };
+window.MR_agent   = function(s){ Chat.agentEvent(s); };
+window.MR_onBack = function(){
+  if(!el("sup").classList.contains("hide")){ Support.close(); return true; }
+  if(!el("redeem").classList.contains("hide")){ Redeem.close(); return true; }
+  if(!el("drawer").classList.contains("hide")){ Conv.close(); return true; }
+  if(!el("dlg").classList.contains("hide")){ uiClose(null); return true; }
+  if(!el("guide").classList.contains("hide")){ Guide.close(); return true; }
+  if(!el("app").classList.contains("hide")){
+    if(S.tab !== "chat"){ App.tab("chat"); return true; }
+    return false;
+  }
+  return true;
+};
+
+/* ================= 静态文案 ================= */
+function paintStatic(){
+  el("lb-user").textContent = t("username");
+  el("lb-pwd").textContent = t("password");
+  el("lb-pwd2").textContent = t("password2");
+  el("nv-chat").textContent = t("nav_chat");
+  el("nv-task").textContent = t("nav_task");
+  el("nv-skill").textContent = t("nav_skill");
+  el("nv-mem").textContent = t("nav_mem");
+  el("nv-me").textContent = t("nav_me");
+  el("stop-btn").textContent = t("stop_btn");
+  el("rd-btn").textContent = t("redeem");
+  try{ Acc.paint(); }catch(e){}
+  el("ta").placeholder = "";
+  el("menu-btn").title = t("all_chats");
+  document.title = "MRClaw";
+}
+
+/* ================= 启动 ================= */
+el("ta").addEventListener("input", function(){
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+  Chat.syncSendBtn();
+});
+el("ta").addEventListener("focus", function(){
+  if(!S.user){ this.blur(); Chat.openLoginGate(); }
+});
+el("send").addEventListener("click", function(){ Chat.send(); });
+
+(function boot(){
+  applyTheme();
+  if(native && native.setLang) { try{ native.setLang(LANG); }catch(e){} }
+  loadUserData();
+  paintStatic();
+  if(S.user){
+    el("auth").classList.add("hide");
+    el("app").classList.remove("hide");
+    Cloud.pull(S.user.name);
+    Acc.refresh();
+    App.tab("chat");
+  } else {
+    Auth.tab("reg");
+  }
+  setTimeout(function(){ Upd.check(); }, 1200);
+})();
+</script>
+</body>
+</html>
