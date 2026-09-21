@@ -119,6 +119,8 @@ h1{font-size:20px;margin:0}
       <button class="btn s" id="tab-users" onclick="Panel.tab('users')">用户管理</button>
       <button class="btn g s" id="tab-sup" onclick="Panel.tab('sup')">客服消息
         <span id="sup-badge" class="badge hide">0</span></button>
+      <button class="btn g s" id="tab-log" onclick="Panel.tab('log')">记录
+        <span id="log-badge" class="badge hide">0</span></button>
     </div>
 
     <div class="stats" id="stats"></div>
@@ -136,6 +138,17 @@ h1{font-size:20px;margin:0}
     </div>
 
     <div class="card" id="list"><div class="empty">加载中…</div></div>
+    </div>
+
+    <div id="view-log" class="hide">
+      <div class="row" id="logtabs" style="gap:8px;margin:12px 0 4px;flex-wrap:wrap">
+        <button class="btn s" data-k="subs" onclick="Panel.log('subs')">订阅邮箱</button>
+        <button class="btn g s" data-k="codes" onclick="Panel.log('codes')">兑换记录</button>
+        <button class="btn g s" data-k="points" onclick="Panel.log('points')">积分变动</button>
+        <button class="btn g s" data-k="ban" onclick="Panel.log('ban')">封禁记录</button>
+        <button class="btn g s" data-k="register" onclick="Panel.log('register')">新注册</button>
+      </div>
+      <div class="card" id="loglist"><div class="empty">加载中…</div></div>
     </div>
 
     <div id="view-sup" class="hide">
@@ -256,6 +269,15 @@ const Panel = {
       Object.keys(Panel._inbox).forEach(function(k){ if(Panel.unread(Panel._inbox[k], seen)) un++; });
       Panel.badge(un);
     }
+    try{
+      const subs = await rpc("mrclaw_subs_list");
+      const seenAt = localStorage.getItem("mrclaw_subs_seen");
+      let n = 0;
+      if(Array.isArray(subs)) subs.forEach(function(s){
+        if(!seenAt || new Date(s.created_at) > new Date(seenAt)) n++;
+      });
+      Panel.logBadge(n);
+    }catch(e){}
     this.render();
     document.getElementById("upd").textContent = "最后更新 " + new Date().toLocaleTimeString();
     Panel.auto();
@@ -398,7 +420,64 @@ const Panel = {
     toast("已解封");
     this.load();
   },
-  supUser: null, tabView: "users", _inbox: {},
+  supUser: null, tabView: "users", _inbox: {}, logKind: "subs",
+  tab(v){
+    Panel.tabView = v;
+    document.getElementById("view-users").className = (v === "users") ? "" : "hide";
+    document.getElementById("view-sup").className = (v === "sup") ? "" : "hide";
+    document.getElementById("view-log").className = (v === "log") ? "" : "hide";
+    document.getElementById("tab-users").className = "btn s" + (v === "users" ? "" : " g");
+    document.getElementById("tab-sup").className = "btn s" + (v === "sup" ? "" : " g");
+    document.getElementById("tab-log").className = "btn s" + (v === "log" ? "" : " g");
+    if(v === "sup") Panel.convs();
+    if(v === "log") Panel.log(Panel.logKind || "subs");
+  },
+  async log(k){
+    Panel.logKind = k;
+    document.querySelectorAll("#logtabs button").forEach(function(b){
+      b.className = "btn s" + (b.getAttribute("data-k") === k ? "" : " g");
+    });
+    const box = document.getElementById("loglist");
+    if(!box) return;
+    box.innerHTML = "<div class='empty'>加载中…</div>";
+    let html = "";
+    if(k === "subs"){
+      const arr = await rpc("mrclaw_subs_list");
+      const a = Array.isArray(arr) ? arr : [];
+      html = a.length ? a.map(function(s){
+        return "<div class='u'><div class='top'><div class='name'>" + esc(s.email) +
+          "</div><div class='meta'>" + fmt(s.created_at) + "</div></div>" +
+          (s.source ? "<div class='meta'>来源 " + esc(s.source) + "</div>" : "") + "</div>";
+      }).join("") : "<div class='empty'>还没有订阅</div>";
+      localStorage.setItem("mrclaw_subs_seen", new Date().toISOString());
+      Panel.logBadge(0);
+    } else if(k === "codes"){
+      const st = await rpc("mrclaw_codes_stats") || {};
+      const arr = await rpc("mrclaw_codes_used");
+      const a = Array.isArray(arr) ? arr : [];
+      html = "<div class='meta' style='margin-bottom:12px'>共 " + (st.total || 0) + " 张 · 已用 " +
+        (st.used || 0) + " 张 · 剩余 " + (st.left || 0) + " 张</div>" +
+        (a.length ? a.map(function(c){
+          return "<div class='u'><div class='top'><div class='name'>" + esc(c.code) +
+            "</div><div class='meta'>" + fmt(c.used_at) + "</div></div>" +
+            "<div class='meta'>兑换用户 " + esc(c.used_by) + "</div></div>";
+        }).join("") : "<div class='empty'>还没有兑换记录</div>");
+    } else {
+      const arr = await rpc("mrclaw_events_list", { p_kind: k, p_limit: 300 });
+      const a = Array.isArray(arr) ? arr : [];
+      html = a.length ? a.map(function(e){
+        return "<div class='u'><div class='top'><div class='name'>" + esc(e.username) +
+          "</div><div class='meta'>" + fmt(e.created_at) + "</div></div>" +
+          "<div class='meta'>" + esc(e.detail || "") + "</div></div>";
+      }).join("") : "<div class='empty'>暂无记录</div>";
+    }
+    box.innerHTML = html;
+  },
+  logBadge(n){
+    const b = document.getElementById("log-badge");
+    if(!b) return;
+    if(n > 0){ b.className = "badge"; b.textContent = n; } else b.className = "badge hide";
+  },
   tab(v){
     Panel.tabView = v;
     document.getElementById("view-users").className = (v === "users") ? "" : "hide";
