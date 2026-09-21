@@ -192,7 +192,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 <div class="hero">
   <div class="wrap">
     <div class="pill"><span class="dot"></span>MRClaw <b id="ver">…</b> 已发布</div>
-    <h1>真正会做事的 <em>AI</em>。</h1>
+    <h1>真正会做事的 <em>AI</em></h1>
     <p class="sub">装在你手机里的助手：处理消息、整理文件、跑任务、替你点屏幕——直接在手机里搞定。</p>
     <p class="sub2">没填 API Key 也能用（注册送 30 万积分）；也可以接自己的模型。管理员密钥只存在服务端，绝不下发到手机。</p>
     <div class="cta">
@@ -201,15 +201,11 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
     </div>
 
     <div class="install" id="install">
-      <div class="plats">
-        <button class="plat act" id="pl-and" onclick="plat('and')">Android</button>
-        <button class="plat" onclick="plat('scan')">扫码 / 微信</button>
-      </div>
       <div class="cmd" id="cmd-box">
         <code id="cmd">https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk</code>
         <button onclick="copyCmd()">复制</button>
       </div>
-      <a class="btn primary" id="dl-main" href="#">下载 APK</a>
+      <a class="btn primary" id="dl-main" href="#">下载安卓版</a>
       <div class="mirrors" id="dl-mirrors"></div>
       <div style="margin-top:14px;font-size:13px;color:var(--muted2)" id="dl-meta">读取版本信息…</div>
     </div>
@@ -248,7 +244,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
     <p class="tsub">关于 MRClaw 的常见问题解答。没找到答案？右上角咨询客服。</p>
     <div class="faq">
       <details open><summary>MRClaw 是什么？</summary><p>一个装在安卓手机上的 AI 助手。打开就是聊天界面，可以用积分或自己的 API Key 对话；开启无障碍权限后，还能让 AI 替你操作手机。</p></details>
-      <details><summary>怎么安装 MRClaw？</summary><p>点页面上的「下载 APK」，安装时允许「安装未知应用」即可。安卓 8.0 及以上。若在微信里打开，请点右上角 ··· 选择「在浏览器打开」再下载。</p></details>
+      <details><summary>怎么安装 MRClaw？</summary><p>点页面上的「下载安卓版」，安装时允许「安装未知应用」即可。安卓 8.0 及以上。若在微信里打开，请点右上角 ··· 选择「在浏览器打开」再下载。</p></details>
       <details><summary>支持哪些 AI 模型？</summary><p>内置智谱、DeepSeek、通义千问、豆包、Kimi、文心一言、讯飞星火、腾讯混元，也可以填任意 OpenAI 兼容接口。</p></details>
       <details><summary>不填 API Key 能用吗？</summary><p>可以。注册送 30 万积分，直接用积分聊天（1 token = 1 积分）。积分用完可以充值，也可以填自己的 Key。</p></details>
       <details><summary>运行 MRClaw 要花多少钱？</summary><p>软件本身免费。用积分模式按量消耗积分（可充值）；用自己的 Key 则只付给模型厂商，我们不参与计费。</p></details>
@@ -361,16 +357,6 @@ const isWX = /MicroMessenger/i.test(navigator.userAgent);
 function goDownload(e){
   if(isWX){ if(e) e.preventDefault(); el("wxtip").className = "on"; return false; }
   return true;
-}
-function plat(k){
-  document.querySelectorAll(".plat").forEach(p => p.classList.remove("act"));
-  if(k === "and"){
-    el("cmd").textContent = APKURL;
-    document.querySelectorAll(".plat")[0].classList.add("act");
-  } else {
-    el("cmd").textContent = "微信内无法下载：点右上角 ··· → 在浏览器打开 → 再点下载";
-    document.querySelectorAll(".plat")[1].classList.add("act");
-  }
 }
 function copyCmd(){
   const txt = el("cmd").textContent;
