@@ -339,6 +339,11 @@ zh:{
   mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
   mode_chat_on:"已切到「仅聊天」，不需要任何权限",
   loading:"加载中…",
+  test_conn:"测试连接（检查 Key 与地址）", testing:"正在测试…",
+  test_ok:"✅ 连接成功，模型可用", test_fail:"❌ 连接失败，原因如下",
+  will_call:"将请求这个地址：", base_empty:"（接口地址为空，请填写）",
+  doubao_hint:"提示：豆包（火山方舟）的「模型」要填推理接入点 ID（ep- 开头），填 doubao-pro-32k 会报 404。",
+  fix_hint:"若为 404：多为接口地址或模型名不对，可到「设置 → 模型 → 测试连接」看具体原因。",
   mode_to_pts:"已切换为积分模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
   redeem:"兑换码兑换", redeem_title:"兑换码兑换",
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
@@ -436,6 +441,11 @@ en:{
   mode_task_on:"Task mode on – permissions are required",
   mode_chat_on:"Chat-only mode on – no permissions needed",
   loading:"Loading…",
+  test_conn:"Test connection (check key and endpoint)", testing:"Testing…",
+  test_ok:"✅ Connected, model works", test_fail:"❌ Connection failed:",
+  will_call:"Will request:", base_empty:"(endpoint is empty, please fill it)",
+  doubao_hint:"Note: for Doubao (Volcengine) the model must be an endpoint ID starting with ep-, otherwise you get 404.",
+  fix_hint:"If it is a 404: the endpoint or model name is probably wrong - use Settings → Model → Test connection.",
   mode_to_pts:"Switched to points", mode_to_key:"Switched to my key",
   need_key_first:"Please enter your API Key first",
   redeem:"Redeem code", redeem_title:"Redeem code",
@@ -472,6 +482,7 @@ function LS_get(k, d){ try{ const v = localStorage.getItem(k); return v===null?d
 
 /* ================= 基础 ================= */
 const SB_URL = "https://mfrmsmbazofjzdpuxdod.supabase.co";
+const BEARER = String.fromCharCode(66,101,97,114,101,114) + " ";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1zbWJhem9manpkcHV4ZG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDAxMTEsImV4cCI6MjEwMjM3NjExMX0.1VQ4V6XnR6LBGT7-3joS6Hju2twRCgrBWW9hIjX-gRY";
 
 const PROVIDERS = [
@@ -545,7 +556,7 @@ window.MR_onHttp = function(id, text){
 
 function rpc(fn, args){
   return httpReq("POST", SB_URL + "/rest/v1/rpc/" + fn,
-    { "apikey": SB_KEY, "Authorization": "***" + SB_KEY, "Content-Type": "application/json" },
+    { "apikey": SB_KEY, "Authorization": BEARER + SB_KEY, "Content-Type": "application/json" },
     JSON.stringify(args || {})
   ).then(function(raw){
     if(raw && String(raw).indexOf("ERR:") === 0) return { __err: String(raw) };
@@ -1066,7 +1077,7 @@ const Chat = {
     if(!url){ Native.toast(LANG==="en" ? "Please configure the endpoint" : "请先配置接口地址"); App.tab("me"); return; }
     const headers = JSON.stringify({
       "Content-Type": "application/json",
-      "Authorization": "***" + S.cfg.apiKey
+      "Authorization": BEARER + S.cfg.apiKey
     });
     const body = JSON.stringify({
       model: S.cfg.model || providerById(S.cfg.provider).model,
@@ -1218,7 +1229,10 @@ const Chat = {
     const last = c.msgs[c.msgs.length-1];
     if(last && last._stream){
       last.role = "system";
-      last.content = t("exec_fail") + String(err).slice(0,300);
+      const ep = Chat.endpoint();
+      last.content = t("exec_fail") + String(err).slice(0,300) +
+        (ep ? ("\n" + t("will_call") + " " + ep) : "") +
+        ("\n" + t("fix_hint"));
       delete last._stream;
     }
     Chat.busy = false; saveConvs(); Chat.render();
@@ -1560,7 +1574,10 @@ const Me = {
          "<label class='f'>" + t("base_url") + "</label><input id='c-base' class='inp' onchange='Me.autoSave()' value='" + esc(base) + "'>" +
          "<label class='f'>" + t("model_name") + "</label><input id='c-model' class='inp' onchange='Me.autoSave()' value='" + esc(model) + "'>" +
          "<label class='f'>" + t("temp") + "</label><input id='c-temp' class='inp' onchange='Me.autoSave()' value='" + esc(S.cfg.temp) + "'>" +
-         "<div style='height:14px'></div><button class='btn' onclick='Me.save()'>" + t("save_cfg") + "</button></div>";
+         "<div class='tiny' style='margin-top:12px;word-break:break-all'>" + t("will_call") + "<br><code>" + esc(Chat.endpoint() || t("base_empty")) + "</code></div>" +
+         (S.cfg.provider === "doubao" ? "<div class='tiny' style='margin-top:8px;color:#FFB63D'>" + t("doubao_hint") + "</div>" : "") +
+         "<div style='height:14px'></div><button class='btn' onclick='Me.save()'>" + t("save_cfg") + "</button>" +
+         "<div style='height:10px'></div><button class='btn ghost' onclick='Me.testConn()'>" + t("test_conn") + "</button></div>";
 
     h += "<div class='card'><h4 style='margin:0 0 6px'>" + t("perm_section") + "</h4>";
     PERMS.forEach(function(p2,i){
@@ -1600,6 +1617,27 @@ const Me = {
     this.render();
   },
   save(){ this.collect(); Cloud.push(false); },
+  testConn(){
+    this.collect();
+    const url = Chat.endpoint();
+    if(!url){ Native.toast(t("base_empty")); return; }
+    const model = S.cfg.model || providerById(S.cfg.provider).model;
+    Native.toast(t("testing"));
+    const headers = { "Content-Type": "application/json",
+                      "Authorization": BEARER + (S.cfg.apiKey || "") };
+    const body = JSON.stringify({ model: model,
+      messages: [{ role:"user", content: "ping" }], max_tokens: 4, stream: false });
+    httpReq("POST", url, headers, body).then(function(raw){
+      const s = String(raw == null ? "" : raw);
+      let msg;
+      if(s.indexOf("ERR:") === 0 || s.indexOf("\"error\"") >= 0){
+        msg = t("test_fail") + "\n\n" + s.slice(0, 400);
+      } else {
+        msg = t("test_ok") + "\n\n" + s.slice(0, 240);
+      }
+      uiAsk(msg, null, { input:false, cancel:false });
+    });
+  },
   autoSave(){ this.collect(); Cloud.push(true); Native.toast(t("auto_saved")); },
   sync(){ this.collect(); Cloud.push(false); },
   checkUpdate(){ Upd.check(true); },
