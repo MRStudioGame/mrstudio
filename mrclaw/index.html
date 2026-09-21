@@ -144,6 +144,16 @@ input:focus,textarea:focus{border-color:var(--accent)}
   border:1px solid var(--bd2);color:var(--fg);padding:11px 18px;border-radius:12px;
   box-shadow:var(--shadow);opacity:0;transition:.24s;pointer-events:none;z-index:80;font-size:14px}
 #toast.on{opacity:1;bottom:46px}
+#wxtip{position:fixed;inset:0;background:rgba(4,7,12,.72);z-index:90;display:none;
+  align-items:flex-start;justify-content:center;padding:80px 20px 20px}
+#wxtip.on{display:flex}
+.wxbox{max-width:420px;background:var(--panel);border:1px solid var(--bd2);border-radius:18px;
+  padding:22px;box-shadow:var(--shadow);position:relative}
+.wxbox h3{margin:0 0 10px;font-size:17px}
+.wxbox p{margin:0 0 10px;color:var(--muted);font-size:14.5px}
+.wxbox .arrow{position:absolute;top:-46px;right:12px;font-size:32px;color:#fff;
+  animation:updown 1.1s infinite}
+@keyframes updown{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @media (max-width:720px){
   .hero h1{font-size:38px}
   .navlinks{display:none}
@@ -264,6 +274,16 @@ input:focus,textarea:focus{border-color:var(--accent)}
   </div>
 </footer>
 
+<div id="wxtip" onclick="this.className=''">
+  <div class="wxbox" onclick="event.stopPropagation()">
+    <div class="arrow">☝</div>
+    <h3>微信暂不支持下载软件</h3>
+    <p>请点击右上角 <b>···</b> （三个点）→ 选择 <b>「在浏览器打开」</b>，在浏览器里再点下载即可。</p>
+    <p style="color:var(--muted2);font-size:13px">安卓安装时若提示风险，选择「仍要安装 / 允许安装未知应用」即可。</p>
+    <button class="btn primary" style="width:100%" onclick="document.getElementById('wxtip').className=''">我知道了</button>
+  </div>
+</div>
+
 <div id="mask" onclick="Support.close()"></div>
 <aside id="sup">
   <div class="h"><b>咨询客服</b><button class="btn ghost sm" onclick="Support.close()">关闭</button></div>
@@ -288,6 +308,15 @@ function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
 function toast(m){ const t=el("toast"); t.textContent=m; t.className="on";
   clearTimeout(t._h); t._h=setTimeout(()=>{t.className="";},1800); }
 function pay(){ window.open(PAY, "_blank"); }
+const isWX = /MicroMessenger/i.test(navigator.userAgent);
+function goDownload(e){
+  if(isWX){
+    if(e) e.preventDefault();
+    el("wxtip").className = "on";
+    return false;
+  }
+  return true;
+}
 function theme(){
   const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", cur);
@@ -319,6 +348,8 @@ async function rpc(fn, args){
     const u = j.url || "";
     el("dl-main").href = u;
     el("dl-top").href = u;
+    el("dl-main").onclick = goDownload;
+    el("dl-top").onclick = goDownload;
     el("dl-top").textContent = "下载 v" + j.versionName;
     const ms = (j.mirrors || []).map((m, i)=>
       "<a href='" + esc(m) + "'>镜像" + (i+1) + "</a>").join("");
@@ -394,6 +425,7 @@ const Support = {
     this.user = this.user || this.who();
     const r = await rpc("mrclaw_support_send", { p_user: this.user, p_body: v, p_attach: [] });
     if(r && r.__err){ toast("发送失败，请稍后再试"); return; }
+    toast("已发送，管理员会尽快回复");
     this.load();
   }
 };
