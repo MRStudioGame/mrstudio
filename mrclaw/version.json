@@ -1,12 +1,12 @@
 {
-  "versionCode": 21,
-  "versionName": "1.0.20",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.20",
+  "versionCode": 22,
+  "versionName": "1.0.21",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.21",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.20",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.20",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.20"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.21",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.21",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.21"
   ],
   "size": 136106,
-  "notes": "1. 修复用「自己的Key」时的请求头（之前 Bearer 前缀被写坏，导致 404/401）；2. 设置新增「测试连接」：一键检查 Key 与接口地址，直接显示真实错误；3. 设置里显示将请求的地址，豆包会提示需填 ep- 接入点。"
+  "notes": "修复发出消息偶发连发两次的问题（异步校验期间可被重复点击），发送中按钮会置灰。"
 }
