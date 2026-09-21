@@ -224,8 +224,9 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
       <div id="toolrow">
         <span id="pts-chip"></span>
         <div style="display:flex;gap:8px">
-          <button id="att-btn" class="btn ghost mini" onclick="Attach.pick(false)"></button>
-          <button id="mode-btn" class="btn ghost mini" onclick="Acc.mode()"></button>
+          <button id="task-btn" class="btn ghost mini" onclick="Mode.task()"></button>
+          <button id="mode-btn" class="btn mini" onclick="Acc.mode()"></button>
+          <button id="att-btn" class="btn ghost mini" onclick="Attach.openMenu(false)">＋</button>
         </div>
       </div>
       <div class="barline">
@@ -309,7 +310,13 @@ zh:{
   upd_latest:"已是最新版本 v{0}", upd_checking:"正在检查更新…", upd_check_fail:"检查失败，请稍后再试",
   mobile_only:"仅手机端可用", need_install_perm:"请先允许安装未知应用",
   stt_listen:"请说话…", stt_fail:"识别失败",
-  pts:"积分", mode_pts:"积分", mode_key:"我的Key",
+  pts:"积分", mode_pts:"消耗：积分", mode_key:"消耗：我的Key",
+  mode_tip:"点一下切换：用积分 或 用自己的 Key",
+  task_mode_on:"做任务", task_mode_off:"仅聊天",
+  task_mode_tip:"点一下切换：仅聊天（不需权限）/ 做任务（需权限）",
+  mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
+  mode_chat_on:"已切到「仅聊天」，不需要任何权限",
+  loading:"加载中…",
   mode_to_pts:"已切换为积分模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
   redeem:"兑换码兑换", redeem_title:"兑换码兑换",
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
@@ -324,7 +331,8 @@ zh:{
   web_fail:"更新失败", balance:"余额 {0}",
   auto_saved:"已自动保存", save_failed:"保存失败，请检查网络",
   support_fail:"发送失败，请重试", cloud_syncing:"正在同步…",
-  official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"图片", attach_file:"文件",
+  official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"上传图片", attach_file:"上传文件",
+  attach_title:"要发送什么？",
   uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
   no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
   attach_only:"（附件）", remove:"移除"
@@ -396,7 +404,13 @@ en:{
   upd_checking:"Checking for updates…", upd_check_fail:"Check failed, please try again later",
   mobile_only:"Available on phone only", need_install_perm:"Please allow installing unknown apps first",
   stt_listen:"Listening…", stt_fail:"Recognition failed",
-  pts:"Points", mode_pts:"Points", mode_key:"My key",
+  pts:"Points", mode_pts:"Use points", mode_key:"Use my key",
+  mode_tip:"Tap to switch: use points or your own key",
+  task_mode_on:"Task", task_mode_off:"Chat only",
+  task_mode_tip:"Tap to switch: Chat only (no permissions) / Task (permissions needed)",
+  mode_task_on:"Task mode on – permissions are required",
+  mode_chat_on:"Chat-only mode on – no permissions needed",
+  loading:"Loading…",
   mode_to_pts:"Switched to points", mode_to_key:"Switched to my key",
   need_key_first:"Please enter your API Key first",
   redeem:"Redeem code", redeem_title:"Redeem code",
@@ -414,7 +428,8 @@ en:{
   web_fail:"Update failed", balance:"Balance {0}",
   auto_saved:"Auto-saved", save_failed:"Save failed, check your network",
   support_fail:"Send failed, please retry", cloud_syncing:"Syncing…",
-  official_site:"Official website", attach:"Add image/file", attach_img:"Image", attach_file:"File",
+  official_site:"Official website", attach:"Add image/file", attach_img:"Upload image", attach_file:"Upload file",
+  attach_title:"What to send?",
   uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
   no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
   attach_only:"(attachment)", remove:"Remove"
@@ -999,7 +1014,7 @@ const Chat = {
     if(!text || this.busy) return;
     const useOwn = (Acc.data.mode === "own");
     if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ Guide.key(); return; }
-    if(native && !Perm.done() && !S.cfg.permAsked){
+    if(native && Mode.on() && !Perm.done()){
       S.cfg.permAsked = true; saveCfg(); Guide.perm(); return;
     }
     if(!useOwn){
@@ -1037,7 +1052,7 @@ const Chat = {
 
     this.busy = true;
     this.syncSendBtn();
-    const useAgent = !!(native && Perm.done());
+    const useAgent = !!(native && Mode.on() && Perm.done());
     const bubble = { role:"assistant", content:"" };
     if(useAgent){ bubble._agent = true; bubble._steps = []; bubble._running = true; }
     else { bubble._stream = true; }
@@ -1599,10 +1614,20 @@ window.MR_onPick = function(s){
 
 const Attach = {
   pending: [], _target: "chat",
-  pick(forSupport){
+  openMenu(forSupport){
     if(!native || !native.pickFile){ Native.toast(t("mobile_only")); return; }
     Attach._target = forSupport ? "sup" : "chat";
-    native.pickFile("any", true);
+    uiSheet(t("attach_title"), [
+      { label: "🖼 " + t("attach_img"), value: "image" },
+      { label: "📄 " + t("attach_file"), value: "file" }
+    ]).then(function(v){
+      if(v === "image") native.pickFile("image", true);
+      else if(v === "file") native.pickFile("any", true);
+    });
+  },
+  pick(kind, forSupport){
+    Attach._target = forSupport ? "sup" : "chat";
+    native.pickFile(kind || "any", true);
   },
   onPick(s){
     let arr = [];
@@ -1611,7 +1636,7 @@ const Attach = {
     const list = Attach._target === "sup" ? Attach.supList() : Attach.pending;
     arr.forEach(function(f){
       list.push({ name:f.name, mime:f.mime || "", size:f.size || 0,
-                  b64:f.b64, url:"", up:true });
+                  token:f.token || "", b64:f.b64 || "", url:"", up:true });
     });
     Attach.render();
     Attach.uploadAll();
@@ -1633,17 +1658,24 @@ const Attach = {
     const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
     const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
     const id = "up" + (++_upSeq);
+    const headers = JSON.stringify({
+      "apikey": SB_KEY,
+      "Authorization": "Bea" + "rer " + SB_KEY,
+      "Content-Type": f.mime || "application/octet-stream",
+      "x-upsert": "true"
+    });
     _upWait[id] = function(text){
       if(text && String(text).indexOf("ERR:") === 0) return cb(null, text);
       cb(SB_URL + "/storage/v1/object/public/mrclaw/" + path, null);
     };
-    native.uploadAsync(id, SB_URL + "/storage/v1/object/mrclaw/" + path,
-      JSON.stringify({
-        "apikey": SB_KEY,
-        "Authorization": "Bea" + "rer " + SB_KEY,
-        "Content-Type": f.mime || "application/octet-stream",
-        "x-upsert": "true"
-      }), f.b64);
+    const url = SB_URL + "/storage/v1/object/mrclaw/" + path;
+    if(f.token && native.uploadPicked){
+      native.uploadPicked(id, f.token, url, headers);
+    } else if(f.b64){
+      native.uploadAsync(id, url, headers, f.b64);
+    } else {
+      cb(null, "ERR:no-file");
+    }
   },
   ready(list){ return (list || []).filter(function(f){ return f.url && !f.fail; }); },
   isImg(f){ return String(f.mime || "").indexOf("image") === 0 || /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || ""); },
@@ -1681,6 +1713,31 @@ const Attach = {
         ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) + "'></a>"
         : "<a href='" + esc(a.url) + "' target='_blank'>📄 " + esc(a.name || "file") + "</a>";
     }).join("") + "</div>";
+  }
+};
+
+/* ================= 仅聊天 / 做任务 ================= */
+const Mode = {
+  on(){ return !!S.cfg.taskMode; },
+  task(){
+    if(!this.on()){
+      S.cfg.taskMode = true; saveCfg();
+      Acc.paint();
+      if(native && !Perm.done()){ Guide.perm(); return; }
+      Native.toast(t("mode_task_on"));
+    } else {
+      S.cfg.taskMode = false; saveCfg();
+      Acc.paint();
+      Native.toast(t("mode_chat_on"));
+    }
+  },
+  paint(){
+    const b = el("task-btn");
+    if(!b) return;
+    const on = this.on();
+    b.textContent = on ? t("task_mode_on") : t("task_mode_off");
+    b.className = "btn mini " + (on ? "" : "ghost");
+    b.title = t("task_mode_tip");
   }
 };
 
@@ -1772,13 +1829,15 @@ const Acc = {
   },
   paint(){
     const c = el("pts-chip");
-    if(c) c.textContent = t("pts") + " " + Number(Acc.data.points || 0).toLocaleString();
+    if(c) c.textContent = t("pts") + " " + (Acc.data.ready
+      ? Number(Acc.data.points || 0).toLocaleString() : t("loading"));
     const b = el("mode-btn");
     if(b){
       const own = Acc.data.mode === "own";
       b.textContent = own ? t("mode_key") : t("mode_pts");
-      b.className = "btn mini " + (own ? "" : "ghost");
+      b.title = t("mode_tip");
     }
+    try{ Mode.paint(); }catch(e){}
   },
   mode(){
     if(!S.user) return;
@@ -1890,7 +1949,7 @@ const Support = {
       "<b style='font-size:16px'>" + t("support") + "</b></div>" +
       "<div class='sup-list' id='sup-list'><div class='empty'>" + t("support_empty") + "</div></div>" +
       "<div id='sup-chips' class='hide' style='padding:0 12px 6px'></div>" +
-      "<div class='sup-bar'><button class='btn ghost mini' onclick='Attach.pick(true)'>📎</button>" +
+      "<div class='sup-bar'><button class='btn ghost mini' onclick='Attach.openMenu(true)'>＋</button>" +
       "<input id='sup-in' type='text' autocomplete='off' spellcheck='false' placeholder='" + esc(t("support_ph")) + "'>" +
       "<button class='btn mini' onclick='Support.send()'>" + t("send_btn") + "</button></div>";
     Attach.supPending = [];
@@ -1967,8 +2026,9 @@ function paintStatic(){
   el("nv-mem").textContent = t("nav_mem");
   el("nv-me").textContent = t("nav_me");
   el("stop-btn").textContent = t("stop_btn");
-  el("att-btn").textContent = "📎";
+  el("att-btn").textContent = "＋";
   el("att-btn").title = t("attach");
+  try{ Mode.paint(); }catch(e){}
   el("rd-btn").textContent = t("redeem");
   try{ Acc.paint(); }catch(e){}
   el("ta").placeholder = "";
