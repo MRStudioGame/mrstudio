@@ -1,12 +1,12 @@
 {
-  "versionCode": 16,
-  "versionName": "1.0.15",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.15",
+  "versionCode": 17,
+  "versionName": "1.0.16",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.16",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.15",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.15",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.15"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.16",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.16",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.16"
   ],
   "size": 127914,
-  "notes": "1. 图标改为正中白色圆；2. 新增附件功能：聊天与客服都能发多张图片/文件（上传到云端存储），AI 与客服都能收到；3. 管理端客服会话可直接查看图片并回复附件。"
+  "notes": "1. 设置底部新增「跳转至官网」，用浏览器打开官网下载页；2. 官网已上线（含下载、更新日志、咨询客服、充值积分）。"
 }
