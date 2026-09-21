@@ -1,12 +1,12 @@
 {
-  "versionCode": 11,
-  "versionName": "1.0.10",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.10",
+  "versionCode": 12,
+  "versionName": "1.0.11",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.11",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.10",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.10",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.10"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.11",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.11",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.11"
   ],
   "size": 144298,
-  "notes": "更换全新应用图标：深蓝放射渐变底 + 纯白爪痕 + 柔光，更简洁大气。"
+  "notes": "1. 修复云端连接（内置密钥修复）——注册/登录/积分/客服/Key 保存全部恢复；2. 每次发消息前自动同步最新积分与封禁状态，管理端加的积分立刻可见；3. Key 修改后自动保存到云端，不用再手动点保存；4. 客服消息即时显示，发送失败会有提示。"
 }
