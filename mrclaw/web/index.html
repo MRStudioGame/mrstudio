@@ -364,6 +364,9 @@ zh:{
   mode_chat_on:"已切到「仅聊天」，不需要任何权限",
   loading:"加载中…",
   need_new_apk:"本次更新需要升级安装包（新功能依赖新版本），点右侧按钮下载安装",
+  need_new_apk_title:"要让 AI 操作手机，需要升级安装包",
+  upgrade_now:"立即升级（一键下载安装）",
+  use_own_key:"先用我自己的 Key（无需升级）",
   install_now:"下载安装", installing_hint:"已开始安装，按提示完成即可",
   test_conn:"测试连接（检查 Key 与地址）", testing:"正在测试…",
   test_ok:"✅ 连接成功，模型可用", test_fail:"❌ 连接失败，原因如下",
@@ -474,6 +477,9 @@ en:{
   mode_chat_on:"Chat-only mode on – no permissions needed",
   loading:"Loading…",
   need_new_apk:"This update needs a newer app package. Tap the button to download and install",
+  need_new_apk_title:"To let the AI control your phone, please upgrade the app",
+  upgrade_now:"Upgrade now (one tap)",
+  use_own_key:"Use my own key (no upgrade needed)",
   install_now:"Download", installing_hint:"Installing… follow the prompt",
   test_conn:"Test connection (check key and endpoint)", testing:"Testing…",
   test_ok:"✅ Connected, model works", test_fail:"❌ Connection failed:",
@@ -1273,7 +1279,7 @@ const Chat = {
   },
   callTool(name, argsJson, cb){
     if(!native || !native.toolAsync){
-      try{ Upd.needApk(t("need_new_apk")); }catch(e){}
+      try{ Upd.noBridge(); }catch(e){}
       cb(t("need_new_apk"));
       return;
     }
@@ -1914,6 +1920,22 @@ const Upd = {
     b.innerHTML = "<span id='upd-txt'>" + esc(msg || t("need_new_apk")) + "</span>" +
       "<button class='btn mini' onclick='Upd.installApk()'>" + t("install_now") + "</button>";
   },
+  noBridge(){
+    if(Upd._nbShown) return;
+    Upd._nbShown = true;
+    Upd.needApk(t("need_new_apk"));
+    uiSheet(t("need_new_apk_title"), [
+      { label: t("upgrade_now"), value: "up" },
+      { label: t("use_own_key"), value: "own" },
+      { label: t("later"), value: "later" }
+    ]).then(function(v){
+      if(v === "up"){ Upd.installApk(); }
+      else if(v === "own"){
+        if(!S.cfg.apiKey){ Guide.key(); }
+        else { Acc.mode(); Native.toast(t("mode_to_key")); }
+      }
+    });
+  },
   installApk(){
     if(!native || !native.update){ Native.toast(t("mobile_only")); return; }
     const url = Upd._apkUrl || "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk";
@@ -2339,7 +2361,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.26";
+const WEB_VERSION = "1.0.27";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
@@ -2608,6 +2630,9 @@ el("send").addEventListener("click", function(){ Chat.send(); });
     Auth.tab("reg");
   }
   setTimeout(function(){ Upd.check(); }, 1200);
+  setTimeout(function(){
+    if(native && !native.toolAsync){ try{ Upd.noBridge(); }catch(e){} }
+  }, 3500);
   try{ BC.start(); }catch(e){}
   setInterval(function(){
     if(document.hidden || !S.user) return;
