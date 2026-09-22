@@ -457,13 +457,16 @@ async function subscribe(){
 }
 
 /* 背景音乐 */
-const BGM_URL = "bgm.mp3";
+const BGM_URL = "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/bgm.mp3";
+const BGM_LOCAL = "bgm.mp3";
 const Bgm = {
   el: null,
   init(){
     const a = el("bgm");
     if(!a) return;
-    a.src = BGM_URL;
+    Bgm.urls = [BGM_URL, BGM_LOCAL];
+    Bgm.uidx = 0;
+    a.src = Bgm.urls[0];
     a.volume = 0.55;
     Bgm.el = a;
     Bgm.paint();
@@ -476,7 +479,16 @@ const Bgm = {
     a.addEventListener("play", Bgm.paint);
     a.addEventListener("pause", Bgm.paint);
     // 本地文件缺失/无法播放时，切到网易云官方外链播放器
-    a.addEventListener("error", Bgm.fallback);
+    a.addEventListener("error", function(){
+      if(Bgm.uidx + 1 < (Bgm.urls || []).length){
+        Bgm.uidx++;
+        a.src = Bgm.urls[Bgm.uidx];
+        a.load();
+        Bgm.tryPlay();
+        return;
+      }
+      Bgm.fallback();
+    });
   },
   tryPlay(){
     const a = Bgm.el;
