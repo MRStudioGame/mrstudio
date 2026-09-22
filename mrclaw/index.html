@@ -108,7 +108,15 @@ p.tsub{text-align:center;color:var(--muted);margin:0 auto 36px;max-width:640px;f
 .rs{position:relative;display:inline-block;font-size:14.5px;letter-spacing:1.5px;line-height:1}
 .rs-bg{color:var(--bd2)}
 .rs-fill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:#FFC46D}
-.rvcard{background:var(--panel);border:1px solid var(--bd);border-radius:16px;padding:18px}
+.wall{overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.wallrow{display:flex;gap:14px;width:max-content;padding:6px 0;
+  animation:wallmove 46s linear infinite}
+.wallrow.rev{animation-direction:reverse;animation-duration:56s}
+.wall:hover .wallrow{animation-play-state:paused}
+@keyframes wallmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.rvcard{width:330px;flex:0 0 330px;background:var(--panel);border:1px solid var(--bd);border-radius:16px;padding:18px}
 .rvcard .who{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .rvcard .nm{font-weight:600;font-size:14.5px}
 .rvcard .cm{color:var(--muted);font-size:14.5px;margin:0}
@@ -270,7 +278,10 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
   <div class="wrap">
     <h2 class="t">好评墙</h2>
     <p class="tsub">来自真实用户的评价 · 平均 <b id="rv-avg">—</b> 星 · 共 <b id="rv-n">0</b> 条</p>
-    <div class="grid g3" id="rv-wall"><div class="card"><p>加载中…</p></div></div>
+    <div class="wall">
+      <div class="wallrow" id="rv-row1"></div>
+      <div class="wallrow rev" id="rv-row2"></div>
+    </div>
   </div>
 </section>
 
@@ -339,6 +350,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </aside>
 <audio id="bgm" loop preload="auto"></audio>
 <button id="bgm-btn" onclick="Bgm.toggle()" title="音乐">♪</button>
+
 <div id="toast"></div>
 
 <script>
@@ -463,6 +475,8 @@ const Bgm = {
     });
     a.addEventListener("play", Bgm.paint);
     a.addEventListener("pause", Bgm.paint);
+    // 本地文件缺失/无法播放时，切到网易云官方外链播放器
+    a.addEventListener("error", Bgm.fallback);
   },
   tryPlay(){
     const a = Bgm.el;
@@ -474,13 +488,19 @@ const Bgm = {
   toggle(){
     const a = Bgm.el;
     if(!a) return;
-    if(a.paused){ a.play().then(Bgm.paint).catch(Bgm.paint); }
+    if(a.paused){ a.play().then(Bgm.paint).catch(function(){ Bgm.missing(); }); }
     else { a.pause(); Bgm.paint(); }
+  },
+  fallback(){ Bgm.missing(); },
+  missing(){
+    if(Bgm.warned) return;
+    Bgm.warned = true;
+    Bgm.paint();
   },
   paint(){
     const b = el("bgm-btn");
-    if(!b || !Bgm.el) return;
-    const playing = !Bgm.el.paused;
+    if(!b) return;
+    const playing = Bgm.el && !Bgm.el.paused;
     b.textContent = playing ? "♪" : "♪̸";
     b.title = playing ? "关闭背景音乐" : "播放背景音乐";
   }
@@ -497,13 +517,14 @@ Bgm.init();
       el("rv-avg").textContent = st.avg || "0";
       el("rv-n").textContent = st.count || 0;
     }
-    const wall = el("rv-wall");
-    if(!wall) return;
+    const r1 = el("rv-row1"), r2 = el("rv-row2");
+    if(!r1 || !r2) return;
     if(!a.length){
-      wall.innerHTML = "<div class='card'><p>还没有评价，欢迎在 App 里第一个留下评价。</p></div>";
+      r1.innerHTML = "<div class='rvcard'><p class='cm'>还没有评价，欢迎在 App 里第一个留下评价。</p></div>";
+      r2.innerHTML = "";
       return;
     }
-    wall.innerHTML = a.map(function(r){
+    const card = function(r){
       const pct = Math.max(0, Math.min(100, (r.stars / 5) * 100));
       const stars = "<span class='rs'><span class='rs-bg'>★★★★★</span>" +
         "<span class='rs-fill' style='width:" + pct + "%'>★★★★★</span></span>";
@@ -512,10 +533,21 @@ Bgm.init();
         (r.comment ? "<p class='cm'>" + esc(r.comment) + "</p>" : "<p class='cm'>（未填写评论）</p>") +
         "<div class='mirrors' style='margin-top:10px'>" +
         new Date(r.created_at).toLocaleDateString("zh-CN") + "</div></div>";
-    }).join("");
+    };
+    // 每条内容重复两遍实现无缝循环
+    const half = a.map(card).join("");
+    r1.innerHTML = half + half;
+    const b = a.slice().reverse();
+    const half2 = b.map(card).join("");
+    r2.innerHTML = half2 + half2;
+    // 评价少时放慢，多时正常
+    const dur = Math.max(26, a.length * 7);
+    document.querySelectorAll(".wallrow").forEach(function(e){
+      e.style.animationDuration = dur + "s";
+    });
   }catch(e){
-    const wall = el("rv-wall");
-    if(wall) wall.innerHTML = "<div class='card'><p>暂时读不到评价。</p></div>";
+    const r1 = el("rv-row1");
+    if(r1) r1.innerHTML = "<div class='rvcard'><p class='cm'>暂时读不到评价。</p></div>";
   }
 })();
 
