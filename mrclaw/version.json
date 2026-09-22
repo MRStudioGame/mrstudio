@@ -1,12 +1,12 @@
 {
-  "versionCode": 25,
-  "versionName": "1.0.24",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.24",
+  "versionCode": 26,
+  "versionName": "1.0.25",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.25",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.24",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.24",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.24"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.25",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.25",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.25"
   ],
   "size": 144298,
-  "notes": "1. 积分模式（没填Key）现在也能真正做任务：完整工具循环 + 每步弹窗确认；2. 修复 AI 只回复代码不执行的问题；3. 官网好评墙改为流动式；4. 官网背景音乐播放器（本地音频，进站尝试自动播放）。"
+  "notes": "1. 修复图片/文件上传失败：加入降级重试通道（原生直传失败自动改用 base64 通道），并持久化文件读取权限；2. 上传失败时会显示具体原因，方便排查。"
 }
