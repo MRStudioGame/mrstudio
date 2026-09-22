@@ -1313,9 +1313,17 @@ const Chat = {
     };
     const tick = function(){
       if(self._pcancel){ finish(t("stop_t"), "stop"); return; }
-      if(step++ >= 14 || guard > 40){
-        finish(LANG === "en" ? "Stopped after too many steps; tell me to continue."
-                             : "步骤已到上限，先停在这里，你可以让我继续。", "err");
+      step++; guard++;
+      // 不硬停：达到很高的安全阈值时先问用户是否继续（正常情况下会一直做到模型不再调用工具为止）
+      if(step > 300 || guard > 600){
+        const msg = (LANG === "en")
+          ? ("Task is still unfinished after " + step + " steps. Continue?")
+          : ("任务还没做完（已执行 " + step + " 步），要继续吗？");
+        self.busy = false;
+        uiAsk(msg, null, { input:false }).then(function(ok){
+          if(ok === true){ self.busy = true; step = 0; guard = 0; tick(); }
+          else { finish(t("stop_t"), "stop"); }
+        });
         return;
       }
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
@@ -2361,7 +2369,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.27";
+const WEB_VERSION = "1.0.28";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
