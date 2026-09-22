@@ -1,12 +1,12 @@
 {
-  "versionCode": 24,
-  "versionName": "1.0.23",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.23",
+  "versionCode": 25,
+  "versionName": "1.0.24",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.24",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.23",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.23",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.23"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.24",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.24",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.24"
   ],
-  "size": 140202,
-  "notes": "彻底移除安装包重下载入口，更新只走软件内热更新（自检通过）。"
+  "size": 144298,
+  "notes": "1. 积分模式（没填Key）现在也能真正做任务：完整工具循环 + 每步弹窗确认；2. 修复 AI 只回复代码不执行的问题；3. 官网好评墙改为流动式；4. 官网背景音乐播放器（本地音频，进站尝试自动播放）。"
 }
