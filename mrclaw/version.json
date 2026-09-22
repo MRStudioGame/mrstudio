@@ -1,12 +1,12 @@
 {
-  "versionCode": 23,
-  "versionName": "1.0.22",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.22",
+  "versionCode": 24,
+  "versionName": "1.0.23",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.23",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.22",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.22",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.22"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.23",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.23",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.23"
   ],
   "size": 140202,
-  "notes": "1. 顶部新增广播（不遮挡任何功能），管理端「运营」页可自定义内容/速度/时间段/开关；2. 积分模式每条回复显示本次消耗与余额；3. 与 AI 对话超过 5 条自动弹出评价（5 星可半星、评论、匿名），评价奖励 300 积分且一人一次，设置里也有手动入口；4. 评价同步到官网「好评墙」；5. 更新只走软件内热更新，已关闭重新下载安装包的入口；6. 仅聊天模式下 AI 会主动提醒切换到做任务；7. 内置底层规则：不拒绝能力内要求、不私自中断任务，并修复把工具调用写成文字导致不执行的问题。"
+  "notes": "彻底移除安装包重下载入口，更新只走软件内热更新（自检通过）。"
 }
