@@ -159,6 +159,7 @@ h1{font-size:20px;margin:0}
         <span id="sup-badge" class="badge hide">0</span></button>
       <button class="btn g s" id="tab-log" onclick="Panel.tab('log')">记录
         <span id="log-badge" class="badge hide">0</span></button>
+      <button class="btn g s" id="tab-ops" onclick="Panel.tab('ops')">运营</button>
     </div>
 
     <div class="stats" id="stats"></div>
@@ -187,6 +188,40 @@ h1{font-size:20px;margin:0}
         <button class="btn g s" data-k="register" onclick="Panel.log('register')">新注册</button>
       </div>
       <div class="card" id="loglist"><div class="empty">加载中…</div></div>
+    </div>
+
+    <div id="view-ops" class="hide">
+      <div class="card">
+        <h3 style="margin:0 0 12px">广播设置</h3>
+        <div class="meta">广播内容（软件顶部滚动显示）</div>
+        <textarea id="bc-text" class="inp" style="height:80px;margin-top:6px" placeholder="例如：注册送 30 万积分，欢迎体验 MRClaw！"></textarea>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <label class="meta" style="flex:1;min-width:160px">速度（60=正常，越大越快）
+            <input id="bc-speed" class="inp" type="number" value="60"></label>
+        </div>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <label class="meta" style="flex:1;min-width:200px">开始时间（可空）
+            <input id="bc-start" class="inp" type="datetime-local"></label>
+          <label class="meta" style="flex:1;min-width:200px">结束时间（可空）
+            <input id="bc-end" class="inp" type="datetime-local"></label>
+        </div>
+        <div class="row" style="margin-top:12px;justify-content:space-between">
+          <label class="meta"><input type="checkbox" id="bc-on"> 开启广播</label>
+          <div class="row">
+            <button class="btn g s" onclick="Panel.opsLoad()">重新读取</button>
+            <button class="btn s" onclick="Panel.bcSave()">保存广播</button>
+          </div>
+        </div>
+        <div class="meta" id="bc-state" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h3 style="margin:0">用户评价</h3>
+          <span class="meta" id="rv-stat"></span>
+        </div>
+        <div id="rv-list" style="margin-top:12px"><div class="empty">加载中…</div></div>
+      </div>
     </div>
 
     <div id="view-sup" class="hide">
@@ -469,8 +504,11 @@ const Panel = {
     document.getElementById("tab-users").className = "btn s" + (v === "users" ? "" : " g");
     document.getElementById("tab-sup").className = "btn s" + (v === "sup" ? "" : " g");
     document.getElementById("tab-log").className = "btn s" + (v === "log" ? "" : " g");
+    document.getElementById("tab-ops").className = "btn s" + (v === "ops" ? "" : " g");
+    document.getElementById("view-ops").className = (v === "ops") ? "" : "hide";
     if(v === "sup") Panel.convs();
     if(v === "log") Panel.log(Panel.logKind || "subs");
+    if(v === "ops") Panel.opsLoad();
   },
   async log(k){
     Panel.logKind = k;
@@ -512,6 +550,59 @@ const Panel = {
       }).join("") : "<div class='empty'>暂无记录</div>";
     }
     box.innerHTML = html;
+  },
+  async opsLoad(){
+    const b = await rpc("mrclaw_bc_get");
+    if(b && !b.__err){
+      const gt = document.getElementById("bc-text");
+      if(gt) gt.value = b.text || "";
+      const gs = document.getElementById("bc-speed");
+      if(gs) gs.value = b.speed || 60;
+      const go = document.getElementById("bc-on");
+      if(go) go.checked = !!b.enabled;
+      const fmt = function(x){ return x ? new Date(x).toISOString().slice(0, 16) : ""; };
+      const g1 = document.getElementById("bc-start");
+      if(g1) g1.value = fmt(b.start_at);
+      const g2 = document.getElementById("bc-end");
+      if(g2) g2.value = fmt(b.end_at);
+      const st = document.getElementById("bc-state");
+      if(st) st.textContent = "当前状态：" + (b.enabled ? "已开启" : "已关闭") +
+        " · 更新于 " + fmt(b.updated_at).replace("T", " ");
+    }
+    const st2 = await rpc("mrclaw_reviews_stats");
+    const list = await rpc("mrclaw_reviews_list", { p_limit: 200 });
+    const a = Array.isArray(list) ? list : [];
+    const sc = document.getElementById("rv-stat");
+    if(sc) sc.textContent = (st2 && !st2.__err)
+      ? ("共 " + st2.count + " 条 · 平均 " + st2.avg + " 星") : "";
+    const box = document.getElementById("rv-list");
+    if(box){
+      box.innerHTML = a.length ? a.map(function(r){
+        const full = Math.floor(r.stars);
+        const half = (r.stars - full) >= 0.5;
+        let stars = "";
+        for(let i = 1; i <= 5; i++){
+          stars += i <= full ? "★" : (i === full + 1 && half ? "⯨" : "☆");
+        }
+        return "<div class='u'><div class='top'><div class='name'>" + esc(r.name) +
+          " <span style='color:#FFC46D'>" + stars + " " + r.stars + "</span>" +
+          (r.anonymous ? "<span class='tag'>匿名</span>" : "") +
+          "</div><div class='meta'>" + fmt(r.created_at) + "</div></div>" +
+          (r.comment ? "<div class='meta'>" + esc(r.comment) + "</div>" : "") + "</div>";
+      }).join("") : "<div class='empty'>还没有评价</div>";
+    }
+  },
+  async bcSave(){
+    const v = function(id){ const e = document.getElementById(id); return e ? e.value : ""; };
+    const start = v("bc-start") ? new Date(v("bc-start")).toISOString() : null;
+    const end = v("bc-end") ? new Date(v("bc-end")).toISOString() : null;
+    const on = !!(document.getElementById("bc-on") && document.getElementById("bc-on").checked);
+    const r = await rpc("mrclaw_bc_set", {
+      p_text: v("bc-text"), p_speed: parseInt(v("bc-speed") || "60", 10) || 60,
+      p_enabled: on, p_start: start, p_end: end });
+    if(r && r.__err){ toast("保存失败"); return; }
+    toast(on ? "广播已开启" : "广播已关闭");
+    Panel.opsLoad();
   },
   logBadge(n){
     const b = document.getElementById("log-badge");
