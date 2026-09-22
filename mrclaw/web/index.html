@@ -1778,29 +1778,8 @@ const Upd = {
     // 安装包重下载入口已关闭：更新只走网页层热更新
     if(manual) Native.toast(t("upd_latest", webVer()));
   },
-  onUpd(s){
-    let o = {};
-    try{ o = JSON.parse(s); }catch(e){ return; }
-    const b = el("updbar");
-    if(o.p !== undefined){
-      const x = el("upd-txt");
-      if(x) x.textContent = o.p >= 100 ? t("upd_installing") : t("upd_downloading", o.p);
-      return;
-    }
-    if(o.err){
-      this.i++;
-      if(this.i < this.list.length){
-        b.innerHTML = "<span id='upd-txt'>" + t("upd_retry_line") + "</span>";
-        native.update(this.list[this.i], "MRClaw-v" + this.info.versionName + ".apk");
-        return;
-      }
-      b.innerHTML = "<span>" + t("upd_failed") + "</span><button class='btn mini' onclick='Upd.go()'>" + t("retry") + "</button>";
-      return;
-    }
-    if(o.done) b.classList.add("hide");
-  }
 };
-window.MR_onUpd = function(s){ Upd.onUpd(s); };
+window.MR_onUpd = function(s){ /* 安装包更新已关闭，仅热更新 */ };
 window.MR_onWebUpd = function(s){
   let o = {};
   try{ o = JSON.parse(s); }catch(e){ return; }
@@ -2118,7 +2097,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.22";
+const WEB_VERSION = "1.0.23";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
