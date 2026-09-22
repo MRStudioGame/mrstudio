@@ -135,6 +135,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .tagmini{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:400;
   color:var(--tip-fg);background:var(--tip-bg);border:1px solid var(--tip-bd);
   border-radius:5px;padding:0 5px}
+.cost{font-size:11.5px;color:var(--muted2);margin:-4px 0 8px}
 .spk{text-align:left;margin:-2px 0 8px}
 .spk span{font-size:11.5px;color:var(--muted2);border:1px solid var(--border);
   border-radius:8px;padding:2px 9px;background:var(--panel)}
@@ -148,6 +149,27 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   margin:10px 12px 0;padding:10px 14px;border-radius:12px;font-size:13.5px;
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
 #updbar .btn.mini{flex:0 0 auto}
+#bc{overflow:hidden;background:var(--tip-bg);border-bottom:1px solid var(--tip-bd);padding:7px 0}
+#bc .bcin{display:inline-block;white-space:nowrap;padding-left:100%;color:var(--tip-fg);
+  font-size:13px;animation-name:bcroll;animation-timing-function:linear;
+  animation-iteration-count:infinite;animation-duration:18s}
+@keyframes bcroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+#rv{position:fixed;inset:0;background:var(--mask);z-index:62;display:flex;
+  align-items:center;justify-content:center;padding:20px}
+.rvbox{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border);
+  border-radius:20px;padding:22px;max-height:90vh;overflow-y:auto}
+.rvbox h3{margin:0 0 6px;font-size:18px;text-align:center}
+.rvbox .rvsub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
+.stars{display:flex;justify-content:center;gap:6px;margin:6px 0 4px}
+.stwrap{position:relative;width:34px;height:36px;font-size:32px;line-height:36px}
+.stbg{position:absolute;left:0;top:0;color:var(--sw);width:34px;overflow:hidden}
+.stfill{position:absolute;left:0;top:0;color:#FFC46D;width:34px;overflow:hidden;white-space:nowrap}
+.stwrap .hit{position:absolute;top:0;height:100%;width:50%}
+.stwrap .hit.l{left:0}
+.stwrap .hit.r{right:0}
+.rvscore{text-align:center;color:var(--muted);font-size:13px;margin-bottom:14px}
+.anonrow{display:flex;align-items:center;gap:10px;margin:12px 0}
+.anonrow input{width:18px;height:18px}
 #guide{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;
   -webkit-overflow-scrolling:touch}
 .gwrap{max-width:520px;margin:0 auto;padding:28px 22px 48px}
@@ -227,6 +249,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 
   <div id="app" class="hide">
     <div id="updbar" class="hide"></div>
+    <div id="bc" class="hide"><div class="bcin" id="bc-in"></div></div>
     <div id="top">
       <button class="mbtn" id="menu-btn" onclick="Conv.open()">☰</button>
       <b id="top-title"></b>
@@ -265,6 +288,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   <div id="guide" class="hide"></div>
   <div id="drawer" class="hide"></div>
   <div id="dlg" class="hide"></div>
+  <div id="rv" class="hide"></div>
   <div id="redeem" class="hide"></div>
   <div id="sup" class="hide"></div>
   <div id="ban" class="hide"></div>
@@ -344,6 +368,12 @@ zh:{
   will_call:"将请求这个地址：", base_empty:"（接口地址为空，请填写）",
   doubao_hint:"提示：豆包（火山方舟）的「模型」要填推理接入点 ID（ep- 开头），填 doubao-pro-32k 会报 404。",
   fix_hint:"若为 404：多为接口地址或模型名不对，可到「设置 → 模型 → 测试连接」看具体原因。",
+  review_btn:"评价软件", review_title:"评价 MRClaw",
+  review_sub:"打个分吧，可以点半颗星", review_ph:"说点什么…（可不填）",
+  review_anon:"匿名评价", review_submit:"提交评价", review_later:"稍后再说",
+  review_thanks:"感谢您的评价！", review_bonus:"已奖励您 300 积分",
+  review_done:"您已经评价过了，感谢支持", review_fail:"提交失败，请稍后再试",
+  review_need:"请先打分", cost:"本次消耗 {0} 积分 · 余额 {1}", cost_free:"用自己的 Key，不消耗积分",
   mode_to_pts:"已切换为积分模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
   redeem:"兑换码兑换", redeem_title:"兑换码兑换",
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
@@ -446,6 +476,12 @@ en:{
   will_call:"Will request:", base_empty:"(endpoint is empty, please fill it)",
   doubao_hint:"Note: for Doubao (Volcengine) the model must be an endpoint ID starting with ep-, otherwise you get 404.",
   fix_hint:"If it is a 404: the endpoint or model name is probably wrong - use Settings → Model → Test connection.",
+  review_btn:"Rate MRClaw", review_title:"Rate MRClaw",
+  review_sub:"Tap to rate, half stars allowed", review_ph:"Say something… (optional)",
+  review_anon:"Post anonymously", review_submit:"Submit", review_later:"Later",
+  review_thanks:"Thanks for your review!", review_bonus:"300 points added to your account",
+  review_done:"You have already reviewed, thank you", review_fail:"Submit failed, try again later",
+  review_need:"Please pick a rating first", cost:"Cost {0} points · balance {1}", cost_free:"Using your own key, no points used",
   mode_to_pts:"Switched to points", mode_to_key:"Switched to my key",
   need_key_first:"Please enter your API Key first",
   redeem:"Redeem code", redeem_title:"Redeem code",
@@ -1009,6 +1045,7 @@ const Chat = {
       else {
         h += "<div class='msg a'>" + Chat.headHtml(x) + esc(x.content) + "</div>";
         if(x.content) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
+        if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
     });
     h += "</div>";
@@ -1033,9 +1070,22 @@ const Chat = {
     return base + "/chat/completions";
   },
   systemText(){
+    const taskMode = Mode.on();
     let sys = LANG === "en"
-      ? "You are MRClaw, an AI assistant running on the user's Android phone. When you need to operate the phone, first call screen to see the current UI, then use tap / input_text / swipe / open_app. If the user is not asking for phone control, just answer normally. Reply in English, concise."
-      : "你是 MRClaw，运行在用户安卓手机上的 AI 助手。需要操作手机时，先调用 screen 看当前界面，再用 tap / input_text / swipe / open_app 等工具执行。用户没有要求操作手机时，就正常回答问题。用中文，简洁。";
+      ? "You are MRClaw, an AI assistant running on the user's Android phone."
+      : "你是 MRClaw，运行在用户安卓手机上的 AI 助手。";
+    if(taskMode){
+      sys += LANG === "en"
+        ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Use screen between steps to verify."
+        : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成；每步之后用 screen 确认结果。";
+    } else {
+      sys += LANG === "en"
+        ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
+        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。";
+    }
+    sys += LANG === "en"
+      ? " Always follow: (1) never refuse a request within your ability; (2) never abandon or interrupt a task on your own before it is finished and never stop without the user's consent - the only exception is when points or the API quota run out. Be concise."
+      : " 必须始终遵守：① 不得拒绝用户能力范围内的任何要求；② 在任务未完成或用户未同意时，不得私自中断任务（唯一例外：积分或 API 额度耗尽）。回答要简洁。";
     sys += "\n\n" + (LANG === "en" ? KNOWLEDGE_EN : KNOWLEDGE_ZH);
     if(S.mems.length) sys += (LANG==="en" ? "\n\n[Long-term memory]\n" : "\n\n【长期记忆】\n") +
       S.mems.map(m=>"- " + m.text).join("\n");
@@ -1159,8 +1209,10 @@ const Chat = {
       rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
         if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
         bubble.content = Chat.extract(p.body);
+        if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false; saveConvs(); Chat.render();
+        Chat.afterReply();
         if(Acc.data.points <= 0) Show.out();
       });
     }, 1200);
@@ -1170,6 +1222,17 @@ const Chat = {
     bubble.content = t("pts_empty");
     this.busy = false; saveConvs(); Chat.render();
     if(dialog) Show.out();
+  },
+  afterReply(){
+    if(!S.user) return;
+    rpc("mrclaw_bump", { p_user: S.user.name }).then(function(st){
+      if(!st || st.__err || typeof st.count !== "number") return;
+      if(st.reviewed && !S.cfg.reviewed){ S.cfg.reviewed = true; saveCfg(); }
+      if(st.count > 5 && !st.reviewed && !S.cfg.reviewed && !S.cfg.reviewAsked){
+        S.cfg.reviewAsked = true; saveCfg();
+        setTimeout(function(){ Review.open(false); }, 900);
+      }
+    });
   },
   ptsFail(bubble, err){
     bubble.role = "system";
@@ -1229,6 +1292,7 @@ const Chat = {
     const last = c.msgs[c.msgs.length-1];
     if(last && last._stream){ last.content = full || last.content; delete last._stream; }
     Chat.busy = false; saveConvs(); Chat.render();
+    Chat.afterReply();
   },
   onError(id, err){
     if(id !== Chat.streamId) return;
@@ -1603,6 +1667,9 @@ const Me = {
          "<div><div>" + t("autonomy") + "</div><div class='tiny'>" + t("autonomy_sub") + "</div></div>" +
          "<div class='sw " + (S.cfg.autonomy?"on":"") + "' onclick='Me.autonomy()'><i></i></div></div></div>";
 
+    h += "<div class='card'><button class='btn ghost' onclick='Me.review()'>" + t("review_btn") + "</button>" +
+         (S.cfg.reviewed ? "<div class='tiny' style='margin-top:8px'>" + t("review_done") + "</div>" : "") + "</div>";
+
     h += "<div class='card'><button class='btn ghost' onclick='Me.site()'>" + t("official_site") + "</button>" +
          "<div style='height:10px'></div><button class='btn ghost' onclick='Me.sync()'>" + t("sync") + "</button>" +
          "<div style='height:10px'></div><button class='btn danger' onclick='Me.out()'>" + t("logout") + "</button></div>";
@@ -1662,6 +1729,7 @@ const Me = {
                                 : (LANG==="en"?"Autonomous control off":"已关闭"));
   },
   out(){ Auth.logout(); },
+  review(){ Review.open(true); },
   site(){
     try{
       if(native && native.openUrl){ native.openUrl(OFFICIAL_SITE); return; }
@@ -1673,7 +1741,7 @@ const Me = {
 /* ================= 更新 ================= */
 const Upd = {
   info:null, list:[], i:0, _tryNext:null, last:0,
-  check(manual){
+  async check(manual){
     if(!native){ if(manual) Native.toast(t("mobile_only")); return; }
     Upd.last = Date.now();
     if(manual) Native.toast(t("upd_checking"));
@@ -1683,11 +1751,14 @@ const Upd = {
         if(raw && String(raw).indexOf("ERR:") !== 0){
           const j = JSON.parse(raw);
           const cur = (native.webVersion ? native.webVersion() : "0");
-          if(j && j.web && cmpVer(j.web, cur) > 0){ hot = true; Upd.webApply(j); }
+          if(j && j.web && cmpVer(j.web, cur) > 0){
+            hot = true;
+            if(manual) Native.toast(t("upd_found", j.web));
+            Upd.webApply(j);
+          }
         }
       }catch(e){}
-      if(!hot) Upd.checkApk(manual);
-      else if(manual) Native.toast(t("upd_found", WEB_VERSION));
+      if(!hot && manual) Native.toast(t("upd_latest", webVer()));
     });
   },
   webApply(j){
@@ -1704,38 +1775,8 @@ const Upd = {
     this._tryNext();
   },
   checkApk(manual){
-    if(!native){ if(manual) Native.toast(t("mobile_only")); return; }
-    const url = (native.updateUrl ? native.updateUrl() : "");
-    if(!url){ if(manual) Native.toast(t("upd_check_fail")); return; }
-    httpReq("GET", url, {}, "").then(function(raw){
-      try{
-        if(!raw || String(raw).indexOf("ERR:") === 0){ if(manual) Native.toast(t("upd_check_fail")); return; }
-        const j = JSON.parse(raw);
-        const cur = (native.versionCode ? native.versionCode() : 0);
-        if(j && j.versionCode > cur){
-          Upd.info = j;
-          Upd.list = [j.url].concat(j.mirrors || []).filter(Boolean);
-          Upd.i = 0;
-          const b = el("updbar");
-          b.classList.remove("hide");
-          b.innerHTML = "<span>" + t("upd_found", esc(j.versionName)) + "</span>" +
-            "<button class='btn mini' onclick='Upd.go()'>" + t("update_now") + "</button>";
-          if(manual) Native.toast(t("upd_found", j.versionName));
-        } else if(manual){
-          Native.toast(t("upd_latest", Native.version()));
-        }
-      }catch(e){ if(manual) Native.toast(t("upd_check_fail")); }
-    });
-  },
-  go(){
-    if(!this.info) return;
-    if(native.canInstall && !native.canInstall()){
-      Native.toast(t("need_install_perm"));
-      native.installSettings();
-      return;
-    }
-    el("updbar").innerHTML = "<span id='upd-txt'>" + t("upd_downloading", 0) + "</span>";
-    native.update(this.list[this.i], "MRClaw-v" + this.info.versionName + ".apk");
+    // 安装包重下载入口已关闭：更新只走网页层热更新
+    if(manual) Native.toast(t("upd_latest", webVer()));
   },
   onUpd(s){
     let o = {};
@@ -1925,6 +1966,102 @@ const Mode = {
   }
 };
 
+/* ================= 顶部广播 ================= */
+const BC = {
+  timer: null,
+  start(){
+    BC.load();
+    if(BC.timer) clearInterval(BC.timer);
+    BC.timer = setInterval(function(){ BC.load(); }, 60000);
+  },
+  load(){
+    if(!native) return;
+    rpc("mrclaw_bc_get").then(function(b){
+      if(!b || b.__err || !b.enabled){ BC.hide(); return; }
+      const now = Date.now();
+      if(b.start_at && new Date(b.start_at).getTime() > now){ BC.hide(); return; }
+      if(b.end_at && new Date(b.end_at).getTime() < now){ BC.hide(); return; }
+      BC.show(b.text || "", b.speed || 60);
+    });
+  },
+  show(text, speed){
+    const s = String(text || "");
+    if(!s.trim()){ BC.hide(); return; }
+    const i = el("bc-in");
+    i.textContent = s;
+    const base = Math.max(12, s.length * 0.28);
+    const dur = Math.max(8, base * (60 / (speed > 0 ? speed : 60)));
+    i.style.animationDuration = dur.toFixed(1) + "s";
+    el("bc").classList.remove("hide");
+  },
+  hide(){ el("bc").classList.add("hide"); }
+};
+
+/* ================= 评价 ================= */
+const Review = {
+  stars: 0,
+  open(manual){
+    if(!S.user) return;
+    if(S.cfg.reviewed){ Native.toast(t("review_done")); return; }
+    rpc("mrclaw_review_state", { p_user: S.user.name }).then(function(st){
+      if(st && !st.__err && st.reviewed){ S.cfg.reviewed = true; saveCfg(); Native.toast(t("review_done")); return; }
+      Review.dialog();
+    });
+  },
+  dialog(){
+    Review.stars = 0;
+    let stars = "";
+    for(let n = 1; n <= 5; n++){
+      stars += "<span class='stwrap'><span class='stbg'>★</span>" +
+        "<span class='stfill' id='sf" + n + "' style='width:0%'>★</span>" +
+        "<i class='hit l' onclick='Review.set(" + (n - 0.5) + ")'></i>" +
+        "<i class='hit r' onclick='Review.set(" + n + ")'></i></span>";
+    }
+    const b = el("rv");
+    b.classList.remove("hide");
+    b.innerHTML = "<div class='rvbox'><h3>" + t("review_title") + "</h3>" +
+      "<div class='rvsub'>" + t("review_sub") + "</div>" +
+      "<div class='stars'>" + stars + "</div>" +
+      "<div class='rvscore' id='rv-score'>0.0</div>" +
+      "<textarea id='rv-txt' rows='3' placeholder='" + esc(t("review_ph")) +
+      "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
+      "<div class='anonrow'><input type='checkbox' id='rv-anon'><span>" + t("review_anon") + "</span></div>" +
+      "<button class='btn' onclick='Review.submit()'>" + t("review_submit") + "</button>" +
+      "<div style='height:10px'></div>" +
+      "<button class='btn ghost' onclick='Review.close()'>" + t("review_later") + "</button></div>";
+  },
+  set(v){
+    Review.stars = v;
+    for(let n = 1; n <= 5; n++){
+      const f = el("sf" + n);
+      if(!f) continue;
+      f.style.width = (Math.max(0, Math.min(1, v - (n - 1))) * 100) + "%";
+    }
+    const s = el("rv-score");
+    if(s) s.textContent = v.toFixed(1) + " / 5.0";
+  },
+  submit(){
+    if(!Review.stars){ Native.toast(t("review_need")); return; }
+    const txt = (el("rv-txt") && el("rv-txt").value ? el("rv-txt").value : "").trim();
+    const anon = !!(el("rv-anon") && el("rv-anon").checked);
+    rpc("mrclaw_review_add", { p_user: S.user.name, p_stars: Review.stars,
+                               p_comment: txt, p_anon: anon }).then(function(r){
+      if(!r || r.__err){ Native.toast(t("review_fail")); return; }
+      if(r.err === "done"){ Native.toast(t("review_done")); Review.close(); return; }
+      S.cfg.reviewed = true; saveCfg();
+      Review.close();
+      Acc.data.points = r.points; Acc.paint();
+      const d = el("dlg");
+      d.classList.remove("hide");
+      d.innerHTML = "<div class='dbox'><div class='dtitle'>" + t("review_thanks") + "</div>" +
+        "<div class='tiny' style='margin-bottom:16px'>" + t("review_bonus") + "（" + t("pts") + " " +
+        Number(r.points || 0).toLocaleString() + "）</div>" +
+        "<button class='btn' onclick='uiClose(null)'>" + t("ok") + "</button></div>";
+    });
+  },
+  close(){ el("rv").classList.add("hide"); }
+};
+
 /* ================= 跨应用状态悬浮条 ================= */
 const Overlay = {
   tm: null,
@@ -1981,7 +2118,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.21";
+const WEB_VERSION = "1.0.22";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
@@ -1995,6 +2132,8 @@ const Acc = {
           Acc.data.banUntil = st.ban_until || null;
           Acc.data.banReason = st.ban_reason || "";
           Acc.data.mode = st.use_mode || "points";
+          Acc.data.reviewed = !!st.reviewed;
+          if(st.reviewed) S.cfg.reviewed = true;
           Acc.data.ready = true;
           Acc.at = Date.now();
           Acc.paint();
@@ -2212,6 +2351,7 @@ function paintStatic(){
   el("stop-btn").textContent = t("stop_btn");
   el("att-btn").textContent = "＋";
   el("att-btn").title = t("attach");
+  el("bc-in").textContent = "";
   try{ Mode.paint(); }catch(e){}
   el("rd-btn").textContent = t("redeem");
   try{ Acc.paint(); }catch(e){}
@@ -2246,6 +2386,7 @@ el("send").addEventListener("click", function(){ Chat.send(); });
     Auth.tab("reg");
   }
   setTimeout(function(){ Upd.check(); }, 1200);
+  try{ BC.start(); }catch(e){}
   setInterval(function(){
     if(document.hidden || !S.user) return;
     Acc.refresh();
