@@ -1,12 +1,12 @@
 {
-  "versionCode": 28,
-  "versionName": "1.0.27",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.27",
+  "versionCode": 29,
+  "versionName": "1.0.28",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.28",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.27",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.27",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.27"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.28",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.28",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.28"
   ],
   "size": 144298,
-  "notes": "工具桥缺失时提供两条可选路径：一键升级安装包，或改用自己的 Key（老安装包也能做任务），确保绝大多数安卓用户都能用 AI 做任务。"
+  "notes": "任务必须做到底：取消硬性步数上限（积分模式与自带Key模式都改为不完成不停），仅在积分/额度耗尽或用户主动中断时停止；超长任务会先问你是否继续，绝不擅自中断。"
 }
