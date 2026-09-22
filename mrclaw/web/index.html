@@ -1099,6 +1099,7 @@ const Chat = {
     const text = ta.value.trim();
     if(!text) return;
     this.sending = true;
+    this._pcancel = false;
     const self = this;
     const keep = function(){ self.sending = false; };
     if(Acc.banned()){ keep(); Show.ban(); return; }
@@ -1126,7 +1127,18 @@ const Chat = {
 
     if(!useOwn){
       if(Acc.data.points <= 0){ Show.out(); return; }
-      this.sendPoints(c);
+      const taskOn = !!(native && Mode.on() && Perm.done());
+      if(taskOn){
+        this.busy = true; this.syncSendBtn();
+        const pb = { role:"assistant", content:"", _agent:true, _steps:[], _running:true };
+        c.msgs.push(pb);
+        this.agentBar(true);
+        Overlay.on(t("running").replace("● ", ""), "run", true);
+        this.render();
+        this.pointsAgent(c, pb, atts);
+      } else {
+        this.sendPoints(c);
+      }
       return;
     }
 
@@ -1239,6 +1251,108 @@ const Chat = {
     bubble.content = t("exec_fail") + String(err).slice(0, 200);
     this.busy = false; saveConvs(); Chat.render();
   },
+  toolDesc(name, argsJson){
+    let a = {};
+    try{ a = JSON.parse(argsJson || "{}"); }catch(e){}
+    const en = (LANG === "en");
+    if(name === "open_app") return (en ? "Open app: " : "打开应用：") + (a.name || "");
+    if(name === "tap") return (en ? "Tap " : "点击 ") + (a.text ? ("「" + a.text + "」") : ((a.x || 0) + "," + (a.y || 0)));
+    if(name === "swipe") return en ? "Swipe screen" : "滑动屏幕";
+    if(name === "input_text") return (en ? "Type: " : "输入：") + (a.text || "");
+    if(name === "key") return (en ? "Key: " : "按键：") + (a.action || "");
+    if(name === "screen") return en ? "Read screen" : "读取屏幕";
+    if(name === "shell") return (en ? "Shell: " : "执行命令：") + (a.cmd || "");
+    if(name === "read_file") return (en ? "Read file: " : "读取文件：") + (a.path || "");
+    if(name === "write_file") return (en ? "Write file: " : "写入文件：") + (a.path || "");
+    if(name === "wait") return (en ? "Wait " : "等待 ") + (a.ms || 1000) + "ms";
+    return name;
+  },
+  callTool(name, argsJson, cb){
+    if(!native || !native.toolAsync){ cb("设备不支持工具调用"); return; }
+    const id = "tl" + (++_toolSeq);
+    _toolWait[id] = cb;
+    native.toolAsync(id, name, argsJson || "{}", !!S.cfg.autonomy);
+  },
+  pollAgent(id, ok, err, n){
+    n = n || 0;
+    if(n > 120){ err("timeout"); return; }
+    setTimeout(function(){
+      rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(pp){
+        if(!pp || pp.__err || !pp.done){ Chat.pollAgent(id, ok, err, n + 1); return; }
+        ok(pp);
+      });
+    }, 1100);
+  },
+  pointsAgent(c, bubble, atts){
+    const self = this;
+    const msgs = this.apiMsgs(c, bubble, atts);
+    let step = 0, guard = 0;
+    const steps = bubble._steps;
+    const finish = function(txt, state){
+      bubble._running = false; bubble._state = state || "done";
+      bubble.content = (steps.length ? steps.map(function(x){ return "· " + x; }).join("\n") + "\n\n" : "") + (txt || "");
+      self.busy = false; self.agentBar(false); saveConvs(); Chat.render();
+      if(state === "done") Overlay.flash(t("done_t"), "ok", 2600);
+      else if(state === "stop") Overlay.flash(t("stop_t"), "warn", 2600);
+      else Overlay.flash(t("err_t"), "bad", 3200);
+      self.afterReply();
+    };
+    const tick = function(){
+      if(self._pcancel){ finish(t("stop_t"), "stop"); return; }
+      if(step++ >= 14 || guard > 40){
+        finish(LANG === "en" ? "Stopped after too many steps; tell me to continue."
+                             : "步骤已到上限，先停在这里，你可以让我继续。", "err");
+        return;
+      }
+      rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
+        model: "deepseek-chat", messages: msgs, tools: TOOLS_JS,
+        tool_choice: "auto", stream: false, max_tokens: 1500 } }).then(function(st){
+        if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
+        if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
+        if(st.err === "banned"){ Show.ban(); finish("", "err"); return; }
+        if(st.err){ finish(t("exec_fail") + st.err, "err"); return; }
+        self.pollAgent(st.id, function(pp){
+          let m = null;
+          try{
+            const o = JSON.parse(pp.body || "{}");
+            m = o.choices && o.choices[0] && o.choices[0].message;
+          }catch(e){}
+          if(typeof pp.points === "number"){ Acc.data.points = pp.points; Acc.paint(); }
+          if(pp.used){ bubble._cost = (bubble._cost || 0) + pp.used; bubble._bal = pp.points; }
+          if(m && m.tool_calls && m.tool_calls.length){
+            msgs.push(m);
+            let i = 0;
+            const next = function(){
+              if(self._pcancel){ finish(t("stop_t"), "stop"); return; }
+              if(i >= m.tool_calls.length){ guard++; tick(); return; }
+              const tc = m.tool_calls[i++];
+              const fn = tc.function || {};
+              const desc = self.toolDesc(fn.name, fn.arguments);
+              steps.push(desc);
+              bubble.content = steps.map(function(x){ return "· " + x; }).join("\n");
+              self.paint(bubble);
+              Overlay.on(desc, "run", true);
+              guard++;
+              self.callTool(fn.name, fn.arguments, function(res){
+                msgs.push({ role: "tool", tool_call_id: tc.id || ("c" + i),
+                            content: String(res).slice(0, 4000) });
+                next();
+              });
+            };
+            next();
+          } else {
+            const txt = (m && m.content) ? m.content : "";
+            if(!txt && !steps.length){
+              finish(LANG === "en" ? "The model returned nothing." : "模型没有返回内容，请再试一次。", "err");
+              return;
+            }
+            finish(txt, "done");
+          }
+        }, function(e){ finish(t("exec_fail") + e, "err"); });
+      });
+    };
+    tick();
+  },
   agentRun(bubble, url, headers, body){
     const c = this.cur();
     const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-12)
@@ -1314,6 +1428,7 @@ const Chat = {
     else b.classList.add("hide");
   },
   stopAgent(){
+    Chat._pcancel = true;
     if(native && native.agentStop){
       native.agentStop();
       el("agenttxt").textContent = t("stopping");
@@ -2041,6 +2156,36 @@ const Review = {
   close(){ el("rv").classList.add("hide"); }
 };
 
+/* ================= 积分模式的工具循环 ================= */
+const TOOLS_JS = [
+  { type:"function", function:{ name:"open_app", description:"打开手机上的某个应用",
+    parameters:{ type:"object", properties:{ name:{ type:"string", description:"应用名或包名" } }, required:["name"] } } },
+  { type:"function", function:{ name:"tap", description:"点击屏幕：优先用 text 指定控件文字，也可用 x/y 坐标",
+    parameters:{ type:"object", properties:{ text:{type:"string"}, x:{type:"number"}, y:{type:"number"} }, required:[] } } },
+  { type:"function", function:{ name:"swipe", description:"在屏幕上滑动",
+    parameters:{ type:"object", properties:{ x1:{type:"number"}, y1:{type:"number"}, x2:{type:"number"}, y2:{type:"number"}, ms:{type:"number"} }, required:["x1","y1","x2","y2"] } } },
+  { type:"function", function:{ name:"input_text", description:"在当前输入框输入文字",
+    parameters:{ type:"object", properties:{ text:{ type:"string" } }, required:["text"] } } },
+  { type:"function", function:{ name:"key", description:"按下系统按键",
+    parameters:{ type:"object", properties:{ action:{ type:"string", description:"back / home / recents" } }, required:["action"] } } },
+  { type:"function", function:{ name:"screen", description:"读取当前屏幕上的所有文字和坐标（判断下一步点哪里）",
+    parameters:{ type:"object", properties:{}, required:[] } } },
+  { type:"function", function:{ name:"wait", description:"等待一段时间再继续",
+    parameters:{ type:"object", properties:{ ms:{ type:"number" } }, required:["ms"] } } },
+  { type:"function", function:{ name:"read_file", description:"读取手机上的文件内容",
+    parameters:{ type:"object", properties:{ path:{ type:"string" } }, required:["path"] } } },
+  { type:"function", function:{ name:"write_file", description:"把内容写入手机文件",
+    parameters:{ type:"object", properties:{ path:{ type:"string" }, content:{ type:"string" } }, required:["path","content"] } } },
+  { type:"function", function:{ name:"shell", description:"执行 shell 命令（有 root 时以 root 执行）",
+    parameters:{ type:"object", properties:{ cmd:{ type:"string" } }, required:["cmd"] } } }
+];
+let _toolSeq = 0;
+const _toolWait = {};
+window.MR_onTool = function(id, res){
+  const f = _toolWait[id];
+  if(f){ delete _toolWait[id]; f(res); }
+};
+
 /* ================= 跨应用状态悬浮条 ================= */
 const Overlay = {
   tm: null,
@@ -2097,7 +2242,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.23";
+const WEB_VERSION = "1.0.24";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
