@@ -1016,7 +1016,8 @@ const App = {
   tab(x){
     S.tab = x;
     document.querySelectorAll("#nav button").forEach(function(b){
-      b.className = (b.getAttribute("data-tab") === x) ? "act" : "";
+      b.classList.toggle("act", b.getAttribute("data-tab") === x);
+      if(b.id === "nav-adm") b.classList.toggle("hide", !Admin.isAdmin);
     });
     el("bar").classList.toggle("hide", x !== "chat");
     el("menu-btn").style.display = (x === "chat") ? "" : "none";
@@ -1030,6 +1031,8 @@ const App = {
   },
   topAction(){
     if(S.tab==="chat") Chat.newConv();
+    else if(S.tab==="gc") GC.create();
+    else if(S.tab==="adm") Adm.load();
     else if(S.tab==="task") Task.create();
     else if(S.tab==="skill") Skill.create();
     else if(S.tab==="mem") Mem.create();
@@ -2109,6 +2112,18 @@ window.MR_onPick = function(s){
 
 const Attach = {
   pending: [], _target: "chat",
+  /* Supabase Storage 不接受中文对象路径（InvalidKey→HTTP400），
+     所以目录名一律转成 ASCII：字母数字保留，否则退化为 hash */
+  uid(name){
+    const raw = String(name || "anon");
+    let s = raw.replace(/[^A-Za-z0-9_.-]/g, "");
+    let hs = 2166136261;
+    for(let i = 0; i < raw.length; i++){
+      hs ^= raw.charCodeAt(i);
+      hs = (hs * 16777619) >>> 0;
+    }
+    return (s ? s.slice(0, 24) : "u") + "-" + hs.toString(36);
+  },
   openMenu(forSupport){
     if(!native || !native.pickFile){ Native.toast(t("mobile_only")); return; }
     Attach._target = forSupport ? "sup" : "chat";
@@ -2176,9 +2191,9 @@ const Attach = {
     });
   },
   uploadWeb(f, cb){
-    const u = (S.user ? S.user.name : "anon");
+    const u = Attach.uid(S.user ? S.user.name : "anon");
     const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
-    const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
+    const path = u + "/" + Date.now() + "_" + rnd(8) + "_" + safe;
     const url = SB_URL + "/storage/v1/object/mrclaw/" + path;
     const pub = SB_URL + "/storage/v1/object/public/mrclaw/" + path;
     fetch(url, {
@@ -2189,15 +2204,15 @@ const Attach = {
     }).then(function(r){
       return r.text().then(function(txt){
         if(r.ok) cb(pub, null);
-        else cb(null, "ERR:HTTP" + r.status + " " + String(txt).slice(0, 120));
+        else cb(null, "ERR:HTTP" + r.status + " " + String(txt).slice(0, 200));
       });
     }).catch(function(e){ cb(null, "ERR:" + ((e && e.message) ? e.message : "fetch")); });
   },
   upload(f, cb){
     if(f.file){ return Attach.uploadWeb(f, cb); }
-    const u = (S.user ? S.user.name : "anon");
+    const u = Attach.uid(S.user ? S.user.name : "anon");
     const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
-    const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
+    const path = u + "/" + Date.now() + "_" + rnd(8) + "_" + safe;
     const id = "up" + (++_upSeq);
     const headers = JSON.stringify({
       "apikey": SB_KEY,
@@ -2461,7 +2476,7 @@ const Admin = {
     const r = await rpc("mrclaw_is_admin", { p_user: S.user.name });
     Admin.isAdmin = (r === true);
     const b = el("nav-adm");
-    if(b) b.className = Admin.isAdmin ? "" : "hide";
+    if(b) b.classList.toggle("hide", !Admin.isAdmin);
   },
   on(){ return Admin.isAdmin; }
 };
@@ -2865,7 +2880,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.31";
+const WEB_VERSION = "1.0.32";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
