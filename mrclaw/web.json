@@ -1,12 +1,12 @@
 {
-  "web": "1.0.31",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/web/index.html?v=1.0.31",
+  "web": "1.0.32",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/web/index.html?v=1.0.32",
   "mirrors": [
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/web/index.html?v=1.0.31",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/web/index.html?v=1.0.31",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/web/index.html?v=1.0.31"
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/web/index.html?v=1.0.32",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/web/index.html?v=1.0.32",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/web/index.html?v=1.0.32"
   ],
-  "size": 156521,
-  "minApk": 32,
-  "apkUrl": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.31"
+  "size": 157163,
+  "minApk": 33,
+  "apkUrl": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.32"
 }
