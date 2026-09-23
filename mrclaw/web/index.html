@@ -438,7 +438,11 @@ zh:{
   gc_shared:"分享了内容", gc_shared_chat:"分享了与AI的对话", gc_shared_mem:"分享了记忆",
   gc_shared_skill:"分享了技能",
   notice_title:"通知", notice_empty:"暂时没有新消息",
-  adm_review:"帖子审核", adm_sup:"客服私信", adm_users:"用户管理",
+  adm_review:"帖子审核", adm_bc:"广播",
+  adm_bc_text:"广播内容（显示在软件顶部滚动）",
+  adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
+  adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
+  adm_bc_off_s:"已关闭", save:"保存", adm_sup:"客服私信", adm_users:"用户管理",
   adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
   adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
   adm_ban:"封禁", adm_unban:"解封", adm_days:"封禁天数（0=永久）", adm_points:"加减积分",
@@ -577,7 +581,11 @@ en:{
   gc_shared:"Shared", gc_shared_chat:"Shared an AI chat", gc_shared_mem:"Shared a memory",
   gc_shared_skill:"Shared a skill",
   notice_title:"Notifications", notice_empty:"Nothing new",
-  adm_review:"Post review", adm_sup:"Support inbox", adm_users:"Users",
+  adm_review:"Post review", adm_bc:"Broadcast",
+  adm_bc_text:"Broadcast text (scrolls at the top of the app)",
+  adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
+  adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
+  adm_bc_off_s:"off", save:"Save", adm_sup:"Support inbox", adm_users:"Users",
   adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
   adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
   adm_ban:"Ban", adm_unban:"Unban", adm_days:"Ban days (0 = permanent)", adm_points:"Points",
@@ -2046,10 +2054,17 @@ const Upd = {
           const j = JSON.parse(raw);
           const cur = (native.webVersion ? native.webVersion() : "0");
           if(j && j.apkUrl) Upd._apkUrl = j.apkUrl;
+          // 只有发布端明确标记「必须换安装包」时才提示重装
           if(j && j.minApk && native.versionCode && native.versionCode() < j.minApk){
             Upd.needApk(t("need_new_apk"));
           }
-          if(j && j.web && cmpVer(j.web, cur) > 0){
+          // 安装包缺少本网页层需要的原生能力时，才提示重装；否则一律静默热更新
+          if(!capOk()){
+            Upd.needApk(t("need_new_apk"));
+          }
+          const needHot = (j && j.webCode) ? (WEB_CODE < Number(j.webCode))
+                                           : (j && j.web && cmpVer(j.web, cur) > 0);
+          if(needHot){
             hot = true;
             if(manual) Native.toast(t("upd_found", j.web));
             Upd.webApply(j);
@@ -2136,6 +2151,25 @@ function webVer(){
   try{ return (native && native.webVersion) ? (String(native.webVersion()) === "0" ? WEB_VERSION : String(native.webVersion())) : WEB_VERSION; }
   catch(e){ return WEB_VERSION; }
 }
+/* 原生能力等级：优先问安装包自报（caps()），老安装包则按方法探测 */
+function capLevel(){
+  try{
+    if(!native) return 0;
+    if(typeof native.caps === "function"){
+      const v = parseInt(String(native.caps()).replace(/[^0-9]/g, ""), 10);
+      if(!isNaN(v) && v > 0) return v;
+    }
+    let lv = 0;
+    if(typeof native.http === "function") lv = 6;
+    if(typeof native.httpAsync === "function") lv = Math.max(lv, 7);
+    if(typeof native.toolAsync === "function") lv = Math.max(lv, 8);
+    if(typeof native.uploadPicked === "function") lv = Math.max(lv, 8);
+    if(typeof native.pickFile === "function") lv = Math.max(lv, 8);
+    return lv;
+  }catch(e){ return 0; }
+}
+function capOk(){ return capLevel() >= NEED_CAP; }
+
 function cmpVer(a, b){
   const pa = String(a || "0").split("."), pb = String(b || "0").split(".");
   for(let i = 0; i < 3; i++){
@@ -2402,8 +2436,9 @@ const Adm = {
     App.title(t("nav_adm"));
     App.topBtn(t("refresh"));
     let h = "<div class='cats'>" +
-      ["review", "sup", "users"].map(function(k){
-        const nm = k === "review" ? t("adm_review") : (k === "sup" ? t("adm_sup") : t("adm_users"));
+      ["review", "sup", "bc", "users"].map(function(k){
+        const nm = k === "review" ? t("adm_review") : (k === "sup" ? t("adm_sup")
+                 : (k === "bc" ? t("adm_bc") : t("adm_users")));
         return "<button class='cat" + (Adm.tab === k ? " act" : "") + "' onclick=\"Adm.tab='" + k + "';Adm.render()\">" + nm + "</button>";
       }).join("") + "</div><div id='adm-box'></div>";
     App.content(h);
@@ -2439,6 +2474,25 @@ const Adm = {
             "<p>" + esc(String(x.last_body || "").slice(0, 60)) + "</p></div>";
         }).join("");
       });
+    } else if(Adm.tab === "bc"){
+      rpc("mrclaw_bc_get").then(function(b){
+        const b2 = el("adm-box");
+        if(!b2) return;
+        const o = (b && !b.__err) ? b : {};
+        b2.innerHTML = "<div class='gcard'>" +
+          "<div class='gm'>" + t("adm_bc_text") + "</div>" +
+          "<textarea id='adm-bc-text' rows='4' style='width:100%;box-sizing:border-box;margin-top:6px;" +
+          "background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;" +
+          "color:var(--fg);resize:vertical;font-family:inherit'>" + esc(o.text || "") + "</textarea>" +
+          "<div class='gm' style='margin-top:12px'>" + t("adm_bc_speed") + "</div>" +
+          "<input id='adm-bc-speed' class='inp' type='number' value='" + (o.speed || 60) + "'>" +
+          "<div style='margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px'>" +
+          "<label class='gm' style='display:flex;align-items:center;gap:8px'>" +
+          "<input type='checkbox' id='adm-bc-on' " + (o.enabled ? "checked" : "") + "> " + t("adm_bc_on") + "</label>" +
+          "<button class='btn mini' onclick='Adm.bcSave()'>" + t("save") + "</button></div>" +
+          "<div class='gm' style='margin-top:10px'>" + t("adm_bc_now") +
+          (o.enabled ? t("adm_bc_on_s") : t("adm_bc_off_s")) + "</div></div>";
+      });
     } else {
       rpc("mrclaw_admin_list").then(function(a){
         const b2 = el("adm-box");
@@ -2457,6 +2511,18 @@ const Adm = {
         }).join("");
       });
     }
+  },
+  async bcSave(){
+    const tx = el("adm-bc-text"), sp = el("adm-bc-speed"), on = el("adm-bc-on");
+    const r = await rpc("mrclaw_bc_set", {
+      p_text: (tx && tx.value) || "",
+      p_speed: parseInt((sp && sp.value) || "60", 10) || 60,
+      p_enabled: !!(on && on.checked),
+      p_start: null, p_end: null });
+    if(!r || r.__err){ Native.toast(t("gc_fail") + " " + String((r && r.__err) || "").slice(0, 60)); return; }
+    Native.toast((on && on.checked) ? t("adm_bc_on_s") : t("adm_bc_off_s"));
+    try{ BC.load(); }catch(e){}
+    Adm.load();
   },
   async handle(id, violated){
     const why = await uiAsk(t("adm_reason"), "不文明发言");
@@ -3085,7 +3151,12 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.41";
+const WEB_VERSION = "1.00";
+/* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
+   这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
+const WEB_CODE = 44;
+/* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
+const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
@@ -3382,7 +3453,7 @@ el("send").addEventListener("click", function(){ Chat.send(); });
   }
   setTimeout(function(){ Upd.check(); }, 1200);
   setTimeout(function(){
-    if(native && !native.toolAsync){ try{ Upd.noBridge(); }catch(e){} }
+    if(!capOk()){ try{ Upd.noBridge(); }catch(e){} }
   }, 3500);
   try{ BC.start(); }catch(e){}
   setTimeout(function(){ try{ SupUnread.load(); }catch(e){} } , 2500);
