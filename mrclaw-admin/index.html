@@ -160,6 +160,8 @@ h1{font-size:20px;margin:0}
       <button class="btn g s" id="tab-log" onclick="Panel.tab('log')">记录
         <span id="log-badge" class="badge hide">0</span></button>
       <button class="btn g s" id="tab-ops" onclick="Panel.tab('ops')">运营</button>
+      <button class="btn g s" id="tab-rev" onclick="Panel.tab('rev')">帖子审核
+        <span id="rev-badge" class="badge hide">0</span></button>
     </div>
 
     <div class="stats" id="stats"></div>
@@ -188,6 +190,14 @@ h1{font-size:20px;margin:0}
         <button class="btn g s" data-k="register" onclick="Panel.log('register')">新注册</button>
       </div>
       <div class="card" id="loglist"><div class="empty">加载中…</div></div>
+    </div>
+
+    <div id="view-rev" class="hide">
+      <div class="row" id="revtabs" style="gap:8px;margin:12px 0 4px;flex-wrap:wrap">
+        <button class="btn s" onclick="Panel.rev('pending')">待处理</button>
+        <button class="btn g s" onclick="Panel.rev('handled')">已处理</button>
+      </div>
+      <div class="card" id="revlist"><div class="empty">加载中…</div></div>
     </div>
 
     <div id="view-ops" class="hide">
@@ -340,6 +350,10 @@ const Panel = {
     let subs = [];
     try{ const r0 = await rpc("mrclaw_subs_list"); if(Array.isArray(r0)) subs = r0; }catch(e){}
     Panel._subsN = subs.length;
+    try{
+      const reps = await rpc("mrclaw_reports_list");
+      if(Array.isArray(reps)) Panel.revBadge(reps.filter(function(x){ return x.status === "pending"; }).length);
+    }catch(e){}
     const seenAt = localStorage.getItem("mrclaw_subs_seen");
     let nSub = 0;
     subs.forEach(function(s){ if(!seenAt || new Date(s.created_at) > new Date(seenAt)) nSub++; });
@@ -506,9 +520,12 @@ const Panel = {
     document.getElementById("tab-log").className = "btn s" + (v === "log" ? "" : " g");
     document.getElementById("tab-ops").className = "btn s" + (v === "ops" ? "" : " g");
     document.getElementById("view-ops").className = (v === "ops") ? "" : "hide";
+    document.getElementById("tab-rev").className = "btn s" + (v === "rev" ? "" : " g");
+    document.getElementById("view-rev").className = (v === "rev") ? "" : "hide";
     if(v === "sup") Panel.convs();
     if(v === "log") Panel.log(Panel.logKind || "subs");
     if(v === "ops") Panel.opsLoad();
+    if(v === "rev") Panel.rev(Panel.revKind || "pending");
   },
   async log(k){
     Panel.logKind = k;
@@ -550,6 +567,52 @@ const Panel = {
       }).join("") : "<div class='empty'>暂无记录</div>";
     }
     box.innerHTML = html;
+  },
+  revKind: "pending",
+  async rev(kind){
+    Panel.revKind = kind;
+    document.querySelectorAll("#revtabs button").forEach(function(b, i){
+      b.className = "btn s" + ((i === 0 && kind === "pending") || (i === 1 && kind === "handled") ? "" : " g");
+    });
+    const box = document.getElementById("revlist");
+    box.innerHTML = "<div class='empty'>加载中…</div>";
+    const a = await rpc("mrclaw_reports_list");
+    const all = Array.isArray(a) ? a : [];
+    const arr = all.filter(function(x){ return kind === "pending" ? x.status === "pending" : x.status !== "pending"; });
+    Panel.revBadge(all.filter(function(x){ return x.status === "pending"; }).length);
+    box.innerHTML = arr.length ? arr.map(function(x){
+      const st = x.status === "pending"
+        ? "<span class='tag'>待处理</span>"
+        : (x.verdict === "violated" ? "<span class='tag' style='color:#FF8A9A'>违规</span>"
+                                    : "<span class='tag on'>未违规</span>");
+      return "<div class='u'><div class='top'><div class='name'>" + esc(x.title || ("#" + x.post_id)) +
+        " " + st + "</div><div class='meta'>" + fmt(x.created_at) + "</div></div>" +
+        "<div class='meta'>作者 " + esc(x.author || "-") + " · 举报人 " + esc(x.reporter) + "</div>" +
+        "<div class='meta'>理由：" + esc(x.reason || "（无）") + "</div>" +
+        (x.status === "pending"
+          ? "<div class='row' style='margin-top:9px'>" +
+            "<button class='btn g s' onclick='Panel.revDo(" + x.id + ",false)'>未违规</button>" +
+            "<button class='btn d s' onclick='Panel.revDo(" + x.id + ",true)'>违规</button></div>"
+          : "<div class='meta'>处理：" + esc(x.admin_reason || "") + " · 处罚：" + esc(x.punishment || "无") +
+            (x.handled_by ? (" · by " + esc(x.handled_by)) : "") + "</div>") +
+        "</div>";
+    }).join("") : "<div class='empty'>暂无记录</div>";
+  },
+  revBadge(n){
+    const b = document.getElementById("rev-badge");
+    if(!b) return;
+    if(n > 0){ b.className = "badge"; b.textContent = n; } else b.className = "badge hide";
+  },
+  async revDo(id, violated){
+    const why = prompt("理由（会发给举报人和作者）", "不文明发言");
+    if(why === null) return;
+    const pun = prompt("处罚（文字说明，可留空）", violated ? "警告一次" : "无");
+    if(pun === null) return;
+    const r = await rpc("mrclaw_report_handle", { p_admin: "龙岗", p_id: id,
+        p_violated: !!violated, p_reason: why, p_punish: pun });
+    if(r && r.__err){ toast("处理失败"); return; }
+    toast("已处理，并已自动通知举报人与作者");
+    Panel.rev(Panel.revKind);
   },
   async opsLoad(){
     const b = await rpc("mrclaw_bc_get");
