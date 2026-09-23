@@ -2514,11 +2514,15 @@ const Adm = {
   },
   async bcSave(){
     const tx = el("adm-bc-text"), sp = el("adm-bc-speed"), on = el("adm-bc-on");
+    // 先读当前状态：软件内只管内容/速度/开关，保留官网设置的生效时间段，别把它清掉
+    let st = null;
+    try{ st = await rpc("mrclaw_bc_get"); }catch(e){}
+    const keep = (st && !st.__err) ? st : {};
     const r = await rpc("mrclaw_bc_set", {
       p_text: (tx && tx.value) || "",
       p_speed: parseInt((sp && sp.value) || "60", 10) || 60,
       p_enabled: !!(on && on.checked),
-      p_start: null, p_end: null });
+      p_start: keep.start_at || null, p_end: keep.end_at || null });
     if(!r || r.__err){ Native.toast(t("gc_fail") + " " + String((r && r.__err) || "").slice(0, 60)); return; }
     Native.toast((on && on.checked) ? t("adm_bc_on_s") : t("adm_bc_off_s"));
     try{ BC.load(); }catch(e){}
@@ -3154,7 +3158,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.00";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 44;
+const WEB_CODE = 45;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
