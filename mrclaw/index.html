@@ -254,7 +254,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
     <p class="tsub">每次修复与更新都会记录；软件内可自动更新到最新版。</p>
     <div class="log" id="log"><div class="row"><div class="v">—</div><p>正在读取…</p></div></div>
     <div style="text-align:center;margin-top:22px">
-      <a class="btn ghost" href="https://mrstudiogame.github.io/mrstudio/fixlog.html" target="_blank" rel="noopener">查看完整修复日志</a>
+      <a class="btn ghost" href="fixlog.html" target="_blank" rel="noopener">查看完整修复日志</a>
     </div>
   </div>
 </section>
@@ -313,7 +313,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
         <b>支持</b>
         <a href="#" onclick="Support.open();return false">咨询客服</a>
         <a href="#" onclick="pay();return false">充值积分</a>
-        <a href="https://mrstudiogame.github.io/mrstudio/fixlog.html" target="_blank" rel="noopener">修复日志</a>
+        <a href="fixlog.html" target="_blank" rel="noopener">修复日志</a>
       </div>
       <div>
         <b>MR工作室</b>
@@ -429,9 +429,9 @@ function copyCmd(){
 (async function(){
   const box = el("log");
   try{
-    const html = await (await fetch("https://mrstudiogame.github.io/mrstudio/fixlog.html?v=" + Date.now())).text();
+    const html = await (await fetch("fixlog.html?v=" + Date.now())).text();
     const doc = new DOMParser().parseFromString(html, "text/html");
-    const items = Array.prototype.slice.call(doc.querySelectorAll(".fixlog-list li")).slice(-6).reverse();
+    const items = Array.prototype.slice.call(doc.querySelectorAll(".fixlog-list li")).slice(0, 6);
     if(!items.length) throw new Error("empty");
     box.innerHTML = items.map(li=>{
       const num = li.querySelector(".num") ? li.querySelector(".num").textContent : "";
