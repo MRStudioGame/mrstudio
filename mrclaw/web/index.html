@@ -142,15 +142,17 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
 #pts-chip{font-size:12px;color:var(--muted2)}
 .tb2{font-size:12px;padding:7px 10px}
-#chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-#chips .chip{display:flex;align-items:center;gap:6px;background:var(--chip);
+#chips,.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--chip);
   border:1px solid var(--ghost-bd);border-radius:10px;padding:5px 8px;font-size:11.5px;
   max-width:48%}
-#chips .chip img{width:26px;height:26px;object-fit:cover;border-radius:6px}
-#chips .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#chips .chip i{cursor:pointer;font-style:normal;color:var(--muted)}
+.chip img{width:26px;height:26px;max-width:26px;max-height:26px;object-fit:cover;
+  border-radius:6px;flex:0 0 26px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
+.chip i{cursor:pointer;font-style:normal;color:var(--muted)}
 .att{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
 .att img{max-width:170px;max-height:170px;border-radius:10px;display:block}
+.att img,.gmedia img,.chip img,.sup-list img{max-width:100%}
 .att a{font-size:12px;color:var(--tip-fg);border:1px solid var(--tip-bd);
   background:var(--tip-bg);border-radius:9px;padding:5px 9px;text-decoration:none}
 .att .up{opacity:.55}
@@ -3077,7 +3079,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.37";
+const WEB_VERSION = "1.0.38";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
@@ -3231,7 +3233,7 @@ const Support = {
     b.innerHTML = "<div class='sup-top'><button class='mbtn' onclick='Support.close()'>←</button>" +
       "<b style='font-size:16px'>" + t("support") + "</b></div>" +
       "<div class='sup-list' id='sup-list'><div class='empty'>" + t("support_empty") + "</div></div>" +
-      "<div id='sup-chips' class='hide' style='padding:0 12px 6px'></div>" +
+      "<div id='sup-chips' class='chips hide' style='padding:0 12px 6px'></div>" +
       "<div class='sup-bar'><button class='btn ghost mini' onclick='Attach.openMenu(true)'>＋</button>" +
       "<input id='sup-in' type='text' autocomplete='off' spellcheck='false' placeholder='" + esc(t("support_ph")) + "'>" +
       "<button class='btn mini' onclick='Support.send()'>" + t("send_btn") + "</button></div>";
