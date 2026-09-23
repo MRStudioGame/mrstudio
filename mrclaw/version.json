@@ -1,12 +1,12 @@
 {
-  "versionCode": 38,
-  "versionName": "1.0.37",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.37",
+  "versionCode": 39,
+  "versionName": "1.0.38",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.38",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.37",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.37",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.37"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.38",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.38",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.38"
   ],
   "size": 152490,
-  "notes": "广场列表放宽到 200 条，所有未下架的帖子都能看到（云端保存，版本更新不丢失）。"
+  "notes": "修复：给客服/广场发图片时，待发送的图片缩略图会按原图尺寸铺满整个屏幕；现在所有缩略图统一限制为小方块，并做了图片不超出容器的兜底。"
 }
