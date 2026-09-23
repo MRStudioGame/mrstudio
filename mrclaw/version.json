@@ -1,12 +1,12 @@
 {
-  "versionCode": 33,
-  "versionName": "1.0.32",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.32",
+  "versionCode": 34,
+  "versionName": "1.0.33",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.33",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.32",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.32",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.32"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.33",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.33",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.33"
   ],
   "size": 152490,
-  "notes": "1. 彻底修复图片/文件上传（根因：Supabase 存储不接受中文路径，已改为安全目录）；2. 「管理」入口只对管理员显示，普通用户看不到；3. 广场点「发帖」不再误触发「已保存」。"
+  "notes": "管理员在广场长按任意帖子即可：置顶 / 取消置顶 / 下架 / 恢复显示 / 给作者加减积分 / 封禁作者；置顶帖自动排最前并带📌标识，已下架帖管理员可见并标注，作者会收到下架通知。"
 }
