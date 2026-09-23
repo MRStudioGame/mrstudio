@@ -175,8 +175,8 @@ var ALL = [{"n": 1, "t": "新增 MRClaw（安卓版 AI 助手）管理端 — <s
     var kw = (q.value || "").trim().toLowerCase();
     var arr = ALL.filter(function(x){
       return !kw || String(x.n).indexOf(kw) === 0 || x.t.toLowerCase().indexOf(kw) >= 0;
-    });
-    if(!newest) arr = arr.slice().reverse();
+    }).sort(function(a, b){ return b.n - a.n; });
+    if(!newest) arr.reverse();
     cnt.textContent = ALL.length;
     none.style.display = arr.length ? "none" : "block";
     list.innerHTML = arr.map(function(x, i){
