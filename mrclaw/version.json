@@ -1,12 +1,12 @@
 {
-  "versionCode": 41,
-  "versionName": "1.0.40",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.40",
+  "versionCode": 42,
+  "versionName": "1.0.41",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.40",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.40",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.40"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.41",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "注册/登录页改为中英双语同时显示（标题、用户名/密码/确认密码、占位提示、按钮、错误提示全部双语），新用户不用先选语言也能看懂。"
+  "notes": "帖子标题上限从 20 字放宽到 40 字（输入框、提示文案、前后端校验同步更新）。"
 }
