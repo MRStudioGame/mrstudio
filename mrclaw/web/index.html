@@ -49,6 +49,31 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   padding:13px 14px;color:var(--fg)}
 .inp:focus{border-color:var(--accent)}
 .mask{-webkit-text-security:disc;text-security:disc}
+.lnk{color:#4C8BFF;text-decoration:underline;word-break:break-all}
+.reddot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF3B4E;
+  margin-left:4px;vertical-align:top}
+.gcard{background:var(--panel);border:1px solid var(--border);border-radius:16px;
+  padding:14px;margin:10px 12px}
+.gcard h4{margin:0 0 6px;font-size:15.5px}
+.gcard .gm{font-size:12px;color:var(--muted2);margin-bottom:6px}
+.gcard p{margin:0;color:var(--muted);font-size:14px;white-space:pre-wrap}
+.gbar{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--muted2)}
+.gbar span{cursor:pointer}
+.gbar .on{color:#FF6A8A}
+.gmedia{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.gmedia img{max-width:104px;max-height:104px;border-radius:10px}
+.gmedia video{max-width:150px;border-radius:10px}
+.gmedia a{font-size:12px;color:var(--tip-fg);border:1px solid var(--tip-bd);
+  background:var(--tip-bg);border-radius:9px;padding:5px 9px}
+.gshare{background:var(--panel2);border:1px dashed var(--border);border-radius:12px;
+  padding:10px;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.gsearch{display:flex;gap:8px;padding:12px 12px 4px}
+.gsearch input{flex:1}
+.nlist{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:12px 14px;margin:10px 12px}
+.nlist.unread{border-color:var(--tip-bd);background:var(--tip-bg)}
+.nlist .nt{font-size:14px}
+.nlist .nm{font-size:11.5px;color:var(--muted2);margin-top:4px}
 .seg{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--border);
   border-radius:12px;padding:4px}
 .seg button{flex:1;padding:9px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13.5px}
@@ -253,6 +278,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
     <div id="top">
       <button class="mbtn" id="menu-btn" onclick="Conv.open()">☰</button>
       <b id="top-title"></b>
+      <button class="mbtn" id="notice-btn" onclick="Notice.open()">🔔<i class="reddot hide" id="notice-dot"></i></button>
       <button class="btn ghost mini tb2" id="rd-btn" onclick="Redeem.open()"></button>
       <button class="btn ghost mini tb2" id="top-btn" onclick="App.topAction()"></button>
     </div>
@@ -278,10 +304,12 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
     </div>
     <div id="nav">
       <button data-tab="chat" class="act" onclick="App.tab('chat')"><b>💬</b><span id="nv-chat"></span></button>
+      <button data-tab="gc" onclick="App.tab('gc')"><b>🏛</b><span id="nv-gc"></span></button>
       <button data-tab="task" onclick="App.tab('task')"><b>⏱</b><span id="nv-task"></span></button>
       <button data-tab="skill" onclick="App.tab('skill')"><b>🧩</b><span id="nv-skill"></span></button>
       <button data-tab="mem" onclick="App.tab('mem')"><b>🧠</b><span id="nv-mem"></span></button>
       <button data-tab="me" onclick="App.tab('me')"><b>⚙️</b><span id="nv-me"></span></button>
+      <button data-tab="adm" id="nav-adm" class="hide" onclick="App.tab('adm')"><b>🛡</b><span id="nv-adm"></span></button>
     </div>
   </div>
 
@@ -363,6 +391,21 @@ zh:{
   mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
   mode_chat_on:"已切到「仅聊天」，不需要任何权限",
   loading:"加载中…",
+  nav_gc:"广场", nav_adm:"管理", back:"返回",
+  gc_search:"搜索帖子…", gc_mine:"我的帖子", gc_all:"全部帖子", gc_new:"发帖",
+  gc_empty:"还没有帖子，来发第一条", gc_replies:"回复", gc_reply_ph:"写回复…", gc_send:"回复",
+  gc_report:"举报", gc_report_why:"举报理由", gc_report_ok:"已提交举报，平台会尽快处理",
+  gc_title_q:"帖子标题（20 字以内，必填）", gc_body_q:"正文内容",
+  gc_need_title:"请填写标题", gc_title_long:"标题不能超过 20 字",
+  gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理",
+  gc_shared:"分享了内容", gc_shared_chat:"分享了与AI的对话", gc_shared_mem:"分享了记忆",
+  gc_shared_skill:"分享了技能",
+  notice_title:"通知", notice_empty:"暂时没有新消息",
+  adm_review:"帖子审核", adm_sup:"客服私信", adm_users:"用户管理",
+  adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
+  adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
+  adm_ban:"封禁", adm_unban:"解封", adm_days:"封禁天数（0=永久）", adm_points:"加减积分",
+  adm_points_q:"增减积分（正数加、负数减）", adm_reply_ph:"回复该用户…",
   need_new_apk:"本次更新需要升级安装包（新功能依赖新版本），点右侧按钮下载安装",
   need_new_apk_title:"要让 AI 操作手机，需要升级安装包",
   upgrade_now:"立即升级（一键下载安装）",
@@ -476,6 +519,21 @@ en:{
   mode_task_on:"Task mode on – permissions are required",
   mode_chat_on:"Chat-only mode on – no permissions needed",
   loading:"Loading…",
+  nav_gc:"Square", nav_adm:"Admin", back:"Back",
+  gc_search:"Search posts…", gc_mine:"My posts", gc_all:"All posts", gc_new:"Post",
+  gc_empty:"No posts yet", gc_replies:"Replies", gc_reply_ph:"Write a reply…", gc_send:"Reply",
+  gc_report:"Report", gc_report_why:"Reason", gc_report_ok:"Reported, we will handle it soon",
+  gc_title_q:"Title (max 20 chars, required)", gc_body_q:"Content",
+  gc_need_title:"Title required", gc_title_long:"Title must be <= 20 chars",
+  gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed",
+  gc_shared:"Shared", gc_shared_chat:"Shared an AI chat", gc_shared_mem:"Shared a memory",
+  gc_shared_skill:"Shared a skill",
+  notice_title:"Notifications", notice_empty:"Nothing new",
+  adm_review:"Post review", adm_sup:"Support inbox", adm_users:"Users",
+  adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
+  adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
+  adm_ban:"Ban", adm_unban:"Unban", adm_days:"Ban days (0 = permanent)", adm_points:"Points",
+  adm_points_q:"Points delta (positive or negative)", adm_reply_ph:"Reply to this user…",
   need_new_apk:"This update needs a newer app package. Tap the button to download and install",
   need_new_apk_title:"To let the AI control your phone, please upgrade the app",
   upgrade_now:"Upgrade now (one tap)",
@@ -552,6 +610,18 @@ const LS = {
 function el(id){ return document.getElementById(id); }
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
   c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function linkify(html){
+  return String(html == null ? "" : html).replace(/(https?:\/\/[^\s<>"']+)/g, function(u){
+    return "<a class='lnk' href='javascript:void(0)' onclick=\"return openLink('" + u + "')\">" + u + "</a>";
+  });
+}
+function openLink(u){
+  try{
+    if(native && native.openUrl){ native.openUrl(u); return false; }
+    window.open(u, "_blank");
+  }catch(e){}
+  return false;
+}
 function rnd(n){ let s=""; const h="0123456789abcdef"; for(let i=0;i<n;i++) s+=h[Math.floor(Math.random()*16)]; return s; }
 function nowMs(){ return Date.now(); }
 
@@ -895,6 +965,7 @@ const Auth = {
     rpc("mrclaw_touch", { p_user: u });
     Cloud.pull(u);
     Acc.refresh();
+    try{ Admin.check(); Notice.load(); SupUnread.load(); }catch(e){}
     el("auth").classList.add("hide");
     el("app").classList.remove("hide");
     App.tab("chat");
@@ -950,6 +1021,8 @@ const App = {
     el("bar").classList.toggle("hide", x !== "chat");
     el("menu-btn").style.display = (x === "chat") ? "" : "none";
     if(x==="chat") Chat.render();
+    if(x==="gc") GC.render();
+    if(x==="adm") Adm.render();
     if(x==="task") Task.render();
     if(x==="skill"){ Skill.render(); Skill.paint(); }
     if(x==="mem") Mem.render();
@@ -975,7 +1048,8 @@ const Conv = {
   render(){
     let h = "<div class='dmask' onclick='Conv.close()'></div><div class='dpanel'>" +
       "<div style='padding:0 16px 12px'><button class='btn' onclick='Conv.pay()'>" + t("recharge") + "</button></div>" +
-      "<div class='dhead'><button class='btn mini ghost' onclick='Support.open();Conv.close()'>" + t("support") + "</button>" +
+      "<div class='dhead'><button class='btn mini ghost' onclick='Support.open();Conv.close()'>" + t("support") +
+      "<span id='sup-badge2' class='badge hide'>0</span></button>" +
       "<button class='btn mini' onclick='Conv.add()'>" + t("new") + "</button></div>" +
       "<div style='padding:0 16px 12px'><b style='font-size:15px'>" + t("all_chats") + "</b></div>";
     if(!S.convs.length) h += "<div class='empty'>" + t("no_chats") + "</div>";
@@ -1048,12 +1122,12 @@ const Chat = {
     let h = "<div id='msgs'>";
     if(!m.length) h += "<div class='empty'>" + t("chat_empty") + "</div>";
     m.forEach(function(x,i){
-      if(x.role==="system") h += "<div class='msg sys'>" + esc(x.content) + "</div>";
+      if(x.role==="system") h += "<div class='msg sys'>" + linkify(esc(x.content)) + "</div>";
       else if(x.role==="user"){
-        h += "<div class='msg u'>" + esc(x.content) + Attach.html(x.attach) + "</div>";
+        h += "<div class='msg u'>" + linkify(esc(x.content)) + Attach.html(x.attach) + "</div>";
       }
       else {
-        h += "<div class='msg a'>" + Chat.headHtml(x) + esc(x.content) + "</div>";
+        h += "<div class='msg a'>" + Chat.headHtml(x) + linkify(esc(x.content)) + "</div>";
         if(x.content) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
         if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
@@ -2016,7 +2090,34 @@ const Attach = {
   },
   pick(kind, forSupport){
     Attach._target = forSupport ? "sup" : "chat";
-    native.pickFile(kind || "any", true);
+    Attach.pickWeb(kind || "any");
+  },
+  pickWeb(kind){
+    try{
+      const inp = document.createElement("input");
+      inp.type = "file";
+      inp.accept = (kind === "image") ? "image/*" : "";
+      inp.multiple = true;
+      inp.style.display = "none";
+      document.body.appendChild(inp);
+      inp.onchange = function(){
+        const files = Array.prototype.slice.call(inp.files || []);
+        try{ document.body.removeChild(inp); }catch(e){}
+        if(files.length) Attach.addFiles(files);
+        else if(native && native.pickFile) native.pickFile(kind === "image" ? "image" : "any", true);
+      };
+      inp.click();
+    }catch(e){
+      if(native && native.pickFile) native.pickFile("any", true);
+    }
+  },
+  addFiles(files){
+    const list = Attach._target === "sup" ? Attach.supList() : Attach.pending;
+    files.forEach(function(f){
+      list.push({ name:f.name, mime:f.type || "", size:f.size || 0, file:f, url:"", up:true });
+    });
+    Attach.render();
+    Attach.uploadAll();
   },
   onPick(s){
     let arr = [];
@@ -2042,7 +2143,26 @@ const Attach = {
       });
     });
   },
+  uploadWeb(f, cb){
+    const u = (S.user ? S.user.name : "anon");
+    const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
+    const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
+    const url = SB_URL + "/storage/v1/object/mrclaw/" + path;
+    const pub = SB_URL + "/storage/v1/object/public/mrclaw/" + path;
+    fetch(url, {
+      method: "POST",
+      headers: { "apikey": SB_KEY, "Authorization": BEARER + SB_KEY,
+                 "Content-Type": f.mime || "application/octet-stream", "x-upsert": "true" },
+      body: f.file
+    }).then(function(r){
+      return r.text().then(function(txt){
+        if(r.ok) cb(pub, null);
+        else cb(null, "ERR:HTTP" + r.status + " " + String(txt).slice(0, 120));
+      });
+    }).catch(function(e){ cb(null, "ERR:" + ((e && e.message) ? e.message : "fetch")); });
+  },
   upload(f, cb){
+    if(f.file){ return Attach.uploadWeb(f, cb); }
     const u = (S.user ? S.user.name : "anon");
     const safe = String(f.name || "file").replace(/[^\w.\-]/g, "_").slice(-40);
     const path = u + "/" + Date.now() + "_" + rnd(6) + "_" + safe;
@@ -2159,6 +2279,324 @@ const Attach = {
         ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) + "'></a>"
         : "<a href='" + esc(a.url) + "' target='_blank'>📄 " + esc(a.name || "file") + "</a>";
     }).join("") + "</div>";
+  }
+};
+
+/* ================= 客户端管理页（仅管理员可见） ================= */
+const Adm = {
+  tab: "review", user: null,
+  render(){
+    if(!Admin.on()){ App.tab("me"); return; }
+    App.title(t("nav_adm"));
+    App.topBtn(t("refresh"));
+    let h = "<div class='cats'>" +
+      ["review", "sup", "users"].map(function(k){
+        const nm = k === "review" ? t("adm_review") : (k === "sup" ? t("adm_sup") : t("adm_users"));
+        return "<button class='cat" + (Adm.tab === k ? " act" : "") + "' onclick=\"Adm.tab='" + k + "';Adm.render()\">" + nm + "</button>";
+      }).join("") + "</div><div id='adm-box'></div>";
+    App.content(h);
+    Adm.load();
+  },
+  load(){
+    const box = el("adm-box");
+    if(box) box.innerHTML = "<div class='empty'>" + t("loading") + "</div>";
+    if(Adm.tab === "review"){
+      rpc("mrclaw_reports_list").then(function(a){
+        const arr = (Array.isArray(a) ? a : []).filter(function(x){ return x.status === "pending"; });
+        const b2 = el("adm-box");
+        if(!b2) return;
+        if(!arr.length){ b2.innerHTML = "<div class='empty'>" + t("adm_none") + "</div>"; return; }
+        b2.innerHTML = arr.map(function(x){
+          return "<div class='gcard'><h4>" + esc(x.title || ("#" + x.post_id)) + "</h4>" +
+            "<div class='gm'>" + esc(x.author || "") + " · 举报人 " + esc(x.reporter) + " · " +
+            fmtTime(new Date(x.created_at).getTime()) + "</div>" +
+            "<p>" + esc(x.reason || "") + "</p>" +
+            "<div class='gbar'><span onclick=\"Adm.handle(" + x.id + ",false)\">" + t("adm_ok") + "</span>" +
+            "<span onclick=\"Adm.handle(" + x.id + ",true)\">" + t("adm_bad") + "</span></div></div>";
+        }).join("");
+      });
+    } else if(Adm.tab === "sup"){
+      rpc("mrclaw_support_inbox").then(function(a){
+        const b2 = el("adm-box");
+        if(!b2) return;
+        const arr = Array.isArray(a) ? a : [];
+        if(!arr.length){ b2.innerHTML = "<div class='empty'>" + t("support_empty") + "</div>"; return; }
+        b2.innerHTML = arr.map(function(x){
+          return "<div class='gcard' onclick=\"Adm.openSup('" + esc(x.username) + "')\">" +
+            "<h4>" + esc(x.username) + "</h4><div class='gm'>" + fmtTime(new Date(x.last_at).getTime()) + "</div>" +
+            "<p>" + esc(String(x.last_body || "").slice(0, 60)) + "</p></div>";
+        }).join("");
+      });
+    } else {
+      rpc("mrclaw_admin_list").then(function(a){
+        const b2 = el("adm-box");
+        if(!b2) return;
+        const arr = Array.isArray(a) ? a : [];
+        b2.innerHTML = arr.map(function(u){
+          const banned = u.ban_until && new Date(u.ban_until).getTime() > Date.now();
+          return "<div class='gcard'><h4>" + esc(u.username) + "</h4>" +
+            "<div class='gm'>" + t("pts") + " " + Number(u.points || 0).toLocaleString() +
+            (banned ? " · <span style='color:#FF8A9A'>已封禁</span>" : "") + "</div>" +
+            "<div class='gbar'>" +
+            "<span onclick=\"Adm.points('" + esc(u.username) + "')\">" + t("adm_points") + "</span>" +
+            "<span onclick=\"Adm.ban('" + esc(u.username) + "',true)\">" + t("adm_ban") + "</span>" +
+            "<span onclick=\"Adm.ban('" + esc(u.username) + "',false)\">" + t("adm_unban") + "</span>" +
+            "</div></div>";
+        }).join("");
+      });
+    }
+  },
+  async handle(id, violated){
+    const why = await uiAsk(t("adm_reason"), "不文明发言");
+    if(why === null) return;
+    const pun = await uiAsk(t("adm_punish"), violated ? "警告一次" : "无");
+    if(pun === null) return;
+    const r = await rpc("mrclaw_report_handle", { p_admin: S.user.name, p_id: id,
+        p_violated: !!violated, p_reason: String(why), p_punish: String(pun) });
+    if(!r || r.__err){ Native.toast(t("gc_fail")); return; }
+    Native.toast(t("adm_done"));
+    Adm.load();
+  },
+  openSup(u){
+    Adm.user = u;
+    const g = el("guide");
+    g.classList.remove("hide");
+    g.innerHTML = "<div class='gwrap'><div class='gt'><b>" + esc(u) + "</b></div>" +
+      "<div id='adm-msgs' class='gcard' style='min-height:120px'></div>" +
+      "<div style='height:10px'></div>" +
+      "<textarea id='adm-in' rows='2' placeholder='" + esc(t("adm_reply_ph")) +
+      "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
+      "<div style='height:10px'></div><div style='display:flex;gap:8px'>" +
+      "<button class='btn ghost mini' onclick=\"Attach.openMenu(false)\">＋</button>" +
+      "<button class='btn' onclick='Adm.sendSup()'>" + t("send_btn") + "</button></div>" +
+      "<div style='height:10px'></div><button class='btn ghost' onclick='Guide.close()'>" + t("back") + "</button></div>";
+    Adm.loadSup();
+  },
+  loadSup(){
+    rpc("mrclaw_support_list", { p_user: Adm.user }).then(function(a){
+      const box = el("adm-msgs");
+      if(!box) return;
+      const arr = Array.isArray(a) ? a : [];
+      box.innerHTML = arr.map(function(m){
+        return "<div class='gm'>" + esc(m.sender === "admin" ? "我" : m.username) + " · " +
+          fmtTime(new Date(m.created_at).getTime()) + "</div><p>" +
+          linkify(esc(m.body || "")) + "</p>" + Attach.html(m.attach);
+      }).join("") || "<div class='empty'>" + t("notice_empty") + "</div>";
+    });
+  },
+  async sendSup(){
+    const i = el("adm-in");
+    const v = (i && i.value ? i.value : "").trim();
+    const atts = Attach.take();
+    if(!v && !atts.length) return;
+    const r = await rpc("mrclaw_support_reply", { p_user: Adm.user, p_body: v, p_attach: atts });
+    if(r && r.__err){ Native.toast(t("support_fail")); return; }
+    if(i) i.value = "";
+    Adm.loadSup();
+  },
+  async points(u){
+    const v = await uiAsk(t("adm_points_q"), "100000");
+    if(v === null) return;
+    const d = parseInt(String(v), 10);
+    if(isNaN(d) || d === 0){ Native.toast(t("gc_fail")); return; }
+    const r = await rpc("mrclaw_points_op", { p_user: u, p_delta: d, p_note: "admin" });
+    if(!r || r.__err){ Native.toast(t("gc_fail")); return; }
+    Native.toast(t("pts") + " " + Number(r.points || 0).toLocaleString());
+    Adm.load();
+  },
+  async ban(u, on){
+    if(!on){
+      const r = await rpc("mrclaw_unban", { p_user: u });
+      if(r && r.__err){ Native.toast(t("gc_fail")); return; }
+      Native.toast(t("adm_unban")); Adm.load(); return;
+    }
+    const dv = await uiAsk(t("adm_days"), "3");
+    if(dv === null) return;
+    const days = parseInt(String(dv), 10);
+    if(isNaN(days) || days < 0){ Native.toast(t("gc_fail")); return; }
+    const why = await uiAsk(t("adm_reason"), "");
+    if(why === null) return;
+    if(!String(why).trim()){ Native.toast(t("adm_reason")); return; }
+    const r = await rpc("mrclaw_ban", { p_user: u, p_days: days, p_reason: String(why) });
+    if(!r || r.__err){ Native.toast(t("gc_fail")); return; }
+    Native.toast(t("adm_ban")); Adm.load();
+  }
+};
+const Admin = {
+  isAdmin: false,
+  async check(){
+    if(!S.user) return;
+    const r = await rpc("mrclaw_is_admin", { p_user: S.user.name });
+    Admin.isAdmin = (r === true);
+    const b = el("nav-adm");
+    if(b) b.className = Admin.isAdmin ? "" : "hide";
+  },
+  on(){ return Admin.isAdmin; }
+};
+
+/* ================= 通知 ================= */
+const Notice = {
+  list: [], n: 0,
+  load(){
+    if(!S.user) return;
+    rpc("mrclaw_notices_list", { p_user: S.user.name }).then(function(a){
+      if(!Array.isArray(a)) return;
+      Notice.list = a;
+      Notice.n = a.filter(function(x){ return !x.seen; }).length;
+      Notice.paint();
+    });
+  },
+  paint(){
+    const d = el("notice-dot");
+    if(d) d.className = Notice.n > 0 ? "reddot" : "reddot hide";
+  },
+  open(){
+    const b = el("dialog") || el("dlg");
+    let h = "<div class='dbox'><div class='dtitle'>" + t("notice_title") + "</div>";
+    if(!Notice.list.length) h += "<div class='empty'>" + t("notice_empty") + "</div>";
+    Notice.list.slice(0, 40).forEach(function(x){
+      h += "<div class='nlist " + (x.seen ? "" : "unread") + "'>" +
+        "<div class='nt'>" + esc(x.text) + "</div>" +
+        "<div class='nm'>" + fmtTime(new Date(x.created_at).getTime()) + "</div></div>";
+    });
+    h += "<div style='height:12px'></div><button class='btn' onclick='uiClose(null)'>" + t("ok") + "</button></div>";
+    b.classList.remove("hide");
+    b.innerHTML = h;
+    rpc("mrclaw_notices_seen", { p_user: S.user.name });
+    Notice.n = 0; Notice.paint();
+  }
+};
+
+/* ================= 广场 ================= */
+const GC = {
+  q: "", mine: false, cur: null,
+  render(){
+    App.title(t("nav_gc"));
+    App.topBtn(t("gc_new"));
+    let h = "<div class='gsearch'><input class='inp' placeholder='" + esc(t("gc_search")) +
+      "' value='" + esc(this.q) + "' oninput='GC.q=this.value;GC.load()'>" +
+      "<button class='btn ghost mini" + (this.mine ? "" : " ") + "' onclick='GC.toggleMine()'>" +
+      (this.mine ? t("gc_all") : t("gc_mine")) + "</button></div><div id='gc-list'></div>";
+    App.content(h);
+    this.load();
+  },
+  toggleMine(){ this.mine = !this.mine; this.render(); },
+  load(){
+    if(!S.user) return;
+    const box = el("gc-list");
+    if(box) box.innerHTML = "<div class='empty'>" + t("loading") + "</div>";
+    rpc("mrclaw_posts_list", { p_q: this.q || null, p_user: this.mine ? S.user.name : null,
+                               p_limit: 60 }).then(function(a){
+      const box2 = el("gc-list");
+      if(!box2) return;
+      const arr = Array.isArray(a) ? a : [];
+      if(!arr.length){ box2.innerHTML = "<div class='empty'>" + t("gc_empty") + "</div>"; return; }
+      box2.innerHTML = arr.map(function(x){ return GC.card(x); }).join("");
+    });
+  },
+  card(x){
+    const media = (x.media || []).filter(function(m){ return m && m.url; }).slice(0, 4).map(GC.media).join("");
+    return "<div class='gcard' onclick='GC.open(" + x.id + ")'>" +
+      "<h4>" + linkify(esc(x.title)) + "</h4>" +
+      "<div class='gm'>" + esc(x.username) + " · " + fmtTime(new Date(x.created_at).getTime()) + "</div>" +
+      "<p>" + linkify(esc(String(x.body || "").slice(0, 120))) + "</p>" +
+      (media ? "<div class='gmedia'>" + media + "</div>" : "") +
+      "<div class='gbar'><span>" + (x.liked ? "❤️" : "🤍") + " " + (x.likes || 0) + "</span>" +
+      "<span>💬 " + (x.reply_n || x.replies || 0) + "</span></div></div>";
+  },
+  media(m){
+    const u = m.url || "";
+    const isImg = String(m.mime || "").indexOf("image") === 0 || /\.(png|jpe?g|gif|webp)$/i.test(u);
+    const isVid = String(m.mime || "").indexOf("video") === 0 || /\.(mp4|mov|webm)$/i.test(u);
+    if(isImg) return "<img src='" + esc(u) + "'>";
+    if(isVid) return "<video src='" + esc(u) + "' controls></video>";
+    return "<a href='" + esc(u) + "' target='_blank'>📄 " + esc(m.name || "file") + "</a>";
+  },
+  open(id){
+    this.cur = id;
+    rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name }).then(function(d){
+      if(!d || d.__err || !d.post){ Native.toast(t("gc_fail")); return; }
+      GC.detail(d.post, d.replies || []);
+    });
+  },
+  detail(post, replies){
+    const media = (post.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
+    let h = "<div class='gwrap'><div class='gcard'>" +
+      "<h4>" + linkify(esc(post.title)) + "</h4>" +
+      "<div class='gm'>" + esc(post.username) + " · " + fmtTime(new Date(post.created_at).getTime()) +
+      (post.status === "removed" ? " · <span style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") + "</div>" +
+      "<p>" + linkify(esc(post.body || "")) + "</p>" +
+      (media ? "<div class='gmedia'>" + media + "</div>" : "") +
+      (post.share ? "<div class='gshare'>" + esc(GC.shareText(post.share)) + "</div>" : "") +
+      "<div class='gbar'><span onclick=\"GC.like(" + post.id + ")\">" +
+      (post.liked ? "❤️" : "🤍") + " " + (post.likes || 0) + "</span>" +
+      "<span onclick=\"GC.report(" + post.id + ")\">" + t("gc_report") + "</span></div></div>";
+    h += "<div class='hd'>" + t("gc_replies") + " (" + replies.length + ")</div>";
+    h += replies.map(function(r){
+      const m2 = (r.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
+      return "<div class='gcard'><div class='gm'>" + esc(r.username) + " · " +
+        fmtTime(new Date(r.created_at).getTime()) + "</div><p>" + linkify(esc(r.body || "")) + "</p>" +
+        (m2 ? "<div class='gmedia'>" + m2 + "</div>" : "") + "</div>";
+    }).join("");
+    h += "<div class='gcard'><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
+      "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
+      "<div style='height:10px'></div><div style='display:flex;gap:8px'>" +
+      "<button class='btn ghost mini' onclick=\"Attach.openMenu(false)\">＋</button>" +
+      "<button class='btn' onclick='GC.reply(" + post.id + ")'>" + t("gc_send") + "</button></div></div>" +
+      "<div style='height:12px'></div><button class='btn ghost' onclick='GC.render()'>" + t("back") + "</button></div>";
+    const g = el("guide");
+    g.classList.remove("hide");
+    g.innerHTML = h;
+  },
+  shareText(sh){
+    let o = sh;
+    try{ if(typeof sh === "string") o = JSON.parse(sh); }catch(e){}
+    if(!o) return "";
+    if(o.kind === "chat") return t("gc_shared_chat") + "：" + String(o.text || "").slice(0, 160);
+    if(o.kind === "memory") return t("gc_shared_mem") + "：" + String(o.text || "").slice(0, 160);
+    if(o.kind === "skill") return t("gc_shared_skill") + "：" + String(o.name || "");
+    return t("gc_shared") + "：" + String(o.text || "").slice(0, 160);
+  },
+  async like(id){
+    const r = await rpc("mrclaw_like", { p_user: S.user.name, p_post_id: id });
+    if(r && r.__err){ Native.toast(t("gc_fail")); return; }
+    GC.open(id);
+  },
+  async reply(id){
+    const box = el("gc-rep");
+    const v = (box && box.value ? box.value : "").trim();
+    const atts = Attach.take();
+    if(!v && !atts.length) return;
+    const r = await rpc("mrclaw_reply_add", { p_user: S.user.name, p_post_id: id,
+                                              p_body: v, p_media: atts });
+    if(r && r.__err){ Native.toast(t("gc_fail")); return; }
+    GC.open(id);
+  },
+  async report(id){
+    const why = await uiAsk(t("gc_report_why"), "");
+    if(why === null) return;
+    const r = await rpc("mrclaw_report", { p_user: S.user.name, p_post_id: id,
+                                           p_reason: String(why) });
+    if(r && r.__err){ Native.toast(t("gc_fail")); return; }
+    Native.toast(t("gc_report_ok"));
+  },
+  async create(){
+    const title = await uiAsk(t("gc_title_q"), "");
+    if(title === null) return;
+    const tt = String(title).trim();
+    if(!tt){ Native.toast(t("gc_need_title")); return; }
+    if(tt.length > 20){ Native.toast(t("gc_title_long")); return; }
+    const body = await uiAsk(t("gc_body_q"), "");
+    if(body === null) return;
+    const atts = Attach.take();
+    const r = await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: tt,
+                                             p_body: String(body), p_media: atts, p_share: null });
+    if(!r || r.__err || r.err){
+      Native.toast(t("gc_fail") + " " + (r && (r.err || r.__err) ? String(r.err || r.__err) : ""));
+      return;
+    }
+    Native.toast(t("gc_posted"));
+    this.mine = true; this.render();
   }
 };
 
@@ -2330,6 +2768,30 @@ const Overlay = {
     this.tm = setTimeout(function(){ self.off(); }, ms || 2600);
   }
 };
+const SupUnread = {
+  n: 0,
+  load(){
+    if(!S.user) return;
+    rpc("mrclaw_support_unseen", { p_user: S.user.name }).then(function(r){
+      SupUnread.n = (r && !r.__err && typeof r.n === "number") ? r.n : 0;
+      SupUnread.paint();
+    });
+  },
+  seen(){
+    if(!S.user) return;
+    rpc("mrclaw_support_seen", { p_user: S.user.name });
+    SupUnread.n = 0; SupUnread.paint();
+  },
+  paint(){
+    const m = el("menu-btn");
+    if(m) m.innerHTML = "☰" + (SupUnread.n > 0 ? "<i class='reddot'></i>" : "");
+    const s = el("sup-badge2");
+    if(s){
+      if(SupUnread.n > 0){ s.className = "badge"; s.textContent = SupUnread.n; }
+      else s.className = "badge hide";
+    }
+  }
+};
 window.MR_onOverlayStop = function(){
   if(Chat.busy) Chat.stopAgent();
   else Overlay.flash(t("stop_t"), "warn", 1600);
@@ -2369,7 +2831,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.28";
+const WEB_VERSION = "1.0.30";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
@@ -2515,6 +2977,7 @@ const Support = {
   timer:null,
   open(){
     if(!S.user) return Chat.openLoginGate();
+    SupUnread.seen();
     Support.msgs = [];
     Attach.supPending = [];
     const b = el("sup");
@@ -2550,7 +3013,7 @@ const Support = {
     if(!a.length) h = "<div class='empty'>" + t("support_empty") + "</div>";
     a.forEach(function(m){
       h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" +
-        esc(m.body) + Attach.html(m.attach) + "</div>";
+        linkify(esc(m.body)) + Attach.html(m.attach) + "</div>";
     });
     box.innerHTML = h;
     box.scrollTop = box.scrollHeight;
@@ -2595,6 +3058,8 @@ function paintStatic(){
   el("lb-pwd").textContent = t("password");
   el("lb-pwd2").textContent = t("password2");
   el("nv-chat").textContent = t("nav_chat");
+  el("nv-gc").textContent = t("nav_gc");
+  if(el("nv-adm")) el("nv-adm").textContent = t("nav_adm");
   el("nv-task").textContent = t("nav_task");
   el("nv-skill").textContent = t("nav_skill");
   el("nv-mem").textContent = t("nav_mem");
@@ -2642,6 +3107,11 @@ el("send").addEventListener("click", function(){ Chat.send(); });
     if(native && !native.toolAsync){ try{ Upd.noBridge(); }catch(e){} }
   }, 3500);
   try{ BC.start(); }catch(e){}
+  setTimeout(function(){ try{ SupUnread.load(); }catch(e){} } , 2500);
+  setTimeout(function(){ try{ Admin.check(); }catch(e){} }, 1800);
+  setTimeout(function(){ try{ Notice.load(); }catch(e){} }, 3000);
+  setInterval(function(){ if(!document.hidden && S.user){ try{ Notice.load(); }catch(e){} } }, 60000);
+  setInterval(function(){ if(!document.hidden && S.user){ try{ SupUnread.load(); }catch(e){} } }, 30000);
   setInterval(function(){
     if(document.hidden || !S.user) return;
     Acc.refresh();
