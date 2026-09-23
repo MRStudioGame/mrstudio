@@ -1597,6 +1597,38 @@ const Task = {
     });
     App.content(h);
   },
+  async pickShare(){
+    const acts = [{ label: t("share_none"), value: "none" }];
+    if(S.mems.length) acts.push({ label: t("share_pick_mem"), value: "mem" });
+    const on = Skill.all().filter(function(s){ return s.on; });
+    if(on.length) acts.push({ label: t("share_pick_skill"), value: "skill" });
+    const c = Chat.cur();
+    if(c && c.msgs.length) acts.push({ label: t("share_pick_chat"), value: "chat" });
+    if(acts.length === 1) return null;
+    const v = await uiSheet(t("share_title"), acts);
+    if(v === null) return false;
+    if(v === "none") return null;
+    if(v === "mem"){
+      const i = await uiSheet(t("share_pick_mem"), S.mems.map(function(m, k){
+        return { label: String(m.text).slice(0, 18), value: String(k) };
+      }));
+      if(i === null) return false;
+      return { kind: "memory", text: S.mems[parseInt(i, 10)].text };
+    }
+    if(v === "skill"){
+      const i = await uiSheet(t("share_pick_skill"), on.map(function(s){
+        return { label: Skill.name(s), value: s.id };
+      }));
+      if(i === null) return false;
+      const s = Skill.all().filter(function(x){ return x.id === i; })[0];
+      return { kind: "skill", name: Skill.name(s), text: Skill.prompt(s) };
+    }
+    if(v === "chat"){
+      const last = c.msgs[c.msgs.length - 1];
+      return { kind: "chat", text: String(last.content || "").slice(0, 300) };
+    }
+    return null;
+  },
   async create(){
     const name = await uiAsk(t("task_name_q"), "");
     if(name === null || !String(name).trim()) return;
@@ -2589,8 +2621,10 @@ const GC = {
     const body = await uiAsk(t("gc_body_q"), "");
     if(body === null) return;
     const atts = Attach.take();
+    const share = await GC.pickShare();
+    if(share === false) return;
     const r = await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: tt,
-                                             p_body: String(body), p_media: atts, p_share: null });
+                                             p_body: String(body), p_media: atts, p_share: share });
     if(!r || r.__err || r.err){
       Native.toast(t("gc_fail") + " " + (r && (r.err || r.__err) ? String(r.err || r.__err) : ""));
       return;
@@ -2831,7 +2865,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.30";
+const WEB_VERSION = "1.0.31";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
