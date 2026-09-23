@@ -1,12 +1,12 @@
 {
-  "versionCode": 36,
-  "versionName": "1.0.35",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.35",
+  "versionCode": 37,
+  "versionName": "1.0.36",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.36",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.35",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.35",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.35"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.36",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.36",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.36"
   ],
   "size": 152490,
-  "notes": "修复广场点赞状态显示：每个人看到自己的赞（❤️/🤍）；广场列表区分「谁在看」与「只看我的」，所有人可见全部未下架帖子。"
+  "notes": "发帖页对齐设计稿：标题「发新帖」、正文占位「期待你的分享」、添加图片/文件、标记位置、选择版块、自主声明。"
 }
