@@ -1,12 +1,12 @@
 {
-  "versionCode": 34,
-  "versionName": "1.0.33",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.33",
+  "versionCode": 35,
+  "versionName": "1.0.34",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.34",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.33",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.33",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.33"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.34",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.34",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.34"
   ],
   "size": 152490,
-  "notes": "管理员在广场长按任意帖子即可：置顶 / 取消置顶 / 下架 / 恢复显示 / 给作者加减积分 / 封禁作者；置顶帖自动排最前并带📌标识，已下架帖管理员可见并标注，作者会收到下架通知。"
+  "notes": "全新发帖页：标题+正文（期待你的分享）+添加图片/文件+标记位置+选择版块+自主声明，一键真实发布到广场，所有用户可见；帖子存云端，版本更新后依然保留（除非被管理员下架）。"
 }
