@@ -1,12 +1,12 @@
 {
-  "versionCode": 40,
-  "versionName": "1.0.39",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.39",
+  "versionCode": 41,
+  "versionName": "1.0.40",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.40",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.39",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.39",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.39"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.40",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.40",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.40"
   ],
   "size": 156586,
-  "notes": "修复：进入帖子后点「返回」现在能正常退回广场（之前只重画列表、没关掉全屏层，看着像没反应）；帖子内回复的图片/文件不再跑到聊天区，改为帖子自己的附件区并可见可删。"
+  "notes": "注册/登录页改为中英双语同时显示（标题、用户名/密码/确认密码、占位提示、按钮、错误提示全部双语），新用户不用先选语言也能看懂。"
 }
