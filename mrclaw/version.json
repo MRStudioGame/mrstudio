@@ -1,12 +1,13 @@
 {
-  "versionCode": 42,
-  "versionName": "1.0.41",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
+  "versionCode": 43,
+  "versionName": "1.00",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.00",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.41",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.00",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.00",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.00"
   ],
   "size": 156586,
-  "notes": "帖子标题上限从 20 字放宽到 40 字（输入框、提示文案、前后端校验同步更新）。"
+  "notes": "MRClaw 正式版 1.00 发布：①管理员可在软件内直接改广播开关与内容 ②更新策略改为智能判断——能热更新就静默热更新，只有网页层确实依赖新原生能力时才提示重装 ③广场（社区）功能上线 ④版本号进入正式版 1.00",
+  "official": true
 }
