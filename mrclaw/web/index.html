@@ -422,15 +422,15 @@ zh:{
   gc_search:"搜索帖子…", gc_mine:"我的帖子", gc_all:"全部帖子", gc_new:"发帖",
   gc_empty:"还没有帖子，来发第一条", gc_replies:"回复", gc_reply_ph:"写回复…", gc_send:"回复",
   gc_report:"举报", gc_report_why:"举报理由", gc_report_ok:"已提交举报，平台会尽快处理",
-  gc_title_q:"帖子标题（20 字以内，必填）", gc_body_q:"正文内容",
+  gc_title_q:"帖子标题（40 字以内，必填）", gc_body_q:"正文内容",
   gc_need_title:"请填写标题",
-  gc_hint:"期待你的分享", gc_new_title:"发新帖", gc_title_ph:"标题（20 字以内）", gc_body_ph:"期待你的分享…",
+  gc_hint:"期待你的分享", gc_new_title:"发新帖", gc_title_ph:"标题（40 字以内）", gc_body_ph:"期待你的分享…",
   gc_add_img:"添加图片", gc_add_file:"添加文件", gc_place:"标记位置",
   gc_place_q:"填写位置（如：深圳·龙岗）", gc_board:"选择版块",
   gc_declare:"自主声明：本人承诺所发内容真实合法", gc_declared_tag:"已声明",
   gc_publish:"发布", gc_publishing:"发布中…", gc_uploading:"文件还在上传，请稍候再发",
   gc_file_fail:"有文件上传失败，请点 ✕ 删掉后重试", gc_all_boards:"全部版块",
-  gc_share_btn:"分享内容到帖子", login_first:"请先登录", gc_title_long:"标题不能超过 20 字",
+  gc_share_btn:"分享内容到帖子", login_first:"请先登录", gc_title_long:"标题不能超过 40 字",
   gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理", gc_pinned:"置顶", gc_pin:"📌 置顶该帖", gc_unpin:"取消置顶",
   gc_takedown:"🚫 下架该帖", gc_restore:"♻️ 恢复显示", gc_admin_menu:"管理操作 ",
   gc_pinned_ok:"已置顶", gc_unpinned_ok:"已取消置顶",
@@ -560,16 +560,16 @@ en:{
   gc_search:"Search posts…", gc_mine:"My posts", gc_all:"All posts", gc_new:"Post",
   gc_empty:"No posts yet", gc_replies:"Replies", gc_reply_ph:"Write a reply…", gc_send:"Reply",
   gc_report:"Report", gc_report_why:"Reason", gc_report_ok:"Reported, we will handle it soon",
-  gc_title_q:"Title (max 20 chars, required)", gc_body_q:"Content",
+  gc_title_q:"Title (max 40 chars, required)", gc_body_q:"Content",
   gc_need_title:"Title required",
-  gc_hint:"Looking forward to your post", gc_new_title:"New post", gc_title_ph:"Title (max 20 chars)",
+  gc_hint:"Looking forward to your post", gc_new_title:"New post", gc_title_ph:"Title (max 40 chars)",
   gc_body_ph:"Share something…",
   gc_add_img:"Add image", gc_add_file:"Add file", gc_place:"Tag location",
   gc_place_q:"Location (e.g. Shenzhen·Longgang)", gc_board:"Choose a board",
   gc_declare:"Declaration: the content I post is true and lawful", gc_declared_tag:"Declared",
   gc_publish:"Post", gc_publishing:"Posting…", gc_uploading:"Files still uploading, wait a moment",
   gc_file_fail:"Some files failed to upload, remove them and retry", gc_all_boards:"All boards",
-  gc_share_btn:"Attach shared content", login_first:"Please sign in first", gc_title_long:"Title must be <= 20 chars",
+  gc_share_btn:"Attach shared content", login_first:"Please sign in first", gc_title_long:"Title must be <= 40 chars",
   gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed", gc_pinned:"Pinned", gc_pin:"📌 Pin this post", gc_unpin:"Unpin",
   gc_takedown:"🚫 Take down", gc_restore:"♻️ Restore", gc_admin_menu:"Admin ",
   gc_pinned_ok:"Pinned", gc_unpinned_ok:"Unpinned",
@@ -2775,7 +2775,7 @@ const GC = {
       "<div class='cmbar'><button class='btn ghost mini' onclick='Guide.close()'>" + t("cancel") + "</button>" +
       "<b>" + t("gc_new_title") + "</b>" +
       "<button class='btn mini' id='cm-pub' onclick='GC.publish()'>" + t("gc_publish") + "</button></div>" +
-      "<input id='cm-title' class='cm-title' maxlength='20' placeholder='" + esc(t("gc_title_ph")) + "'>" +
+      "<input id='cm-title' class='cm-title' maxlength='40' placeholder='" + esc(t("gc_title_ph")) + "'>" +
       "<textarea id='cm-body' class='cm-body' placeholder='" + esc(t("gc_body_ph")) + "'></textarea>" +
       "<div id='gc-chips' class='chips hide'></div>" +
       "<div class='cm-tools'>" +
@@ -2832,7 +2832,7 @@ const GC = {
     const title = (te && te.value ? te.value : "").trim();
     const body = (be && be.value ? be.value : "");
     if(!title){ Native.toast(t("gc_need_title")); return; }
-    if(title.length > 20){ Native.toast(t("gc_title_long")); return; }
+    if(title.length > 40){ Native.toast(t("gc_title_long")); return; }
     const list = Attach.gcList();
     if(list.some(function(f){ return f.up; })){ Native.toast(t("gc_uploading")); return; }
     if(list.some(function(f){ return f.fail; })){ Native.toast(t("gc_file_fail")); return; }
@@ -3085,7 +3085,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.40";
+const WEB_VERSION = "1.0.41";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
