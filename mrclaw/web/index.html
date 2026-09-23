@@ -55,6 +55,9 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .gcard{background:var(--panel);border:1px solid var(--border);border-radius:16px;
   padding:14px;margin:10px 12px}
 .gcard h4{margin:0 0 6px;font-size:15.5px}
+.gcard.pin{border-color:#4A3A12;background:linear-gradient(180deg,rgba(255,196,0,.07),transparent 60%)}
+.pinbadge{font-size:11px;padding:2px 7px;border-radius:8px;border:1px solid var(--tip-bd);
+  background:var(--tip-bg);color:var(--tip-fg);margin-right:6px;white-space:nowrap}
 .gcard .gm{font-size:12px;color:var(--muted2);margin-bottom:6px}
 .gcard p{margin:0;color:var(--muted);font-size:14px;white-space:pre-wrap}
 .gbar{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--muted2)}
@@ -397,7 +400,10 @@ zh:{
   gc_report:"举报", gc_report_why:"举报理由", gc_report_ok:"已提交举报，平台会尽快处理",
   gc_title_q:"帖子标题（20 字以内，必填）", gc_body_q:"正文内容",
   gc_need_title:"请填写标题", gc_title_long:"标题不能超过 20 字",
-  gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理",
+  gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理", gc_pinned:"置顶", gc_pin:"📌 置顶该帖", gc_unpin:"取消置顶",
+  gc_takedown:"🚫 下架该帖", gc_restore:"♻️ 恢复显示", gc_admin_menu:"管理操作 ",
+  gc_pinned_ok:"已置顶", gc_unpinned_ok:"已取消置顶",
+  gc_removed_ok:"已下架", gc_restored_ok:"已恢复显示",
   gc_shared:"分享了内容", gc_shared_chat:"分享了与AI的对话", gc_shared_mem:"分享了记忆",
   gc_shared_skill:"分享了技能",
   notice_title:"通知", notice_empty:"暂时没有新消息",
@@ -525,7 +531,10 @@ en:{
   gc_report:"Report", gc_report_why:"Reason", gc_report_ok:"Reported, we will handle it soon",
   gc_title_q:"Title (max 20 chars, required)", gc_body_q:"Content",
   gc_need_title:"Title required", gc_title_long:"Title must be <= 20 chars",
-  gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed",
+  gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed", gc_pinned:"Pinned", gc_pin:"📌 Pin this post", gc_unpin:"Unpin",
+  gc_takedown:"🚫 Take down", gc_restore:"♻️ Restore", gc_admin_menu:"Admin ",
+  gc_pinned_ok:"Pinned", gc_unpinned_ok:"Unpinned",
+  gc_removed_ok:"Taken down", gc_restored_ok:"Restored",
   gc_shared:"Shared", gc_shared_chat:"Shared an AI chat", gc_shared_mem:"Shared a memory",
   gc_shared_skill:"Shared a skill",
   notice_title:"Notifications", notice_empty:"Nothing new",
@@ -2532,8 +2541,9 @@ const GC = {
     if(!S.user) return;
     const box = el("gc-list");
     if(box) box.innerHTML = "<div class='empty'>" + t("loading") + "</div>";
-    rpc("mrclaw_posts_list", { p_q: this.q || null, p_user: this.mine ? S.user.name : null,
-                               p_limit: 60 }).then(function(a){
+    const gp = { p_q: this.q || null, p_user: this.mine ? S.user.name : null, p_limit: 60 };
+    if(Admin.on()) gp.p_admin = S.user.name;
+    rpc("mrclaw_posts_list", gp).then(function(a){
       const box2 = el("gc-list");
       if(!box2) return;
       const arr = Array.isArray(a) ? a : [];
@@ -2543,8 +2553,12 @@ const GC = {
   },
   card(x){
     const media = (x.media || []).filter(function(m){ return m && m.url; }).slice(0, 4).map(GC.media).join("");
-    return "<div class='gcard' onclick='GC.open(" + x.id + ")'>" +
-      "<h4>" + linkify(esc(x.title)) + "</h4>" +
+    const badges = (x.pinned ? "<span class='pinbadge'>📌 " + t("gc_pinned") + "</span>" : "") +
+      ((x.status === "removed") ? "<span class='pinbadge' style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "");
+    const lp = " ontouchstart='GC.ps(" + x.id + ")' ontouchend='GC.pe()' ontouchmove='GC.pe()'" +
+               " onmousedown='GC.ps(" + x.id + ")' onmouseup='GC.pe()' onmouseleave='GC.pe()'";
+    return "<div class='gcard" + (x.pinned ? " pin" : "") + "' onclick='GC.open(" + x.id + ")'" + lp + ">" +
+      "<h4>" + badges + linkify(esc(x.title)) + "</h4>" +
       "<div class='gm'>" + esc(x.username) + " · " + fmtTime(new Date(x.created_at).getTime()) + "</div>" +
       "<p>" + linkify(esc(String(x.body || "").slice(0, 120))) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
@@ -2560,6 +2574,7 @@ const GC = {
     return "<a href='" + esc(u) + "' target='_blank'>📄 " + esc(m.name || "file") + "</a>";
   },
   open(id){
+    if(this._lp){ this._lp = false; return; }
     this.cur = id;
     rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name }).then(function(d){
       if(!d || d.__err || !d.post){ Native.toast(t("gc_fail")); return; }
@@ -2577,7 +2592,9 @@ const GC = {
       (post.share ? "<div class='gshare'>" + esc(GC.shareText(post.share)) + "</div>" : "") +
       "<div class='gbar'><span onclick=\"GC.like(" + post.id + ")\">" +
       (post.liked ? "❤️" : "🤍") + " " + (post.likes || 0) + "</span>" +
-      "<span onclick=\"GC.report(" + post.id + ")\">" + t("gc_report") + "</span></div></div>";
+      "<span onclick=\"GC.report(" + post.id + ")\">" + t("gc_report") + "</span>" +
+      (Admin.on() ? "<span onclick=\"GC.menu(" + post.id + ")\">🛡 " + t("nav_adm") + "</span>" : "") +
+      "</div></div>";
     h += "<div class='hd'>" + t("gc_replies") + " (" + replies.length + ")</div>";
     h += replies.map(function(r){
       const m2 = (r.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
@@ -2603,6 +2620,56 @@ const GC = {
     if(o.kind === "memory") return t("gc_shared_mem") + "：" + String(o.text || "").slice(0, 160);
     if(o.kind === "skill") return t("gc_shared_skill") + "：" + String(o.name || "");
     return t("gc_shared") + "：" + String(o.text || "").slice(0, 160);
+  },
+  ps(id){
+    this.pe();
+    this._pid = id;
+    const tid = id;
+    this._t = setTimeout(function(){ GC._lp = true; GC.menu(tid); }, 600);
+  },
+  pe(){
+    if(this._t){ clearTimeout(this._t); this._t = null; }
+  },
+  async menu(id){
+    if(!Admin.on()) return;
+    const d = await rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name });
+    if(!d || !d.post){ Native.toast(t("gc_fail")); return; }
+    const post = d.post;
+    const acts = [];
+    acts.push({ label: post.pinned ? t("gc_unpin") : t("gc_pin"), value: "pin" });
+    if(post.status === "removed") acts.push({ label: t("gc_restore"), value: "restore" });
+    else acts.push({ label: t("gc_takedown"), value: "remove" });
+    acts.push({ label: t("adm_points") + " · " + post.username, value: "pts" });
+    acts.push({ label: t("adm_ban") + " · " + post.username, value: "ban" });
+    const v = await uiSheet(t("gc_admin_menu") + "《" + String(post.title || "").slice(0, 12) + "》", acts);
+    if(v === null) return;
+    if(v === "pin"){
+      await GC.act(id, post.pinned ? "unpin" : "pin", null);
+    } else if(v === "restore"){
+      await GC.act(id, "restore", null);
+    } else if(v === "remove"){
+      const why = await uiAsk(t("adm_reason") + "（可不填）", "");
+      if(why === null) return;
+      await GC.act(id, "remove", String(why));
+    } else if(v === "pts"){
+      try{ Adm.points(post.username); }catch(e){}
+    } else if(v === "ban"){
+      try{ Adm.ban(post.username, true); }catch(e){}
+    }
+  },
+  async act(id, action, note){
+    const r = await rpc("mrclaw_post_admin", { p_admin: S.user.name, p_id: id,
+                                               p_action: action, p_note: note || "" });
+    if(!r || r.__err || r.err){ Native.toast(t("gc_fail")); return; }
+    Native.toast(action === "pin" ? t("gc_pinned_ok") :
+                 (action === "unpin" ? t("gc_unpinned_ok") :
+                  (action === "remove" ? t("gc_removed_ok") : t("gc_restored_ok"))));
+    if(S.tab === "gc" && GC.cur && !el("guide").classList.contains("hide")){
+      if(action === "remove" && GC.cur === id){ Guide.close(); }
+      else GC.open(id);
+      return;
+    }
+    GC.render();
   },
   async like(id){
     const r = await rpc("mrclaw_like", { p_user: S.user.name, p_post_id: id });
@@ -2880,7 +2947,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.32";
+const WEB_VERSION = "1.0.33";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
