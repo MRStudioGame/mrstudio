@@ -72,6 +72,25 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   padding:10px;margin-top:8px;font-size:12.5px;color:var(--muted)}
 .gsearch{display:flex;gap:8px;padding:12px 12px 4px}
 .gsearch input{flex:1}
+.cm{background:var(--bg);border-radius:0;padding:0 0 30px;min-height:100vh}
+.cmbar{display:flex;align-items:center;justify-content:space-between;gap:9px;
+  padding:12px 14px;border-bottom:1px solid var(--line)}
+.cmbar b{font-size:16px}
+.cm-hint{font-size:12.5px;color:var(--muted2);padding:12px 16px 2px}
+.cm-title{width:100%;box-sizing:border-box;font-size:19px;font-weight:600;background:transparent;
+  border:0;outline:none;color:var(--fg);padding:8px 16px}
+.cm-title::placeholder{color:var(--muted2);font-weight:400}
+.cm-body{width:100%;box-sizing:border-box;min-height:170px;background:transparent;border:0;
+  outline:none;color:var(--fg);font-size:15px;line-height:1.65;padding:6px 16px;resize:none;font-family:inherit}
+.cm-body::placeholder{color:var(--muted2)}
+.cm-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line)}
+.cm-tool{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:9px 13px;color:var(--muted);font-size:13.5px}
+.cm-tool.on{color:var(--tip-fg);border-color:var(--tip-bd);background:var(--tip-bg)}
+.cm-sec{font-size:12.5px;color:var(--muted2);padding:14px 16px 6px}
+.gbo{border:1px solid var(--border);background:var(--panel);color:var(--muted);
+  border-radius:11px;padding:7px 12px;font-size:13px}
+.gbo.act{color:var(--tip-fg);border-color:var(--tip-bd);background:var(--tip-bg)}
 .nlist{background:var(--panel);border:1px solid var(--border);border-radius:14px;
   padding:12px 14px;margin:10px 12px}
 .nlist.unread{border-color:var(--tip-bd);background:var(--tip-bg)}
@@ -399,7 +418,14 @@ zh:{
   gc_empty:"还没有帖子，来发第一条", gc_replies:"回复", gc_reply_ph:"写回复…", gc_send:"回复",
   gc_report:"举报", gc_report_why:"举报理由", gc_report_ok:"已提交举报，平台会尽快处理",
   gc_title_q:"帖子标题（20 字以内，必填）", gc_body_q:"正文内容",
-  gc_need_title:"请填写标题", gc_title_long:"标题不能超过 20 字",
+  gc_need_title:"请填写标题",
+  gc_hint:"期待你的分享", gc_title_ph:"标题（20 字以内）", gc_body_ph:"期待你的分享…",
+  gc_add_img:"添加图片", gc_add_file:"添加文件", gc_place:"标记位置",
+  gc_place_q:"填写位置（如：深圳·龙岗）", gc_board:"选择版块",
+  gc_declare:"自主声明：本人承诺所发内容真实合法", gc_declared_tag:"已声明",
+  gc_publish:"发布", gc_publishing:"发布中…", gc_uploading:"文件还在上传，请稍候再发",
+  gc_file_fail:"有文件上传失败，请点 ✕ 删掉后重试", gc_all_boards:"全部版块",
+  gc_share_btn:"分享内容到帖子", login_first:"请先登录", gc_title_long:"标题不能超过 20 字",
   gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理", gc_pinned:"置顶", gc_pin:"📌 置顶该帖", gc_unpin:"取消置顶",
   gc_takedown:"🚫 下架该帖", gc_restore:"♻️ 恢复显示", gc_admin_menu:"管理操作 ",
   gc_pinned_ok:"已置顶", gc_unpinned_ok:"已取消置顶",
@@ -530,7 +556,15 @@ en:{
   gc_empty:"No posts yet", gc_replies:"Replies", gc_reply_ph:"Write a reply…", gc_send:"Reply",
   gc_report:"Report", gc_report_why:"Reason", gc_report_ok:"Reported, we will handle it soon",
   gc_title_q:"Title (max 20 chars, required)", gc_body_q:"Content",
-  gc_need_title:"Title required", gc_title_long:"Title must be <= 20 chars",
+  gc_need_title:"Title required",
+  gc_hint:"Looking forward to your post", gc_title_ph:"Title (max 20 chars)",
+  gc_body_ph:"Share something…",
+  gc_add_img:"Add image", gc_add_file:"Add file", gc_place:"Tag location",
+  gc_place_q:"Location (e.g. Shenzhen·Longgang)", gc_board:"Choose a board",
+  gc_declare:"Declaration: the content I post is true and lawful", gc_declared_tag:"Declared",
+  gc_publish:"Post", gc_publishing:"Posting…", gc_uploading:"Files still uploading, wait a moment",
+  gc_file_fail:"Some files failed to upload, remove them and retry", gc_all_boards:"All boards",
+  gc_share_btn:"Attach shared content", login_first:"Please sign in first", gc_title_long:"Title must be <= 20 chars",
   gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed", gc_pinned:"Pinned", gc_pin:"📌 Pin this post", gc_unpin:"Unpin",
   gc_takedown:"🚫 Take down", gc_restore:"♻️ Restore", gc_admin_menu:"Admin ",
   gc_pinned_ok:"Pinned", gc_unpinned_ok:"Unpinned",
@@ -2144,8 +2178,8 @@ const Attach = {
       else if(v === "file") native.pickFile("any", true);
     });
   },
-  pick(kind, forSupport){
-    Attach._target = forSupport ? "sup" : "chat";
+  pick(kind, forSupport, target){
+    Attach._target = target || (forSupport ? "sup" : "chat");
     Attach.pickWeb(kind || "any");
   },
   pickWeb(kind){
@@ -2168,7 +2202,7 @@ const Attach = {
     }
   },
   addFiles(files){
-    const list = Attach._target === "sup" ? Attach.supList() : Attach.pending;
+    const list = Attach.pickList();
     files.forEach(function(f){
       list.push({ name:f.name, mime:f.type || "", size:f.size || 0, file:f, url:"", up:true });
     });
@@ -2179,7 +2213,7 @@ const Attach = {
     let arr = [];
     try{ arr = JSON.parse(s); }catch(e){ arr = []; }
     if(!Array.isArray(arr) || !arr.length){ Native.toast(t("pick_fail")); return; }
-    const list = Attach._target === "sup" ? Attach.supList() : Attach.pending;
+    const list = Attach.pickList();
     arr.forEach(function(f){
       list.push({ name:f.name, mime:f.mime || "", size:f.size || 0,
                   token:f.token || "", b64:f.b64 || "", url:"", up:true });
@@ -2188,8 +2222,14 @@ const Attach = {
     Attach.uploadAll();
   },
   supList(){ return Attach.supPending || (Attach.supPending = []); },
+  gcList(){ return Attach.gcPending || (Attach.gcPending = []); },
+  pickList(){
+    if(Attach._target === "sup") return Attach.supList();
+    if(Attach._target === "gc") return Attach.gcList();
+    return Attach.pending;
+  },
   uploadAll(){
-    const all = Attach.pending.concat(Attach.supList());
+    const all = Attach.pending.concat(Attach.supList(), Attach.gcList());
     all.forEach(function(f){
       if(!f.up || f.url) return;
       Attach.upload(f, function(url, err){
@@ -2292,6 +2332,10 @@ const Attach = {
   },
   fail(f, err){
     const msg = t("upload_fail") + "\n" + String(err || "").slice(0, 260);
+    if(Attach._target === "gc"){
+      Native.toast(t("upload_fail") + " " + String(err || "").slice(0, 70));
+      return;
+    }
     const c = Chat.cur();
     if(c){
       c.msgs.push({ role:"system", content: msg + "\n(文件: " + ((f && f.name) ? f.name : "") + ")" });
@@ -2303,8 +2347,9 @@ const Attach = {
   isImg(f){ return String(f.mime || "").indexOf("image") === 0 || /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || ""); },
   take(){ const a = Attach.ready(Attach.pending); Attach.pending = []; Attach.render(); return a; },
   takeSup(){ const a = Attach.ready(Attach.supList()); Attach.supPending = []; Attach.render(); return a; },
+  takeGc(){ const a = Attach.ready(Attach.gcList()); Attach.gcPending = []; Attach.render(); return a; },
   rm(list, i){
-    const arr = list === "sup" ? Attach.supList() : Attach.pending;
+    const arr = list === "sup" ? Attach.supList() : (list === "gc" ? Attach.gcList() : Attach.pending);
     arr.splice(i, 1); Attach.render();
   },
   render(){
@@ -2325,6 +2370,12 @@ const Attach = {
       const a2 = Attach.supList();
       if(!a2.length){ s.className = "hide"; s.innerHTML = ""; }
       else { s.className = ""; s.innerHTML = a2.map(function(f, i){ return chipHtml(f, "sup", i); }).join(""); }
+    }
+    const g2 = el("gc-chips");
+    if(g2){
+      const a3 = Attach.gcList();
+      if(!a3.length){ g2.className = "chips hide"; g2.innerHTML = ""; }
+      else { g2.className = "chips"; g2.innerHTML = a3.map(function(f, i){ return chipHtml(f, "gc", i); }).join(""); }
     }
   },
   html(list){
@@ -2524,24 +2575,31 @@ const Notice = {
 };
 
 /* ================= 广场 ================= */
+const GC_BOARDS = ["闲聊", "求助", "分享", "公告"];
 const GC = {
-  q: "", mine: false, cur: null,
+  q: "", mine: false, cur: null, board: "", cboard: "闲聊", cplace: "", cdecl: false,
   render(){
     App.title(t("nav_gc"));
     App.topBtn(t("gc_new"));
     let h = "<div class='gsearch'><input class='inp' placeholder='" + esc(t("gc_search")) +
       "' value='" + esc(this.q) + "' oninput='GC.q=this.value;GC.load()'>" +
       "<button class='btn ghost mini" + (this.mine ? "" : " ") + "' onclick='GC.toggleMine()'>" +
-      (this.mine ? t("gc_all") : t("gc_mine")) + "</button></div><div id='gc-list'></div>";
+      (this.mine ? t("gc_all") : t("gc_mine")) + "</button></div>" +
+      "<div class='cats'>" + [""].concat(GC_BOARDS).map(function(b){
+        const nm = b === "" ? t("gc_all_boards") : b;
+        return "<button class='gbo" + (GC.board === b ? " act" : "") + "' onclick=\"GC.setFilter('" + b + "')\">" + nm + "</button>";
+      }).join("") + "</div><div id='gc-list'></div>";
     App.content(h);
     this.load();
   },
   toggleMine(){ this.mine = !this.mine; this.render(); },
+  setFilter(b){ this.board = b; this.render(); },
   load(){
     if(!S.user) return;
     const box = el("gc-list");
     if(box) box.innerHTML = "<div class='empty'>" + t("loading") + "</div>";
     const gp = { p_q: this.q || null, p_user: this.mine ? S.user.name : null, p_limit: 60 };
+    if(this.board) gp.p_board = this.board;
     if(Admin.on()) gp.p_admin = S.user.name;
     rpc("mrclaw_posts_list", gp).then(function(a){
       const box2 = el("gc-list");
@@ -2554,7 +2612,9 @@ const GC = {
   card(x){
     const media = (x.media || []).filter(function(m){ return m && m.url; }).slice(0, 4).map(GC.media).join("");
     const badges = (x.pinned ? "<span class='pinbadge'>📌 " + t("gc_pinned") + "</span>" : "") +
-      ((x.status === "removed") ? "<span class='pinbadge' style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "");
+      ((x.status === "removed") ? "<span class='pinbadge' style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") +
+      (x.board ? "<span class='pinbadge'>" + esc(x.board) + "</span>" : "") +
+      (x.place ? "<span class='pinbadge'>📍" + esc(x.place) + "</span>" : "");
     const lp = " ontouchstart='GC.ps(" + x.id + ")' ontouchend='GC.pe()' ontouchmove='GC.pe()'" +
                " onmousedown='GC.ps(" + x.id + ")' onmouseup='GC.pe()' onmouseleave='GC.pe()'";
     return "<div class='gcard" + (x.pinned ? " pin" : "") + "' onclick='GC.open(" + x.id + ")'" + lp + ">" +
@@ -2586,6 +2646,9 @@ const GC = {
     let h = "<div class='gwrap'><div class='gcard'>" +
       "<h4>" + linkify(esc(post.title)) + "</h4>" +
       "<div class='gm'>" + esc(post.username) + " · " + fmtTime(new Date(post.created_at).getTime()) +
+      (post.board ? " · " + esc(post.board) : "") +
+      (post.place ? " · 📍" + esc(post.place) : "") +
+      (post.declared ? " · " + t("gc_declared_tag") : "") +
       (post.status === "removed" ? " · <span style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") + "</div>" +
       "<p>" + linkify(esc(post.body || "")) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
@@ -2694,25 +2757,92 @@ const GC = {
     if(r && r.__err){ Native.toast(t("gc_fail")); return; }
     Native.toast(t("gc_report_ok"));
   },
-  async create(){
-    const title = await uiAsk(t("gc_title_q"), "");
-    if(title === null) return;
-    const tt = String(title).trim();
-    if(!tt){ Native.toast(t("gc_need_title")); return; }
-    if(tt.length > 20){ Native.toast(t("gc_title_long")); return; }
-    const body = await uiAsk(t("gc_body_q"), "");
-    if(body === null) return;
-    const atts = Attach.take();
-    const share = await GC.pickShare();
-    if(share === false) return;
-    const r = await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: tt,
-                                             p_body: String(body), p_media: atts, p_share: share });
+  create(){ GC.compose(); },
+  compose(){
+    GC.cplace = ""; GC.cdecl = false; GC.cshare = null;
+    const g = el("guide");
+    g.classList.remove("hide");
+    g.innerHTML = "<div class='gwrap cm'>" +
+      "<div class='cmbar'><button class='btn ghost mini' onclick='Guide.close()'>" + t("cancel") + "</button>" +
+      "<b>" + t("gc_new") + "</b>" +
+      "<button class='btn mini' id='cm-pub' onclick='GC.publish()'>" + t("gc_publish") + "</button></div>" +
+      "<div class='cm-hint'>" + t("gc_hint") + "</div>" +
+      "<input id='cm-title' class='cm-title' maxlength='20' placeholder='" + esc(t("gc_title_ph")) + "'>" +
+      "<textarea id='cm-body' class='cm-body' placeholder='" + esc(t("gc_body_ph")) + "'></textarea>" +
+      "<div id='gc-chips' class='chips hide'></div>" +
+      "<div class='cm-tools'>" +
+        "<button class='cm-tool' onclick=\"Attach.pick('image',false,'gc')\">🖼 " + t("gc_add_img") + "</button>" +
+        "<button class='cm-tool' onclick=\"Attach.pick('any',false,'gc')\">📄 " + t("gc_add_file") + "</button>" +
+        "<button class='cm-tool' id='cm-place' onclick='GC.pickPlace()'>📍 " + t("gc_place") + "</button>" +
+      "</div>" +
+      "<div class='cm-sec'>" + t("gc_board") + "</div>" +
+      "<div class='cats' id='cm-boards'>" + GC_BOARDS.map(function(b){
+        return "<button class='gbo" + (GC.cboard === b ? " act" : "") + "' data-b='" + b +
+               "' onclick=\"GC.setBoard('" + b + "')\">" + b + "</button>";
+      }).join("") + "</div>" +
+      "<div class='cm-tools' style='border-top:0'>" +
+        "<button class='cm-tool' id='cm-dec' onclick='GC.toggleDeclare()'>" + t("gc_declare") + "</button>" +
+        "<button class='cm-tool' id='cm-share' onclick='GC.attachShare()'>" + t("gc_share_btn") + "</button>" +
+      "</div>" +
+      "<div style='padding:6px 16px 0'><button class='btn' style='width:100%' onclick='GC.publish()'>" +
+      t("gc_publish") + "</button></div></div>";
+  },
+  setBoard(b){
+    GC.cboard = b;
+    document.querySelectorAll("#cm-boards .gbo").forEach(function(x){
+      x.classList.toggle("act", x.getAttribute("data-b") === b);
+    });
+  },
+  async pickPlace(){
+    const v = await uiAsk(t("gc_place_q"), GC.cplace || "");
+    if(v === null) return;
+    GC.cplace = String(v).trim().slice(0, 24);
+    const b = el("cm-place");
+    if(b){
+      b.className = GC.cplace ? "cm-tool on" : "cm-tool";
+      b.textContent = GC.cplace ? ("📍 " + GC.cplace) : ("📍 " + t("gc_place"));
+    }
+  },
+  toggleDeclare(){
+    GC.cdecl = !GC.cdecl;
+    const b = el("cm-dec");
+    if(b){
+      b.className = GC.cdecl ? "cm-tool on" : "cm-tool";
+      b.textContent = (GC.cdecl ? "☑ " : "☐ ") + t("gc_declare");
+    }
+  },
+  async attachShare(){
+    const sh = await GC.pickShare();
+    if(sh === false || !sh) return;
+    GC.cshare = sh;
+    const b = el("cm-share");
+    if(b){ b.className = "cm-tool on"; b.textContent = "☑ " + t("gc_share_btn"); }
+  },
+  async publish(){
+    if(!S.user){ Native.toast(t("login_first")); return; }
+    const te = el("cm-title"), be = el("cm-body");
+    const title = (te && te.value ? te.value : "").trim();
+    const body = (be && be.value ? be.value : "");
+    if(!title){ Native.toast(t("gc_need_title")); return; }
+    if(title.length > 20){ Native.toast(t("gc_title_long")); return; }
+    const list = Attach.gcList();
+    if(list.some(function(f){ return f.up; })){ Native.toast(t("gc_uploading")); return; }
+    if(list.some(function(f){ return f.fail; })){ Native.toast(t("gc_file_fail")); return; }
+    const atts = Attach.takeGc();
+    const pub = el("cm-pub");
+    if(pub){ pub.textContent = t("gc_publishing"); }
+    const r = await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: title,
+        p_body: String(body), p_media: atts, p_share: GC.cshare, p_board: GC.cboard,
+        p_place: GC.cplace, p_declared: GC.cdecl });
+    if(pub){ pub.textContent = t("gc_publish"); }
     if(!r || r.__err || r.err){
       Native.toast(t("gc_fail") + " " + (r && (r.err || r.__err) ? String(r.err || r.__err) : ""));
       return;
     }
     Native.toast(t("gc_posted"));
-    this.mine = true; this.render();
+    GC.cplace = ""; GC.cdecl = false; GC.cshare = null;
+    Guide.close();
+    GC.mine = false; GC.board = ""; GC.render();
   }
 };
 
@@ -2947,7 +3077,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.33";
+const WEB_VERSION = "1.0.34";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
