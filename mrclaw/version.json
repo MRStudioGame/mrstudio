@@ -1,12 +1,12 @@
 {
-  "versionCode": 32,
-  "versionName": "1.0.31",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.31",
+  "versionCode": 33,
+  "versionName": "1.0.32",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.32",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.31",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.31",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.31"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.32",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.32",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.32"
   ],
   "size": 152490,
-  "notes": "发帖时可选择分享：不分享 / 我的记忆 / 我的技能 / 最近一条对话（分享卡片显示在帖子里）。"
+  "notes": "1. 彻底修复图片/文件上传（根因：Supabase 存储不接受中文路径，已改为安全目录）；2. 「管理」入口只对管理员显示，普通用户看不到；3. 广场点「发帖」不再误触发「已保存」。"
 }
