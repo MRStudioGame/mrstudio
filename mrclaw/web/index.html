@@ -419,7 +419,7 @@ zh:{
   gc_report:"举报", gc_report_why:"举报理由", gc_report_ok:"已提交举报，平台会尽快处理",
   gc_title_q:"帖子标题（20 字以内，必填）", gc_body_q:"正文内容",
   gc_need_title:"请填写标题",
-  gc_hint:"期待你的分享", gc_title_ph:"标题（20 字以内）", gc_body_ph:"期待你的分享…",
+  gc_hint:"期待你的分享", gc_new_title:"发新帖", gc_title_ph:"标题（20 字以内）", gc_body_ph:"期待你的分享…",
   gc_add_img:"添加图片", gc_add_file:"添加文件", gc_place:"标记位置",
   gc_place_q:"填写位置（如：深圳·龙岗）", gc_board:"选择版块",
   gc_declare:"自主声明：本人承诺所发内容真实合法", gc_declared_tag:"已声明",
@@ -557,7 +557,7 @@ en:{
   gc_report:"Report", gc_report_why:"Reason", gc_report_ok:"Reported, we will handle it soon",
   gc_title_q:"Title (max 20 chars, required)", gc_body_q:"Content",
   gc_need_title:"Title required",
-  gc_hint:"Looking forward to your post", gc_title_ph:"Title (max 20 chars)",
+  gc_hint:"Looking forward to your post", gc_new_title:"New post", gc_title_ph:"Title (max 20 chars)",
   gc_body_ph:"Share something…",
   gc_add_img:"Add image", gc_add_file:"Add file", gc_place:"Tag location",
   gc_place_q:"Location (e.g. Shenzhen·Longgang)", gc_board:"Choose a board",
@@ -2765,9 +2765,8 @@ const GC = {
     g.classList.remove("hide");
     g.innerHTML = "<div class='gwrap cm'>" +
       "<div class='cmbar'><button class='btn ghost mini' onclick='Guide.close()'>" + t("cancel") + "</button>" +
-      "<b>" + t("gc_new") + "</b>" +
+      "<b>" + t("gc_new_title") + "</b>" +
       "<button class='btn mini' id='cm-pub' onclick='GC.publish()'>" + t("gc_publish") + "</button></div>" +
-      "<div class='cm-hint'>" + t("gc_hint") + "</div>" +
       "<input id='cm-title' class='cm-title' maxlength='20' placeholder='" + esc(t("gc_title_ph")) + "'>" +
       "<textarea id='cm-body' class='cm-body' placeholder='" + esc(t("gc_body_ph")) + "'></textarea>" +
       "<div id='gc-chips' class='chips hide'></div>" +
