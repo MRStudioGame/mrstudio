@@ -2169,9 +2169,9 @@ const Attach = {
     }
     return (s ? s.slice(0, 24) : "u") + "-" + hs.toString(36);
   },
-  openMenu(forSupport){
-    if(!native || !native.pickFile){ Native.toast(t("mobile_only")); return; }
-    Attach._target = forSupport ? "sup" : "chat";
+  openMenu(forSupport, target){
+    Attach._target = target || (forSupport ? "sup" : "chat");
+    if(!native || !native.pickFile){ Attach.pickWeb(Attach._target === "gc" ? "any" : "any"); return; }
     uiSheet(t("attach_title"), [
       { label: "🖼 " + t("attach_img"), value: "image" },
       { label: "📄 " + t("attach_file"), value: "file" }
@@ -2636,9 +2636,11 @@ const GC = {
     if(isVid) return "<video src='" + esc(u) + "' controls></video>";
     return "<a href='" + esc(u) + "' target='_blank'>📄 " + esc(m.name || "file") + "</a>";
   },
+  back(){ Guide.close(); GC.cur = null; GC.render(); },
   open(id){
     if(this._lp){ this._lp = false; return; }
     this.cur = id;
+    Attach.gcPending = [];
     rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name }).then(function(d){
       if(!d || d.__err || !d.post){ Native.toast(t("gc_fail")); return; }
       GC.detail(d.post, d.replies || []);
@@ -2670,10 +2672,11 @@ const GC = {
     }).join("");
     h += "<div class='gcard'><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
       "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
+      "<div id='gc-chips' class='chips hide'></div>" +
       "<div style='height:10px'></div><div style='display:flex;gap:8px'>" +
-      "<button class='btn ghost mini' onclick=\"Attach.openMenu(false)\">＋</button>" +
+      "<button class='btn ghost mini' onclick=\"Attach.openMenu(false,'gc')\">＋</button>" +
       "<button class='btn' onclick='GC.reply(" + post.id + ")'>" + t("gc_send") + "</button></div></div>" +
-      "<div style='height:12px'></div><button class='btn ghost' onclick='GC.render()'>" + t("back") + "</button></div>";
+      "<div style='height:12px'></div><button class='btn ghost' onclick='GC.back()'>" + t("back") + "</button></div>";
     const g = el("guide");
     g.classList.remove("hide");
     g.innerHTML = h;
@@ -2745,7 +2748,7 @@ const GC = {
   async reply(id){
     const box = el("gc-rep");
     const v = (box && box.value ? box.value : "").trim();
-    const atts = Attach.take();
+    const atts = Attach.takeGc();
     if(!v && !atts.length) return;
     const r = await rpc("mrclaw_reply_add", { p_user: S.user.name, p_post_id: id,
                                               p_body: v, p_media: atts });
@@ -3079,7 +3082,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.38";
+const WEB_VERSION = "1.0.39";
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
 const Acc = {
   data:{ points:0, banUntil:null, banReason:"", mode:"points", ready:false },
