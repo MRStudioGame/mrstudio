@@ -1,12 +1,12 @@
 {
-  "versionCode": 31,
-  "versionName": "1.0.30",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.30",
+  "versionCode": 32,
+  "versionName": "1.0.31",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.31",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.30",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.30",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.30"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.31",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.31",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.31"
   ],
   "size": 152490,
-  "notes": "1. 彻底修复图片/文件上传（改用浏览器文件选择 + fetch 直传，不再依赖原生上传代码）；2. 消息里的网址自动变蓝、点击跳浏览器；3. 新增 MRClaw 广场（发帖/回复/点赞/举报/搜索/我的帖子/通知）；4. 管理员"
+  "notes": "发帖时可选择分享：不分享 / 我的记忆 / 我的技能 / 最近一条对话（分享卡片显示在帖子里）。"
 }
