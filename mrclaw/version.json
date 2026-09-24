@@ -1,5 +1,5 @@
 {
-  "versionCode": 55,
+  "versionCode": 56,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 164778,
-  "notes": "全量按键体检：静态 73 个入口全部有效、运行时 73 项检查通过；修复「语音输入没有麦克风按钮」（现在输入栏左侧有麦克风按钮，点了变红并开始听写，代码也不再因找不到元素报错）。",
+  "notes": "管理员删除帖子改为彻底删除：帖子、评论、点赞、通知、举报记录一并清除，管理员自己的列表里也不会再有（举报判违规同理，会先弹确认）；管理端去掉「已下架/恢复」相关入口。",
   "official": false
 }
