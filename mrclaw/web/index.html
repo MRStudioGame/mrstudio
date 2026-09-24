@@ -469,9 +469,10 @@ zh:{
   gc_file_fail:"有文件上传失败，请点 ✕ 删掉后重试", gc_all_boards:"全部版块",
   gc_share_btn:"分享内容到帖子", login_first:"请先登录", gc_title_long:"标题不能超过 40 字",
   gc_posted:"发布成功", gc_fail:"操作失败，请稍后再试", gc_removed:"已被处理", gc_pinned:"置顶", gc_pin:"📌 置顶该帖", gc_unpin:"取消置顶",
-  gc_takedown:"🚫 下架该帖", gc_restore:"♻️ 恢复显示", gc_admin_menu:"管理操作 ",
+  gc_takedown:"🗑 彻底删除该帖", gc_restore:"♻️ 恢复显示", gc_admin_menu:"管理操作 ",
+  adm_del_note:"（会通知作者，可留空）", gc_del_gone:"帖子已彻底删除，管理员列表里也不会再有",
   gc_pinned_ok:"已置顶", gc_unpinned_ok:"已取消置顶",
-  gc_removed_ok:"已下架", gc_restored_ok:"已恢复显示",
+  gc_removed_ok:"已彻底删除", gc_restored_ok:"已恢复显示",
   gc_shared:"分享了内容", gc_shared_chat:"分享了与AI的对话", gc_shared_mem:"分享了记忆",
   gc_shared_skill:"分享了技能",
   notice_title:"通知", notice_empty:"暂时没有新消息",
@@ -487,7 +488,7 @@ zh:{
   gc_deleted:"已删除", gc_edited:"已编辑", gc_saved:"已保存", gc_saving:"保存中…",
   gc_keep_media:"原有图片（点 ✕ 可移除）",
   gc_reply_to:"正在回复", adm_sup:"客服私信", adm_users:"用户管理",
-  adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
+  adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规并删除帖子",
   adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
   adm_ban:"封禁", adm_unban:"解封", adm_days:"封禁天数（0=永久）", adm_points:"加减积分",
   adm_points_q:"增减积分（正数加、负数减）", adm_reply_ph:"回复该用户…",
@@ -619,9 +620,10 @@ en:{
   gc_file_fail:"Some files failed to upload, remove them and retry", gc_all_boards:"All boards",
   gc_share_btn:"Attach shared content", login_first:"Please sign in first", gc_title_long:"Title must be <= 40 chars",
   gc_posted:"Posted", gc_fail:"Failed, try again later", gc_removed:"Removed", gc_pinned:"Pinned", gc_pin:"📌 Pin this post", gc_unpin:"Unpin",
-  gc_takedown:"🚫 Take down", gc_restore:"♻️ Restore", gc_admin_menu:"Admin ",
+  gc_takedown:"🗑 Delete permanently", gc_restore:"♻️ Restore", gc_admin_menu:"Admin ",
+  adm_del_note:" (the author is notified; can be empty)", gc_del_gone:"The post is permanently deleted and gone from admin lists too",
   gc_pinned_ok:"Pinned", gc_unpinned_ok:"Unpinned",
-  gc_removed_ok:"Taken down", gc_restored_ok:"Restored",
+  gc_removed_ok:"Deleted permanently", gc_restored_ok:"Restored",
   gc_shared:"Shared", gc_shared_chat:"Shared an AI chat", gc_shared_mem:"Shared a memory",
   gc_shared_skill:"Shared a skill",
   notice_title:"Notifications", notice_empty:"Nothing new",
@@ -637,7 +639,7 @@ en:{
   gc_deleted:"Deleted", gc_edited:"edited", gc_saved:"Saved", gc_saving:"Saving…",
   gc_keep_media:"Attached images (tap ✕ to remove)",
   gc_reply_to:"Replying to", adm_sup:"Support inbox", adm_users:"Users",
-  adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
+  adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating → delete post",
   adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
   adm_ban:"Ban", adm_unban:"Unban", adm_days:"Ban days (0 = permanent)", adm_points:"Points",
   adm_points_q:"Points delta (positive or negative)", adm_reply_ph:"Reply to this user…",
@@ -2973,8 +2975,7 @@ const GC = {
     }
     if(Admin.on()){
       acts.push({ label: post.pinned ? t("gc_unpin") : t("gc_pin"), value: "pin" });
-      if(post.status === "removed") acts.push({ label: t("gc_restore"), value: "restore" });
-      else acts.push({ label: t("gc_takedown"), value: "remove" });
+      acts.push({ label: t("gc_takedown"), value: "remove", danger: true });
       acts.push({ label: t("adm_points") + " · " + post.username, value: "pts" });
       acts.push({ label: t("adm_ban") + " · " + post.username, value: "ban" });
     }
@@ -2987,10 +2988,8 @@ const GC = {
       GC.delPost(id);
     } else if(v === "pin"){
       await GC.act(id, post.pinned ? "unpin" : "pin", null);
-    } else if(v === "restore"){
-      await GC.act(id, "restore", null);
     } else if(v === "remove"){
-      const why = await uiAsk(t("adm_reason") + "（可不填）", "");
+      const why = await uiAsk(t("adm_reason") + t("adm_del_note"), "");
       if(why === null) return;
       await GC.act(id, "remove", String(why));
     } else if(v === "pts"){
@@ -3519,7 +3518,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 59;
+const WEB_CODE = 60;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
