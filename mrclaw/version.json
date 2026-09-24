@@ -1,5 +1,5 @@
 {
-  "versionCode": 52,
+  "versionCode": 53,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -7,7 +7,7 @@
     "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.41",
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
-  "size": 160682,
-  "notes": "修复左上角通知弹窗：通知过多时不再把「知道了/关闭」按钮顶出屏幕，标题与按钮固定，中间可上下滑动查看；点弹窗空白处也能关闭。",
+  "size": 164778,
+  "notes": "技能真的能干活了：新增三个联网工具（get_time 当前时间、weather 真实天气、fetch_url 抓网页/接口），AI 会自己调用取真实数据再回答，不再让你自己去看；天气技能提示同步更新。",
   "official": false
 }
