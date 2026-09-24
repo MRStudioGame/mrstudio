@@ -269,7 +269,12 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 #dlg{position:fixed;inset:0;background:var(--mask);z-index:60;
   display:flex;align-items:center;justify-content:center;padding:24px}
 .dbox{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border);
-  border-radius:18px;padding:20px}
+  border-radius:18px;padding:20px;max-height:calc(100vh - 48px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dbox.fix{display:flex;flex-direction:column;overflow:hidden}
+.nscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  margin:2px -6px 0;padding:0 6px}
+.nfoot{flex:0 0 auto;padding-top:14px}
 .dtitle{font-size:15px;font-weight:600;margin-bottom:14px}
 #redeem,#sup{position:fixed;inset:0;background:var(--bg);z-index:58;
   display:flex;flex-direction:column}
@@ -2694,16 +2699,20 @@ const Notice = {
   },
   open(){
     const b = el("dialog") || el("dlg");
-    let h = "<div class='dbox'><div class='dtitle'>" + t("notice_title") + "</div>";
+    let h = "<div class='dbox fix'><div class='dtitle'>" + t("notice_title") + "</div>" +
+      "<div class='nscroll'>";
     if(!Notice.list.length) h += "<div class='empty'>" + t("notice_empty") + "</div>";
-    Notice.list.slice(0, 40).forEach(function(x){
+    Notice.list.slice(0, 60).forEach(function(x){
       h += "<div class='nlist " + (x.seen ? "" : "unread") + "'>" +
         "<div class='nt'>" + esc(x.text) + "</div>" +
         "<div class='nm'>" + esc(fmtDT(x.created_at)) + "</div></div>";
     });
-    h += "<div style='height:12px'></div><button class='btn' onclick='uiClose(null)'>" + t("ok") + "</button></div>";
+    h += "</div><div class='nfoot'><button class='btn' style='width:100%' onclick='uiClose(null)'>" +
+      t("ok") + "</button></div></div>";
     b.classList.remove("hide");
     b.innerHTML = h;
+    // 点空白处也能关闭
+    b.onclick = function(ev){ if(ev.target === b) uiClose(null); };
     rpc("mrclaw_notices_seen", { p_user: S.user.name });
     Notice.n = 0; Notice.paint();
   }
@@ -3360,7 +3369,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 55;
+const WEB_CODE = 56;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
