@@ -211,7 +211,6 @@ h1{font-size:20px;margin:0}
       <div class="row" style="gap:8px;margin:12px 0 4px;flex-wrap:wrap">
         <button class="btn s" onclick="Panel.posts('all')">全部</button>
         <button class="btn g s" onclick="Panel.posts('pinned')">已置顶</button>
-        <button class="btn g s" onclick="Panel.posts('removed')">已下架</button>
       </div>
       <div class="card" id="postlist"><div class="empty">加载中…</div></div>
     </div>
@@ -607,22 +606,20 @@ const Panel = {
         "<div class='row' style='margin-top:9px;flex-wrap:wrap'>" +
         (x.pinned ? "<button class='btn g s' onclick='Panel.postAct(" + x.id + ",&quot;unpin&quot;)'>取消置顶</button>"
                   : "<button class='btn g s' onclick='Panel.postAct(" + x.id + ",&quot;pin&quot;)'>置顶</button>") +
-        (x.status === "removed"
-          ? "<button class='btn g s' onclick='Panel.postAct(" + x.id + ",&quot;restore&quot;)'>恢复显示</button>"
-          : "<button class='btn d s' onclick='Panel.postAct(" + x.id + ",&quot;remove&quot;)'>下架</button>") +
+        "<button class='btn d s' onclick='Panel.postAct(" + x.id + ",&quot;remove&quot;)'>彻底删除</button>" +
         "</div></div>";
     }).join("") : "<div class='empty'>暂无帖子</div>";
   },
   async postAct(id, action){
     let note = "";
     if(action === "remove"){
-      note = prompt("下架原因（会通知作者，可留空）", "") || "";
+      note = prompt("删除原因（会通知作者，可留空）", "") || "";
     }
     const r = await rpc("mrclaw_post_admin", { p_admin: "龙岗", p_id: id,
                                                p_action: action, p_note: note });
     if(!r || r.__err || r.err){ toast("操作失败"); return; }
     toast(action === "pin" ? "已置顶" : action === "unpin" ? "已取消置顶"
-          : action === "remove" ? "已下架，并已通知作者" : "已恢复显示");
+          : "已彻底删除（帖子、评论、点赞一并清除，列表里也不会再有）");
     Panel.posts(Panel.postKind);
   },
   async rev(kind){
@@ -648,7 +645,7 @@ const Panel = {
         (x.status === "pending"
           ? "<div class='row' style='margin-top:9px'>" +
             "<button class='btn g s' onclick='Panel.revDo(" + x.id + ",false)'>未违规</button>" +
-            "<button class='btn d s' onclick='Panel.revDo(" + x.id + ",true)'>违规</button></div>"
+            "<button class='btn d s' onclick='Panel.revDo(" + x.id + ",true)'>违规并删除帖子</button></div>"
           : "<div class='meta'>处理：" + esc(x.admin_reason || "") + " · 处罚：" + esc(x.punishment || "无") +
             (x.handled_by ? (" · by " + esc(x.handled_by)) : "") + "</div>") +
         "</div>";
@@ -662,6 +659,7 @@ const Panel = {
   async revDo(id, violated){
     const why = prompt("理由（会发给举报人和作者）", "不文明发言");
     if(why === null) return;
+    if(violated && !confirm("判定为违规：帖子会被【彻底删除】（评论/点赞一并清除，列表里也不会再有）。确定继续？")) return;
     const pun = prompt("处罚（文字说明，可留空）", violated ? "警告一次" : "无");
     if(pun === null) return;
     const r = await rpc("mrclaw_report_handle", { p_admin: "龙岗", p_id: id,
