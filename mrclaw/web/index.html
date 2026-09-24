@@ -62,6 +62,12 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   box-shadow:0 1px 4px rgba(47,107,255,.45),inset 0 1px 0 rgba(255,255,255,.45)}
 .offbadge svg{width:10px;height:10px;display:block}
 .offbadge svg path{fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.oldm{display:flex;gap:8px;flex-wrap:wrap;padding:2px 14px 8px}
+.oldm .om{position:relative}
+.oldm .om img{width:66px;height:66px;object-fit:cover;border-radius:10px;display:block}
+.oldm .om i{position:absolute;top:-6px;right:-6px;background:var(--danger-bg);color:var(--danger-fg);
+  border:1px solid var(--danger-bd);border-radius:50%;width:20px;height:20px;line-height:18px;
+  text-align:center;font-size:11px;font-style:normal;cursor:pointer}
 .rp{border-left:3px solid var(--bd2)}
 .rp .gcard{border:0;background:transparent;padding:8px 0 2px}
 .rto{color:var(--tip-fg);font-size:12px}
@@ -463,6 +469,10 @@ zh:{
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
   adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
   gc_reply_btn:"回复", gc_to:"回复", gc_kids:"查看回复", gc_kids_hide:"收起回复",
+  gc_edit:"编辑", gc_del:"删除", gc_edit_title:"编辑帖子",
+  gc_del_q:"确定删除这条帖子吗？删除后无法恢复，评论也会一起清掉。",
+  gc_deleted:"已删除", gc_edited:"已编辑", gc_saved:"已保存", gc_saving:"保存中…",
+  gc_keep_media:"原有图片（点 ✕ 可移除）",
   gc_reply_to:"正在回复", adm_sup:"客服私信", adm_users:"用户管理",
   adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
   adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
@@ -608,6 +618,10 @@ en:{
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
   adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
   gc_reply_btn:"Reply", gc_to:"replied to", gc_kids:"View replies", gc_kids_hide:"Hide replies",
+  gc_edit:"Edit", gc_del:"Delete", gc_edit_title:"Edit post",
+  gc_del_q:"Delete this post? This cannot be undone and its comments will be removed too.",
+  gc_deleted:"Deleted", gc_edited:"edited", gc_saved:"Saved", gc_saving:"Saving…",
+  gc_keep_media:"Attached images (tap ✕ to remove)",
   gc_reply_to:"Replying to", adm_sup:"Support inbox", adm_users:"Users",
   adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
   adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
@@ -2767,6 +2781,7 @@ const GC = {
     });
   },
   detail(post, replies){
+    GC.curPost = post;
     const media = (post.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
     let h = "<div class='gwrap'><div class='gcard'>" +
       "<h4>" + linkify(esc(post.title)) + "</h4>" +
@@ -2774,6 +2789,7 @@ const GC = {
       (post.board ? " · " + esc(post.board) : "") +
       (post.place ? " · 📍" + esc(post.place) : "") +
       (post.declared ? " · " + t("gc_declared_tag") : "") +
+      (post.edited_at ? " · " + t("gc_edited") : "") +
       (post.status === "removed" ? " · <span style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") + "</div>" +
       "<p>" + linkify(esc(post.body || "")) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
@@ -2782,12 +2798,19 @@ const GC = {
       (post.liked ? "❤️" : "🤍") + " " + (post.likes || 0) + "</span>" +
       "<span onclick=\"GC.report(" + post.id + ")\">" + t("gc_report") + "</span>" +
       (Admin.on() ? "<span onclick=\"GC.menu(" + post.id + ")\">🛡 " + t("nav_adm") + "</span>" : "") +
+      (post.username === S.user.name
+        ? "<span onclick=\"GC.editPost(" + post.id + ")\">✏️ " + t("gc_edit") + "</span>" +
+          "<span onclick=\"GC.delPost(" + post.id + ")\">🗑 " + t("gc_del") + "</span>" : "") +
       "</div></div>";
     h += "<div class='hd'>" + t("gc_replies") + " (" + replies.length + ")</div>";
     const tree = GC.tree(replies);
     h += tree.map(function(r){ return GC.rp(r, 0, ""); }).join("");
     h += "<div class='gcard'><div id='gc-rto' class='hide'></div><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
       "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
+      (GC.editId && GC.editMedia.length
+        ? "<div class='cm-sec'>" + t("gc_keep_media") + "</div><div class='oldm' id='cm-oldm'>" +
+          GC.editMedia.map(function(m, i){ return GC.oldmItem(m, i); }).join("") + "</div>"
+        : "<div class='oldm hide' id='cm-oldm'></div>") +
       "<div id='gc-chips' class='chips hide'></div>" +
       "<div style='height:10px'></div><div style='display:flex;gap:8px'>" +
       "<button class='btn ghost mini' onclick=\"Attach.openMenu(false,'gc')\">＋</button>" +
@@ -2801,6 +2824,20 @@ const GC = {
       if(bx) bx.classList.remove("hide");
       GC._expand = null;
     }
+  },
+  editPost(id){
+    const p = (GC.curPost && GC.curPost.id === id) ? GC.curPost : null;
+    if(!p){ Native.toast(t("gc_fail")); return; }
+    GC.compose(p);
+  },
+  async delPost(id){
+    const sure = await uiAsk(t("gc_del_q"), null, { input:false });
+    if(sure !== true) return;
+    const r = await rpc("mrclaw_post_delete", { p_user: S.user.name, p_id: id });
+    if(r && (r.__err || r.err)){ Native.toast(t("gc_fail")); return; }
+    Native.toast(t("gc_deleted"));
+    Guide.close();
+    GC.render();
   },
   /* ---- 评论树 ---- */
   tree(list){
@@ -2873,19 +2910,30 @@ const GC = {
     if(this._t){ clearTimeout(this._t); this._t = null; }
   },
   async menu(id){
-    if(!Admin.on()) return;
     const d = await rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name });
     if(!d || !d.post){ Native.toast(t("gc_fail")); return; }
     const post = d.post;
+    GC.curPost = post;
     const acts = [];
-    acts.push({ label: post.pinned ? t("gc_unpin") : t("gc_pin"), value: "pin" });
-    if(post.status === "removed") acts.push({ label: t("gc_restore"), value: "restore" });
-    else acts.push({ label: t("gc_takedown"), value: "remove" });
-    acts.push({ label: t("adm_points") + " · " + post.username, value: "pts" });
-    acts.push({ label: t("adm_ban") + " · " + post.username, value: "ban" });
+    if(post.username === S.user.name){
+      acts.push({ label: "✏️ " + t("gc_edit"), value: "edit" });
+      acts.push({ label: "🗑 " + t("gc_del"), value: "delete", danger: true });
+    }
+    if(Admin.on()){
+      acts.push({ label: post.pinned ? t("gc_unpin") : t("gc_pin"), value: "pin" });
+      if(post.status === "removed") acts.push({ label: t("gc_restore"), value: "restore" });
+      else acts.push({ label: t("gc_takedown"), value: "remove" });
+      acts.push({ label: t("adm_points") + " · " + post.username, value: "pts" });
+      acts.push({ label: t("adm_ban") + " · " + post.username, value: "ban" });
+    }
+    if(!acts.length) return;
     const v = await uiSheet(t("gc_admin_menu") + "《" + String(post.title || "").slice(0, 12) + "》", acts);
     if(v === null) return;
-    if(v === "pin"){
+    if(v === "edit"){
+      GC.editPost(id);
+    } else if(v === "delete"){
+      GC.delPost(id);
+    } else if(v === "pin"){
       await GC.act(id, post.pinned ? "unpin" : "pin", null);
     } else if(v === "restore"){
       await GC.act(id, "restore", null);
@@ -2940,14 +2988,20 @@ const GC = {
     Native.toast(t("gc_report_ok"));
   },
   create(){ GC.compose(); },
-  compose(){
-    GC.cplace = ""; GC.cdecl = false; GC.cshare = null;
+  compose(edit){
+    GC.editId = edit ? edit.id : null;
+    GC.editMedia = edit ? (edit.media || []).filter(function(m){ return m && m.url; }) : [];
+    GC.cplace = edit ? (edit.place || "") : "";
+    GC.cdecl = edit ? !!edit.declared : false;
+    GC.cshare = edit ? (edit.share || null) : null;
+    if(edit) GC.cboard = edit.board || "闲聊";
     const g = el("guide");
     g.classList.remove("hide");
     g.innerHTML = "<div class='gwrap cm'>" +
       "<div class='cmbar'><button class='btn ghost mini' onclick='Guide.close()'>" + t("cancel") + "</button>" +
-      "<b>" + t("gc_new_title") + "</b>" +
-      "<button class='btn mini' id='cm-pub' onclick='GC.publish()'>" + t("gc_publish") + "</button></div>" +
+      "<b>" + (GC.editId ? t("gc_edit_title") : t("gc_new_title")) + "</b>" +
+      "<button class='btn mini' id='cm-pub' onclick='GC.publish()'>" +
+      (GC.editId ? t("save") : t("gc_publish")) + "</button></div>" +
       "<input id='cm-title' class='cm-title' maxlength='40' placeholder='" + esc(t("gc_title_ph")) + "'>" +
       "<textarea id='cm-body' class='cm-body' placeholder='" + esc(t("gc_body_ph")) + "'></textarea>" +
       "<div id='gc-chips' class='chips hide'></div>" +
@@ -2966,7 +3020,39 @@ const GC = {
         "<button class='cm-tool' id='cm-share' onclick='GC.attachShare()'>" + t("gc_share_btn") + "</button>" +
       "</div>" +
       "<div style='padding:6px 16px 0'><button class='btn' style='width:100%' onclick='GC.publish()'>" +
-      t("gc_publish") + "</button></div></div>";
+      (GC.editId ? t("save") : t("gc_publish")) + "</button></div></div>";
+    if(GC.editId){
+      const te = el("cm-title"), be = el("cm-body");
+      if(te) te.value = edit.title || "";
+      if(be) be.value = edit.body || "";
+    }
+    GC.paintCompose();
+  },
+  paintCompose(){
+    const b = el("cm-place");
+    if(b){
+      b.className = GC.cplace ? "cm-tool on" : "cm-tool";
+      b.textContent = GC.cplace ? ("📍 " + GC.cplace) : ("📍 " + t("gc_place"));
+    }
+    const d = el("cm-dec");
+    if(d){
+      d.className = GC.cdecl ? "cm-tool on" : "cm-tool";
+      d.textContent = (GC.cdecl ? "☑ " : "☐ ") + t("gc_declare");
+    }
+    const s = el("cm-share");
+    if(s && GC.cshare){ s.className = "cm-tool on"; s.textContent = "☑ " + t("gc_share_btn"); }
+    const box = el("cm-oldm");
+    if(box){
+      if(!GC.editMedia.length){ box.className = "hide"; box.innerHTML = ""; }
+      else box.innerHTML = GC.editMedia.map(function(m, i){ return GC.oldmItem(m, i); }).join("");
+    }
+  },
+  oldmItem(m, i){
+    return "<div class='om'><img src='" + esc(m.url) + "'><i onclick='GC.rmOld(" + i + ")'>✕</i></div>";
+  },
+  rmOld(i){
+    GC.editMedia.splice(i, 1);
+    GC.paintCompose();
   },
   setBoard(b){
     GC.cboard = b;
@@ -3010,14 +3096,27 @@ const GC = {
     if(list.some(function(f){ return f.up; })){ Native.toast(t("gc_uploading")); return; }
     if(list.some(function(f){ return f.fail; })){ Native.toast(t("gc_file_fail")); return; }
     const atts = Attach.takeGc();
+    const media = (GC.editId ? GC.editMedia.slice() : []).concat(atts);
     const pub = el("cm-pub");
-    if(pub){ pub.textContent = t("gc_publishing"); }
-    const r = await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: title,
-        p_body: String(body), p_media: atts, p_share: GC.cshare, p_board: GC.cboard,
-        p_place: GC.cplace, p_declared: GC.cdecl });
-    if(pub){ pub.textContent = t("gc_publish"); }
+    if(pub){ pub.textContent = GC.editId ? t("gc_saving") : t("gc_publishing"); }
+    const r = GC.editId
+      ? await rpc("mrclaw_post_edit", { p_user: S.user.name, p_id: GC.editId, p_title: title,
+          p_body: String(body), p_board: GC.cboard, p_place: GC.cplace, p_declared: GC.cdecl,
+          p_media: media })
+      : await rpc("mrclaw_post_add", { p_user: S.user.name, p_title: title,
+          p_body: String(body), p_media: media, p_share: GC.cshare, p_board: GC.cboard,
+          p_place: GC.cplace, p_declared: GC.cdecl });
+    if(pub){ pub.textContent = GC.editId ? t("save") : t("gc_publish"); }
     if(!r || r.__err || r.err){
       Native.toast(t("gc_fail") + " " + (r && (r.err || r.__err) ? String(r.err || r.__err) : ""));
+      return;
+    }
+    if(GC.editId){
+      const eid = GC.editId;
+      Native.toast(t("gc_saved"));
+      GC.editId = null; GC.editMedia = [];
+      Guide.close();
+      GC.open(eid);
       return;
     }
     Native.toast(t("gc_posted"));
@@ -3261,7 +3360,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 54;
+const WEB_CODE = 55;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
