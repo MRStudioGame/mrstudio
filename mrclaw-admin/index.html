@@ -80,11 +80,12 @@ h1{font-size:20px;margin:0}
 .smsg.me{background:#2F6BFF;color:#fff;margin-left:auto}
 .smsg.op{background:#1A2028;border:1px solid #262E39}
 .smsg .meta{margin-top:4px}
-.offbadge{display:inline-flex;align-items:center;gap:3px;margin-left:6px;
-  background:linear-gradient(135deg,#2F6BFF,#39C6F0);color:#fff;font-size:10.5px;
-  font-weight:700;line-height:1.55;padding:1px 8px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.28);vertical-align:2px;letter-spacing:.4px;
-  box-shadow:0 1px 6px rgba(47,107,255,.35);white-space:nowrap}
+.offbadge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  margin-left:5px;border-radius:50%;vertical-align:-2px;flex:0 0 15px;
+  background:linear-gradient(140deg,#4F8BFF 0%,#2F6BFF 45%,#12C2E9 100%);
+  box-shadow:0 1px 4px rgba(47,107,255,.45),inset 0 1px 0 rgba(255,255,255,.45)}
+.offbadge svg{width:10px;height:10px;display:block}
+.offbadge svg path{fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
 #sup{position:fixed;inset:0;background:rgba(6,9,13,.72);z-index:80;
   display:flex;align-items:center;justify-content:center;padding:18px}
 .supbox{width:100%;max-width:620px;max-height:86vh;display:flex;flex-direction:column;
@@ -887,7 +888,10 @@ function banLabel(u){
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
   c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 /* 官方标识（管理员账号） */
-function offBadge(n){ return String(n || "") === "龙岗" ? "<span class='offbadge'>✓ 官方</span>" : ""; }
+function offBadge(n){
+  if(String(n || "") !== "龙岗") return "";
+  return "<span class='offbadge' title='已认证'><svg viewBox='0 0 24 24'><path d='M5.6 12.7l4.1 4.1 8.7-8.7'/></svg></span>";
+}
 
 function fmt(t){
   if(!t) return "-";
