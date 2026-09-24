@@ -1,5 +1,5 @@
 {
-  "versionCode": 53,
+  "versionCode": 54,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 164778,
-  "notes": "技能真的能干活了：新增三个联网工具（get_time 当前时间、weather 真实天气、fetch_url 抓网页/接口），AI 会自己调用取真实数据再回答，不再让你自己去看；天气技能提示同步更新。",
+  "notes": "修复部分用户已开启无障碍却显示未开启：改为以系统设置里的开关为准（同时区分「已授权但服务还没连上」，并给出明确提示与操作建议）。",
   "official": false
 }
