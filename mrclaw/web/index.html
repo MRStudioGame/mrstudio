@@ -475,6 +475,7 @@ zh:{
   adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
   gc_reply_btn:"回复", gc_to:"回复", gc_kids:"查看回复", gc_kids_hide:"收起回复",
   gc_edit:"编辑", gc_del:"删除", gc_edit_title:"编辑帖子",
+  a11y_connecting:"（无障碍已授权，服务连接中…如一直这样，退出软件再进一次即可）",
   gc_del_q:"确定删除这条帖子吗？删除后无法恢复，评论也会一起清掉。",
   gc_deleted:"已删除", gc_edited:"已编辑", gc_saved:"已保存", gc_saving:"保存中…",
   gc_keep_media:"原有图片（点 ✕ 可移除）",
@@ -624,6 +625,7 @@ en:{
   adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
   gc_reply_btn:"Reply", gc_to:"replied to", gc_kids:"View replies", gc_kids_hide:"Hide replies",
   gc_edit:"Edit", gc_del:"Delete", gc_edit_title:"Edit post",
+  a11y_connecting:"(accessibility granted, service connecting… if it stays like this, reopen the app)",
   gc_del_q:"Delete this post? This cannot be undone and its comments will be removed too.",
   gc_deleted:"Deleted", gc_edited:"edited", gc_saved:"Saved", gc_saving:"Saving…",
   gc_keep_media:"Attached images (tap ✕ to remove)",
@@ -913,6 +915,14 @@ const PERMS = [
   { id:"install", nk:"p_install_n", wk:"p_install_w", state:()=>native?permSafe()[6]:false, req:()=>native&&native.installSettings() },
   { id:"root",    nk:"p_root_n",    wk:"p_root_w",    state:()=>!!S.cfg.hasRoot, req:null }
 ];
+/* 无障碍：live 已连接 / granted 已授权未连接 / off 未授权 */
+function a11yStateStr(){
+  try{
+    if(native && native.a11yDetail) return String(native.a11yDetail());
+  }catch(e){}
+  return (permSafe()[0] ? "live" : "off");
+}
+function a11yLive(){ return a11yStateStr() === "live"; }
 function permSafe(){
   try{
     const o = JSON.parse(native.permSnapshot());
@@ -973,7 +983,10 @@ const Guide = {
     PERMS.forEach(function(p,i){
       const on = Perm.on(p);
       h += "<div class='gitem'><div style='flex:1'><div class='gn'>" + t(p.nk) +
-        (on ? "<span class='gok'>" + t("granted") + "</span>" : "") + "</div><div class='tiny'>" + t(p.wk) + "</div></div>" +
+        (on ? "<span class='gok'>" + t("granted") + "</span>" : "") +
+        (p.id === "a11y" && on && !a11yLive() ? "<span class='tiny' style='color:#FFB63D'> " +
+          t("a11y_connecting") + "</span>" : "") +
+        "</div><div class='tiny'>" + t(p.wk) + "</div></div>" +
         (on ? "" : "<button class='btn mini' onclick='Guide.go(" + i + ")'>" + t("go_on") + "</button>") + "</div>";
     });
     h += "</div><div style='height:18px'></div><button class='btn' onclick='Guide.close()'>" + t("finish") + "</button></div>";
@@ -1481,6 +1494,14 @@ const Chat = {
     if(name === "get_time"){ cb(WebTools.time()); return; }
     if(name === "weather"){ WebTools.weather(a.city || a.name || "", cb); return; }
     if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
+    if(native && native.a11yDetail){
+      let st = "off";
+      try{ st = String(native.a11yDetail()); }catch(e){}
+      if(st === "granted" && !Chat._a11yWarned){
+        Chat._a11yWarned = true;
+        Native.toast(t("a11y_connecting"));
+      }
+    }
     if(!native || !native.toolAsync){
       try{ Upd.noBridge(); }catch(e){}
       cb(t("need_new_apk"));
@@ -2027,7 +2048,10 @@ const Me = {
     PERMS.forEach(function(p2,i){
       const on = Perm.on(p2);
       h += "<div class='row'><div style='flex:1'><div>" + t(p2.nk) +
-        (on ? " <span class='gok'>" + t("granted") + "</span>" : "") + "</div><div class='tiny'>" + t(p2.wk) + "</div></div>" +
+        (on ? " <span class='gok'>" + t("granted") + "</span>" : "") +
+        (p2.id === "a11y" && on && !a11yLive() ? " <span class='tiny' style='color:#FFB63D'>" +
+          t("a11y_connecting") + "</span>" : "") +
+        "</div><div class='tiny'>" + t(p2.wk) + "</div></div>" +
         (on ? "" : "<button class='btn ghost mini' onclick='Perm.req(PERMS[" + i + "])'>" + t("go_on") + "</button>") + "</div>";
     });
     h += "<div class='tiny' style='margin-top:10px'>" + t("perm_hint") + "</div></div>";
@@ -3482,7 +3506,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 57;
+const WEB_CODE = 58;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
