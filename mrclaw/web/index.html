@@ -159,12 +159,6 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
 #agentbar .btn.mini{width:auto;flex:0 0 auto}
 #bar{padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--panel2)}
-.micbtn{flex:0 0 38px;height:38px;border-radius:50%;background:var(--ghost-bg);
-  border:1px solid var(--ghost-bd);color:var(--ghost-fg);font-size:17px;line-height:1;
-  display:flex;align-items:center;justify-content:center;cursor:pointer}
-.micbtn.on{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-fg);
-  animation:pulse 1.1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .barline{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
 #pts-chip{font-size:12px;color:var(--muted2)}
@@ -361,7 +355,6 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
         </div>
       </div>
       <div class="barline">
-        <button id="mic" class="micbtn" onclick="Voice.stt()" title="语音输入">🎤</button>
         <textarea id="ta" rows="1" placeholder=""></textarea>
         <button id="send" onclick="Chat.send()">↑</button>
       </div>
@@ -408,7 +401,6 @@ zh:{
   p_overlay_n:"悬浮窗", p_overlay_w:"AI 每做一步都会弹窗让你确认；没有它就没法逐步问你。",
   p_notif_n:"通知", p_notif_w:"定时任务到点、AI 完成任务时提醒你。",
   p_battery_n:"电池白名单", p_battery_w:"让软件后台常驻，定时任务到点才能自动跑。",
-  p_mic_n:"麦克风", p_mic_w:"语音输入，把你说的词转成文字发给 AI。",
   p_file_n:"文件访问", p_file_w:"让 AI 能读写你手机上的文件（只在你要求时）。",
   p_install_n:"安装应用", p_install_w:"软件自动更新时用它安装新版本。",
   p_root_n:"是否有 Root", p_root_w:"有 Root 时 AI 可以执行更高级的系统命令；没有就只用无障碍。",
@@ -447,7 +439,6 @@ zh:{
   upd_downloading:"下载中 {0}%", upd_installing:"正在安装…",
   upd_latest:"已是最新版本 v{0}", upd_checking:"正在检查更新…", upd_check_fail:"检查失败，请稍后再试",
   mobile_only:"仅手机端可用", need_install_perm:"请先允许安装未知应用",
-  stt_listen:"请说话…", stt_fail:"识别失败",
   pts:"积分", mode_pts:"消耗：积分", mode_key:"消耗：我的Key",
   mode_tip:"点一下切换：用积分 或 用自己的 Key",
   task_mode_on:"做任务", task_mode_off:"仅聊天",
@@ -554,7 +545,6 @@ en:{
   p_notif_n:"Notifications", p_notif_w:"Reminders when a scheduled task fires or a task finishes.",
   p_battery_n:"Battery whitelist",
   p_battery_w:"Keeps the app alive in the background so scheduled tasks can run on time.",
-  p_mic_n:"Microphone", p_mic_w:"Voice input — turns your speech into text for the AI.",
   p_file_n:"File access", p_file_w:"Lets the AI read and write files on your phone, only when you ask.",
   p_install_n:"Install apps", p_install_w:"Used to install new versions when the app updates itself.",
   p_root_n:"Root access",
@@ -597,7 +587,6 @@ en:{
   upd_installing:"Installing…", upd_latest:"You are on the latest version v{0}",
   upd_checking:"Checking for updates…", upd_check_fail:"Check failed, please try again later",
   mobile_only:"Available on phone only", need_install_perm:"Please allow installing unknown apps first",
-  stt_listen:"Listening…", stt_fail:"Recognition failed",
   pts:"Points", mode_pts:"Use points", mode_key:"Use my key",
   mode_tip:"Tap to switch: use points or your own key",
   task_mode_on:"Task", task_mode_off:"Chat only",
@@ -919,9 +908,8 @@ const PERMS = [
   { id:"overlay", nk:"p_overlay_n", wk:"p_overlay_w", state:()=>native?permSafe()[1]:false, req:()=>native&&native.overlayReq() },
   { id:"notif",   nk:"p_notif_n",   wk:"p_notif_w",   state:()=>native?permSafe()[2]:false, req:()=>native&&native.notifReq() },
   { id:"battery", nk:"p_battery_n", wk:"p_battery_w", state:()=>native?permSafe()[3]:false, req:()=>native&&native.batteryReq() },
-  { id:"mic",     nk:"p_mic_n",     wk:"p_mic_w",     state:()=>native?permSafe()[4]:false, req:()=>native&&native.micReq() },
-  { id:"file",    nk:"p_file_n",    wk:"p_file_w",    state:()=>native?permSafe()[5]:false, req:()=>native&&native.fileReq() },
-  { id:"install", nk:"p_install_n", wk:"p_install_w", state:()=>native?permSafe()[6]:false, req:()=>native&&native.installSettings() },
+  { id:"file",    nk:"p_file_n",    wk:"p_file_w",    state:()=>native?permSafe()[4]:false, req:()=>native&&native.fileReq() },
+  { id:"install", nk:"p_install_n", wk:"p_install_w", state:()=>native?permSafe()[5]:false, req:()=>native&&native.installSettings() },
   { id:"root",    nk:"p_root_n",    wk:"p_root_w",    state:()=>!!S.cfg.hasRoot, req:null }
 ];
 /* 无障碍：live 已连接 / granted 已授权未连接 / off 未授权 */
@@ -935,7 +923,7 @@ function a11yLive(){ return a11yStateStr() === "live"; }
 function permSafe(){
   try{
     const o = JSON.parse(native.permSnapshot());
-    return [!!o.a11y, !!o.overlay, !!o.notif, !!o.battery, !!o.mic, !!o.file, !!o.install];
+    return [!!o.a11y, !!o.overlay, !!o.notif, !!o.battery, !!o.file, !!o.install];
   }catch(e){ return [false,false,false,false,false,false,false]; }
 }
 const Perm = {
@@ -1016,20 +1004,6 @@ document.addEventListener("visibilitychange", function(){
 /* ================= 语音 ================= */
 const Voice = {
   listening:false,
-  stt(){
-    if(!native || !native.sttStart){ Native.toast(t("mobile_only")); return; }
-    const m = el("mic");
-    if(this.listening){
-      this.listening = false;
-      if(m) m.classList.remove("on");
-      try{ native.sttStop(); }catch(e){}
-      return;
-    }
-    this.listening = true;
-    if(m) m.classList.add("on");
-    Native.toast(t("stt_listen"));
-    try{ native.sttStart(); }catch(e){}
-  },
   speak(x){
     if(!native || !native.speak){ Native.toast(t("mobile_only")); return; }
     const v = String(x || "").trim();
@@ -1042,20 +1016,8 @@ const Voice = {
     if(m && m.content) this.speak(m.content.replace(/^[·\s]+/gm, ""));
   }
 };
-window.MR_onStt = function(s){
-  let o = {};
-  try{ o = JSON.parse(s); }catch(e){ return; }
-  if(o.type === "start") return;
-  if(o.type === "partial"){ el("ta").value = o.text || ""; Chat.syncSendBtn(); return; }
-  if(o.type === "result"){
-    Voice.listening = false; (function(){ const _m = el("mic"); if(_m) _m.classList.remove("on"); })();
-    el("ta").value = o.text || ""; Chat.syncSendBtn(); return;
-  }
-  if(o.type === "err"){
-    Voice.listening = false; (function(){ const _m = el("mic"); if(_m) _m.classList.remove("on"); })();
-    Native.toast(o.text || t("stt_fail"));
-  }
-};
+/* 语音输入已移除：保留空回调，避免原生旧代码调用时报错 */
+window.MR_onStt = function(){};
 
 /* ================= 登录 / 注册 ================= */
 const Auth = {
@@ -3492,7 +3454,7 @@ const KNOWLEDGE_ZH = `【关于 MRClaw 的官方信息，可直接回答用户�
 - 充值积分：会话菜单（左上角 ☰）最上方，以及积分用完时的弹窗。
 - 咨询客服：会话菜单左上角。
 - 用自己的 Key：设置 → 模型 → 选服务商 + 填 Key（智谱 / DeepSeek / 通义 / 豆包 / Kimi / 文心 / 星火 / 混元 / 自定义）。
-- 权限（无障碍 / 悬浮窗 / 通知 / 电池白名单 / 麦克风 / 文件 / 安装应用）：设置 → 权限；首次发消息时也会自动引导。
+- 权限（无障碍 / 悬浮窗 / 通知 / 电池白名单 / 文件 / 安装应用）：设置 → 权限；首次发消息时也会自动引导。
 - AI 独自操控（不再逐步确认）：设置 → AI 独自操控。
 - 语言与主题：设置页顶部。更新：打开软件自动检测（只更新网页层）；也可 设置 → 检查更新。
 - 近期版本：1.0.16 设置底部新增“跳转至官网”、官网上线；1.0.15 新图标 + 聊天与客服支持多图多文件；1.0.14 会话菜单新增充值积分；1.0.13 修复注册登录报错；1.0.12 修复兑换码静默失败；1.0.11 修复云端连接；1.0.9 上线积分、兑换码、客服、封号。
@@ -3518,7 +3480,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 60;
+const WEB_CODE = 61;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
