@@ -1,5 +1,5 @@
 {
-  "versionCode": 44,
+  "versionCode": 45,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "版本号回到 1.0.41（功能保持不变）。启动自动检测版本：版本低时优先软件内热更新；仅当确实需要新安装包时才提示重装。",
+  "notes": "修复管理员在软件内修改广播并保存时误报「操作失败」（服务端其实已保存成功，是前端把空响应当失败）；更新仍走软件内热更新，无需重装。",
   "official": false
 }
