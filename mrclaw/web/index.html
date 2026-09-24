@@ -472,6 +472,10 @@ zh:{
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
   adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
+  adm_purge:"彻底删除用户", adm_purge_q1:"彻底删除用户",
+  adm_purge_warn:"会删除他的账号、帖子、评论、点赞、客服消息、积分等全部数据，且无法恢复。\n（他留下的评价会保留）",
+  adm_purge_q2:"请输入「删除」两个字确认", adm_purge_bad:"输入不正确，已取消",
+  adm_purge_need_ban:"只能彻底删除已被封禁的用户（请先封禁）", adm_purge_done:"已彻底删除：",
   gc_reply_btn:"回复", gc_to:"回复", gc_kids:"查看回复", gc_kids_hide:"收起回复",
   gc_edit:"编辑", gc_del:"删除", gc_edit_title:"编辑帖子",
   a11y_connecting:"（无障碍已授权，服务连接中…如一直这样，退出软件再进一次即可）",
@@ -621,6 +625,10 @@ en:{
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
   adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
+  adm_purge:"Delete user permanently", adm_purge_q1:"Permanently delete user",
+  adm_purge_warn:"This removes their account, posts, comments, likes, support messages and points — irreversible.\n(Their reviews are kept)",
+  adm_purge_q2:"Type DELETE to confirm", adm_purge_bad:"Wrong input, cancelled",
+  adm_purge_need_ban:"Only banned users can be purged (ban first)", adm_purge_done:"Permanently deleted: ",
   gc_reply_btn:"Reply", gc_to:"replied to", gc_kids:"View replies", gc_kids_hide:"Hide replies",
   gc_edit:"Edit", gc_del:"Delete", gc_edit_title:"Edit post",
   a11y_connecting:"(accessibility granted, service connecting… if it stays like this, reopen the app)",
@@ -2579,10 +2587,44 @@ const Adm = {
             "<span onclick=\"Adm.points('" + esc(u.username) + "')\">" + t("adm_points") + "</span>" +
             "<span onclick=\"Adm.ban('" + esc(u.username) + "',true)\">" + t("adm_ban") + "</span>" +
             "<span onclick=\"Adm.ban('" + esc(u.username) + "',false)\">" + t("adm_unban") + "</span>" +
+            (banned ? "<span style='color:#FF7A8A' onclick=\"Adm.purge('" + esc(u.username) + "')\">" +
+              t("adm_purge") + "</span>" : "") +
             "</div></div>";
         }).join("");
       });
     }
+  },
+  async purge(u){
+        const sure = await uiAsk(t("adm_purge_q1") + "「" + u + "」" + "\n" +
+                             t("adm_purge_warn"), null, { input: false });
+    if(sure !== true) return;
+    const w = await uiAsk(t("adm_purge_q2"), "");
+    if(w === null) return;
+    const word = String(w).trim();
+    if(word !== "删除" && word.toUpperCase() !== "DELETE"){ Native.toast(t("adm_purge_bad")); return; }
+    const r = await rpc("mrclaw_admin_purge_user", { p_admin: S.user.name, p_user: u });
+    if(r && r.__err){ Native.toast(t("gc_fail") + " " + String(r.__err).slice(0, 60)); return; }
+    if(r && r.err){
+      Native.toast(r.err === "not_banned" ? t("adm_purge_need_ban") : t("gc_fail"));
+      return;
+    }
+    // 顺手清掉他上传过的云端附件（尽力而为，失败不影响）
+    try{
+      const pre = Attach.uid(u);
+      const hdr = { "apikey": SB_KEY, "Authorization": BEARER + SB_KEY, "Content-Type": "application/json" };
+      const ls = await httpReq("POST", SB_URL + "/storage/v1/object/list/mrclaw", hdr,
+                               JSON.stringify({ prefix: pre, limit: 200 }));
+      let arr = [];
+      try{ arr = JSON.parse(ls) || []; }catch(e){}
+      const names = (Array.isArray(arr) ? arr : []).filter(function(x){ return x && x.name; })
+                      .map(function(x){ return pre + "/" + x.name; });
+      if(names.length){
+        await httpReq("DELETE", SB_URL + "/storage/v1/object/mrclaw", hdr,
+                      JSON.stringify({ prefixes: names }));
+      }
+    }catch(e){}
+    Native.toast(t("adm_purge_done") + u);
+    Adm.load();
   },
   async bcSave(){
     const tx = el("adm-bc-text"), sp = el("adm-bc-speed"), on = el("adm-bc-on");
@@ -3480,7 +3522,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 61;
+const WEB_CODE = 62;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
