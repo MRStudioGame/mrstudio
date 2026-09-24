@@ -472,6 +472,7 @@ zh:{
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
   adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
+  ver_latest:"线上最新：", ver_ok:"已是最新", ver_new:"有新版本可更新",
   adm_purge:"彻底删除用户", adm_purge_q1:"彻底删除用户",
   adm_purge_warn:"会删除他的账号、帖子、评论、点赞、客服消息、积分等全部数据，且无法恢复。\n（他留下的评价会保留）",
   adm_purge_q2:"请输入「删除」两个字确认", adm_purge_bad:"输入不正确，已取消",
@@ -625,6 +626,7 @@ en:{
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
   adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
+  ver_latest:"Latest online: ", ver_ok:"up to date", ver_new:"update available",
   adm_purge:"Delete user permanently", adm_purge_q1:"Permanently delete user",
   adm_purge_warn:"This removes their account, posts, comments, likes, support messages and points — irreversible.\n(Their reviews are kept)",
   adm_purge_q2:"Type DELETE to confirm", adm_purge_bad:"Wrong input, cancelled",
@@ -2006,8 +2008,12 @@ const Me = {
     h += "<div class='card'><div class='row'><div>" + t("account") + "</div><div class='muted'>" +
          esc(S.user ? S.user.name : t("not_login")) + "</div></div>" +
          "<div class='row'><div>" + t("device") + "</div><div class='muted'>" + esc(Native.model()) + "</div></div>" +
-         "<div class='row'><div>" + t("version") + "</div><div class='muted'>" + esc(Native.version()) + "</div></div>" +
-         "<div class='row'><div>" + t("webver") + "</div><div class='muted'>" + esc(webVer()) + "</div></div></div>";
+         "<div class='row'><div>" + t("version") + "</div><div class='muted'>" +
+           esc(Native.version()) + " (build " +
+           esc(String((native && native.versionCode) ? native.versionCode() : "?")) + ")" + "</div></div>" +
+         "<div class='row'><div>" + t("webver") + "</div><div class='muted'>" +
+           esc(webVer()) + " (code " + WEB_CODE + ")" + "</div></div>" +
+         "<div class='tiny' id='ver-latest' style='margin-top:8px'></div></div>";
 
     h += "<div class='card'><h4 style='margin:0 0 10px'>" + t("language") + "</h4>" +
          "<div class='seg'><button class='" + (LANG==="zh"?"act":"") + "' onclick=\"setLang('zh')\">中文</button>" +
@@ -2049,6 +2055,7 @@ const Me = {
          "<div><div>" + t("autonomy") + "</div><div class='tiny'>" + t("autonomy_sub") + "</div></div>" +
          "<div class='sw " + (S.cfg.autonomy?"on":"") + "' onclick='Me.autonomy()'><i></i></div></div></div>";
 
+    Me.verCheck();
     h += "<div class='card'><button class='btn ghost' onclick='Me.review()'>" + t("review_btn") + "</button>" +
          (S.cfg.reviewed ? "<div class='tiny' style='margin-top:8px'>" + t("review_done") + "</div>" : "") + "</div>";
 
@@ -2097,6 +2104,30 @@ const Me = {
   autoSave(){ this.collect(); Cloud.push(true); Native.toast(t("auto_saved")); },
   sync(){ this.collect(); Cloud.push(false); },
   checkUpdate(){ Upd.check(true); },
+  verCheck(){
+    const done = function(){
+      const box = el("ver-latest");
+      if(!box) return;
+      let myVc = 0;
+      try{ myVc = (native && native.versionCode) ? Number(native.versionCode()) : 0; }catch(e){}
+      const a = Me._vj || {}, b = Me._wj || {};
+      const apkOk = !a.versionCode || myVc >= Number(a.versionCode);
+      const webOk = !b.webCode || WEB_CODE >= Number(b.webCode);
+      box.innerHTML = t("ver_latest") +
+        (apkOk ? "" : "⚠️ ") + esc(String(a.versionName || "?")) + " (build " + esc(String(a.versionCode || "?")) + ") · " +
+        (webOk ? "" : "⚠️ ") + esc(String(b.web || "?")) + " (code " + esc(String(b.webCode || "?")) + ") — " +
+        (apkOk && webOk ? "<span style='color:#3DD68C'>" + t("ver_ok") + "</span>"
+                        : "<span style='color:#FFB63D'>" + t("ver_new") + "</span>");
+    };
+    if(Me._vj && Me._wj){ done(); return; }
+    httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/version.json", {}, "").then(function(r1){
+      try{ Me._vj = JSON.parse(r1); }catch(e){ Me._vj = {}; }
+      httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/web.json", {}, "").then(function(r2){
+        try{ Me._wj = JSON.parse(r2); }catch(e){ Me._wj = {}; }
+        done();
+      });
+    });
+  },
   eye(){
     const k = el("c-key");
     const on = k.classList.toggle("mask");
@@ -3522,7 +3553,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 62;
+const WEB_CODE = 63;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
