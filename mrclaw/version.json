@@ -1,5 +1,5 @@
 {
-  "versionCode": 56,
+  "versionCode": 57,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 164778,
-  "notes": "管理员删除帖子改为彻底删除：帖子、评论、点赞、通知、举报记录一并清除，管理员自己的列表里也不会再有（举报判违规同理，会先弹确认）；管理端去掉「已下架/恢复」相关入口。",
+  "notes": "按要求移除麦克风（语音输入）功能：输入栏的麦克风按钮、语音输入代码、麦克风权限项、录音权限声明全部去掉（保留 AI 回复的「朗读」播报）。",
   "official": false
 }
