@@ -277,6 +277,8 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .smsg.me{background:var(--accent);color:#fff;margin-left:auto}
 .smsg.op{background:var(--msg);border:1px solid var(--border)}
 .smsg .stime{font-size:11px;color:var(--muted2);margin-top:5px;letter-spacing:.2px}
+.smsg .snm{font-size:11.5px;font-weight:600;margin-bottom:5px;color:var(--tip-fg)}
+.smsg .snm .offbadge{margin-left:5px}
 .smsg.me .stime{color:rgba(255,255,255,.78);text-align:right}
 .sub2{text-align:center;color:var(--muted2);font-size:12.5px;margin:-6px 0 16px;
   letter-spacing:.2px}
@@ -2585,7 +2587,7 @@ const Adm = {
       if(!box) return;
       const arr = Array.isArray(a) ? a : [];
       box.innerHTML = arr.map(function(m){
-        return "<div class='gm'>" + esc(m.sender === "admin" ? t("me_lbl") : (m.username || Adm.user)) + " · " +
+        return "<div class='gm'>" + nameBadge(m.sender === "admin" ? ADMIN_NAME : (m.username || Adm.user)) + " · " +
           esc(fmtDT(m.created_at)) + "</div><p>" +
           linkify(esc(m.body || "")) + "</p>" + Attach.html(m.attach);
       }).join("") || "<div class='empty'>" + t("notice_empty") + "</div>";
@@ -3183,7 +3185,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 51;
+const WEB_CODE = 52;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -3366,7 +3368,9 @@ const Support = {
     let h = "";
     if(!a.length) h = "<div class='empty'>" + t("support_empty") + "</div>";
     a.forEach(function(m){
+      const isAdm = (m.sender !== "user");
       h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" +
+        (isAdm ? "<div class='snm'>" + nameBadge(ADMIN_NAME) + "</div>" : "") +
         linkify(esc(m.body)) + Attach.html(m.attach) +
         "<div class='stime'>" + esc(fmtDT(m.created_at)) + "</div></div>";
     });
