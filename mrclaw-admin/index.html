@@ -447,6 +447,7 @@ const Panel = {
         "<button class='btn g s' onclick='Panel.support(" + idx + ")'>客服会话</button>" +
         (banned(u) ? "<button class='btn d s' onclick='Panel.unban(" + idx + ")'>解封</button>"
                    : "<button class='btn d s' onclick='Panel.ban(" + idx + ")'>封号</button>") +
+        (banned(u) ? "<button class='btn d s' onclick='Panel.purgeUser(" + idx + ")'>彻底删除用户</button>" : "") +
       "</div>" +
       "<div class='meta'>积分 " + Number(u.points || 0).toLocaleString() +
         (banned(u) ? " · <span style='color:#FF7A8A'>已封禁 " + esc(banLabel(u)) + "</span>" : "") + "</div>" +
@@ -522,6 +523,19 @@ const Panel = {
     const r = await rpc("mrclaw_unban", { p_user: u.username });
     if(r && r.__err){ toast("解封失败"); return; }
     toast("已解封");
+    this.load();
+  },
+  async purgeUser(i){
+    const u = DATA[i];
+    if(!confirm("彻底删除用户「" + u.username + "」？\n\n会删除他的账号、帖子、评论、点赞、客服消息、积分等全部数据，且无法恢复。\n（他留下的评价会保留）")) return;
+    const w = prompt("请输入「删除」两个字确认", "");
+    if(w === null) return;
+    const s = String(w).trim();
+    if(s !== "删除" && s.toUpperCase() !== "DELETE"){ toast("输入不正确，已取消"); return; }
+    const r = await rpc("mrclaw_admin_purge_user", { p_admin: "龙岗", p_user: u.username });
+    if(r && r.__err){ toast("删除失败：" + String(r.__err).slice(0, 40)); return; }
+    if(r && r.err){ toast(r.err === "not_banned" ? "只能彻底删除已被封禁的用户（先封号）" : "删除失败"); return; }
+    toast("已彻底删除：" + u.username);
     this.load();
   },
   supUser: null, tabView: "users", _inbox: {}, logKind: "subs",
