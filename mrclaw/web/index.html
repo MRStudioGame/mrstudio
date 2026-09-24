@@ -1476,6 +1476,11 @@ const Chat = {
     return name;
   },
   callTool(name, argsJson, cb){
+    let a = {};
+    try{ a = JSON.parse(argsJson || "{}") || {}; }catch(e){ a = {}; }
+    if(name === "get_time"){ cb(WebTools.time()); return; }
+    if(name === "weather"){ WebTools.weather(a.city || a.name || "", cb); return; }
+    if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
     if(!native || !native.toolAsync){
       try{ Upd.noBridge(); }catch(e){}
       cb(t("need_new_apk"));
@@ -1524,6 +1529,7 @@ const Chat = {
         });
         return;
       }
+      msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
         model: "deepseek-chat", messages: msgs, tools: TOOLS_JS,
         tool_choice: "auto", stream: false, max_tokens: 1500 } }).then(function(st){
@@ -1796,7 +1802,7 @@ const SKILL_CATALOG = [
   { id:"technews", cat:"news", icon:"📰", zh:["科技资讯","科技与互联网要闻速览"], en:["Tech news","Daily tech headlines"],
     prompt:"用户要科技新闻时，搜索当日科技要闻并列出 5 条，附上标题原文。" },
   { id:"weather", cat:"news", icon:"🌤", zh:["天气查询","查当天与明日天气"], en:["Weather","Today and tomorrow"],
-    prompt:"用户问天气时，若没说城市先询问；再查当天与明日天气并给穿衣建议。" },
+    prompt:"用户问天气时：没说城市就先询问；然后必须调用 weather 工具查询真实天气（不要说自己开应用查），再把温度、天气、降水概率和穿衣/带伞建议讲清楚。" },
   { id:"word", cat:"study", icon:"📚", zh:["单词打卡","每天背 10 个单词"], en:["Vocab drill","10 words a day"],
     prompt:"用户说背单词时，给 10 个单词（英文+词性+中文+例句），并把今天学的记入记忆。" },
   { id:"english", cat:"study", icon:"🔤", zh:["英语陪练","用英语对话并纠错"], en:["English tutor","Chat and correct"],
@@ -3277,8 +3283,115 @@ const TOOLS_JS = [
   { type:"function", function:{ name:"write_file", description:"把内容写入手机文件",
     parameters:{ type:"object", properties:{ path:{ type:"string" }, content:{ type:"string" } }, required:["path","content"] } } },
   { type:"function", function:{ name:"shell", description:"执行 shell 命令（有 root 时以 root 执行）",
-    parameters:{ type:"object", properties:{ cmd:{ type:"string" } }, required:["cmd"] } } }
+    parameters:{ type:"object", properties:{ cmd:{ type:"string" } }, required:["cmd"] } } },
+  { type:"function", function:{ name:"get_time",
+    description:"获取当前真实日期、时间与星期。任何需要知道今天日期/时间的问题都必须先调用它，不要凭记忆猜。",
+    parameters:{ type:"object", properties:{}, required:[] } } },
+  { type:"function", function:{ name:"weather",
+    description:"查询某个城市的实时天气与今明两天预报（真实联网数据）。用户问天气、气温、要不要带伞/穿衣时用它，查到后直接回答，不要让用户自己去别处查。",
+    parameters:{ type:"object", properties:{ city:{ type:"string", description:"城市名，如 深圳 / 北京 / Shanghai" } }, required:["city"] } } },
+  { type:"function", function:{ name:"fetch_url",
+    description:"抓取一个网页或接口并返回纯文本（只读）。用于获取实时信息：天气、汇率、股价、新闻、百科、翻译接口等。",
+    parameters:{ type:"object", properties:{
+      url:{ type:"string", description:"以 http:// 或 https:// 开头的网址" },
+      max:{ type:"number", description:"最多返回多少字符，默认 3000，最大 8000" } }, required:["url"] } } }
 ];
+/* ===== 网页层自带工具（不需要任何权限、真联网） ===== */
+const WMO = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"有雾",48:"雾凇",51:"小毛毛雨",53:"毛毛雨",
+  55:"大毛毛雨",56:"冻毛毛雨",57:"强冻毛毛雨",61:"小雨",63:"中雨",65:"大雨",66:"冻雨",67:"强冻雨",
+  71:"小雪",73:"中雪",75:"大雪",77:"雪粒",80:"小阵雨",81:"阵雨",82:"强阵雨",85:"小阵雪",
+  86:"大阵雪",95:"雷阵雨",96:"雷阵雨伴小冰雹",99:"雷阵雨伴大冰雹"};
+const WebTools = {
+  time(){
+    const d = new Date();
+    const p = x => (x < 10 ? "0" : "") + x;
+    const wd = ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+    return "当前时间：" + d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) +
+           " " + p(d.getHours()) + ":" + p(d.getMinutes()) + " " + wd + "（北京时间 UTC+8，时区 " +
+           (try0(function(){ return Intl.DateTimeFormat().resolvedOptions().timeZone; }) || "本地") + "）";
+  },
+  get(url, cb){
+    httpReq("GET", url, { "Accept": "application/json,text/plain,text/html,*/*" }, "").then(function(raw){
+      if(raw && String(raw).indexOf("ERR:") === 0){ cb(String(raw).slice(0, 160)); return; }
+      cb(null, String(raw == null ? "" : raw));
+    }).catch(function(e){ cb(String((e && e.message) || e).slice(0, 160)); });
+  },
+  strip(txt){
+    return String(txt || "")
+      .replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"")
+      .replace(/[ \t\r]+/g, " ").replace(/\n{2,}/g, "\n").trim();
+  },
+  fetchUrl(url, max, cb){
+    const u = String(url || "").trim();
+    if(!/^https?:\/\//i.test(u)){ cb("网址必须以 http:// 或 https:// 开头"); return; }
+    const lim = Math.max(200, Math.min(Number(max) || 3000, 8000));
+    WebTools.get(u, function(err, raw){
+      if(err){ cb("抓取失败：" + err); return; }
+      const txt = WebTools.strip(raw);
+      if(!txt){ cb("页面没有可读文本（可能是纯脚本页面）"); return; }
+      cb(txt.slice(0, lim));
+    });
+  },
+  weather(city, cb){
+    const c = String(city || "").trim();
+    if(!c){ cb("缺少城市名，请先告诉我要查哪个城市"); return; }
+    const wttr = function(){
+      WebTools.get("https://wttr.in/" + encodeURIComponent(c) + "?format=j1&lang=zh", function(err, raw){
+        if(err){ cb("天气查询失败：" + err); return; }
+        let j = null;
+        try{ j = JSON.parse(raw); }catch(e){}
+        if(!j || !j.current_condition){ cb("天气查询失败：没拿到数据（城市名可能无法识别）"); return; }
+        const cc = j.current_condition[0];
+        const ar = (j.nearest_area && j.nearest_area[0]) || {};
+        const nm = (ar.areaName && ar.areaName[0] && ar.areaName[0].value) || c;
+        const desc = (cc.lang_zh && cc.lang_zh[0] && cc.lang_zh[0].value) || (cc.weatherDesc && cc.weatherDesc[0] && cc.weatherDesc[0].value) || "";
+        let d = "";
+        (j.weather || []).slice(0, 2).forEach(function(w, i){
+          const h = (w.hourly && w.hourly[4]) || {};
+          const hd = (h.lang_zh && h.lang_zh[0] && h.lang_zh[0].value) ||
+                     (h.weatherDesc && h.weatherDesc[0] && h.weatherDesc[0].value) || "";
+          d += (i ? " / " : "") + (i ? "明天" : "今天") + "：" + hd + " " + w.mintempC + "~" + w.maxtempC + "℃";
+        });
+        cb(nm + "｜当前：" + desc + "，" + cc.temp_C + "℃（体感 " + cc.FeelsLikeC + "℃），湿度 " +
+           cc.humidity + "%，风 " + (cc.windspeedKmph || "-") + "km/h\n" + d + "\n（数据来源 wttr.in）");
+      });
+    };
+    WebTools.get("https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&format=json&name=" +
+                 encodeURIComponent(c), function(err, raw){
+      if(err){ wttr(); return; }
+      let g = null;
+      try{ g = JSON.parse(raw); }catch(e){}
+      const r0 = g && g.results && g.results[0];
+      if(!r0){ wttr(); return; }
+      const url = "https://api.open-meteo.com/v1/forecast?latitude=" + r0.latitude + "&longitude=" + r0.longitude +
+        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m" +
+        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+        "&timezone=Asia%2FShanghai&forecast_days=2";
+      WebTools.get(url, function(e2, r2){
+        if(e2){ wttr(); return; }
+        let j = null;
+        try{ j = JSON.parse(r2); }catch(e){}
+        if(!j || !j.current){ wttr(); return; }
+        const cur = j.current, dd = j.daily || {};
+        const codes = dd.weather_code || [], lo = dd.temperature_2m_min || [],
+              hi = dd.temperature_2m_max || [], pp = dd.precipitation_probability_max || [];
+        let d = "";
+        for(let i = 0; i < codes.length && i < 2; i++){
+          d += (i ? " / " : "") + (i ? "明天" : "今天") + "：" + (WMO[codes[i]] || ("代码" + codes[i])) +
+               " " + lo[i] + "~" + hi[i] + "℃·降水概率 " + (pp[i] == null ? "-" : pp[i]) + "%";
+        }
+        cb((r0.name || c) + (r0.admin1 ? "（" + r0.admin1 + "）" : "") + "｜当前：" +
+           (WMO[cur.weather_code] || ("代码" + cur.weather_code)) + "，" + cur.temperature_2m +
+           "℃（体感 " + cur.apparent_temperature + "℃），湿度 " + cur.relative_humidity_2m +
+           "%，风速 " + cur.wind_speed_10m + "km/h\n" + d + "\n（数据来源 open-meteo）");
+      });
+    });
+  }
+};
+function try0(f){ try{ return f(); }catch(e){ return null; } }
+
 let _toolSeq = 0;
 const _toolWait = {};
 window.MR_onTool = function(id, res){
@@ -3369,7 +3482,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 56;
+const WEB_CODE = 57;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
