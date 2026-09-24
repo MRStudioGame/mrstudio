@@ -1,5 +1,5 @@
 {
-  "versionCode": 57,
+  "versionCode": 58,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -7,7 +7,7 @@
     "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.41",
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
-  "size": 164778,
-  "notes": "按要求移除麦克风（语音输入）功能：输入栏的麦克风按钮、语音输入代码、麦克风权限项、录音权限声明全部去掉（保留 AI 回复的「朗读」播报）。",
+  "size": 168874,
+  "notes": "新增：管理员可「彻底删除」已被封禁的用户——账号、配置、帖子、评论、点赞、客服消息、积分、记录全部清除（他留下的评价保留）；需先封禁 + 输入「删除」二次确认；软件内管理页与管理端网站都有。",
   "official": false
 }
