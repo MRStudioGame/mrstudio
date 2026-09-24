@@ -1,5 +1,5 @@
 {
-  "versionCode": 48,
+  "versionCode": 49,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "官方标识补全：管理员「龙岗」在广场发帖/回复、客服消息（用户端与管理端）、管理端帖子/举报/评价列表、官网好评墙，名字后都带「✓ 官方」认证标识。",
+  "notes": "新用户默认主题改为白色（浅色）：网页层默认值、启动页/状态栏/窗口底色、冷启动首帧全部改为白色；老用户已选过的主题不受影响。",
   "official": false
 }
