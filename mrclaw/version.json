@@ -1,5 +1,5 @@
 {
-  "versionCode": 60,
+  "versionCode": 61,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 168874,
-  "notes": "新增自动记忆：遇到「记住/永远/都/以后/下次/我喜欢…」等句子会自动摘取内容存入长期记忆；用户没关关键词但意思是要记的，AI 会主动调用 remember 工具保存（两种模式都支持）；记忆去重、可在记忆页查看修改。",
+  "notes": "自动记忆优化：摘取时保留用户原始措辞（如「以后都叫我家明」完整保留）。",
   "official": false
 }
