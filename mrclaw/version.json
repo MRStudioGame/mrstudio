@@ -1,5 +1,5 @@
 {
-  "versionCode": 45,
+  "versionCode": 46,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "修复管理员在软件内修改广播并保存时误报「操作失败」（服务端其实已保存成功，是前端把空响应当失败）；更新仍走软件内热更新，无需重装。",
+  "notes": "客服消息（用户端与管理端）、帖子/回复、通知 全部显示完整日期时间（如 2026-09-24 12:17）；仍走软件内热更新。",
   "official": false
 }
