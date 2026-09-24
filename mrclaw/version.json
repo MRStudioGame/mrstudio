@@ -1,5 +1,5 @@
 {
-  "versionCode": 54,
+  "versionCode": 55,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 164778,
-  "notes": "修复部分用户已开启无障碍却显示未开启：改为以系统设置里的开关为准（同时区分「已授权但服务还没连上」，并给出明确提示与操作建议）。",
+  "notes": "全量按键体检：静态 73 个入口全部有效、运行时 73 项检查通过；修复「语音输入没有麦克风按钮」（现在输入栏左侧有麦克风按钮，点了变红并开始听写，代码也不再因找不到元素报错）。",
   "official": false
 }
