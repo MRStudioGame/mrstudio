@@ -159,6 +159,12 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
 #agentbar .btn.mini{width:auto;flex:0 0 auto}
 #bar{padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--panel2)}
+.micbtn{flex:0 0 38px;height:38px;border-radius:50%;background:var(--ghost-bg);
+  border:1px solid var(--ghost-bd);color:var(--ghost-fg);font-size:17px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.micbtn.on{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-fg);
+  animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .barline{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
 #pts-chip{font-size:12px;color:var(--muted2)}
@@ -355,6 +361,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
         </div>
       </div>
       <div class="barline">
+        <button id="mic" class="micbtn" onclick="Voice.stt()" title="语音输入">🎤</button>
         <textarea id="ta" rows="1" placeholder=""></textarea>
         <button id="send" onclick="Chat.send()">↑</button>
       </div>
@@ -1009,11 +1016,17 @@ const Voice = {
   listening:false,
   stt(){
     if(!native || !native.sttStart){ Native.toast(t("mobile_only")); return; }
-    if(this.listening){ this.listening = false; el("mic").classList.remove("on"); native.sttStop(); return; }
+    const m = el("mic");
+    if(this.listening){
+      this.listening = false;
+      if(m) m.classList.remove("on");
+      try{ native.sttStop(); }catch(e){}
+      return;
+    }
     this.listening = true;
-    el("mic").classList.add("on");
+    if(m) m.classList.add("on");
     Native.toast(t("stt_listen"));
-    native.sttStart();
+    try{ native.sttStart(); }catch(e){}
   },
   speak(x){
     if(!native || !native.speak){ Native.toast(t("mobile_only")); return; }
@@ -1033,11 +1046,11 @@ window.MR_onStt = function(s){
   if(o.type === "start") return;
   if(o.type === "partial"){ el("ta").value = o.text || ""; Chat.syncSendBtn(); return; }
   if(o.type === "result"){
-    Voice.listening = false; el("mic").classList.remove("on");
+    Voice.listening = false; (function(){ const _m = el("mic"); if(_m) _m.classList.remove("on"); })();
     el("ta").value = o.text || ""; Chat.syncSendBtn(); return;
   }
   if(o.type === "err"){
-    Voice.listening = false; el("mic").classList.remove("on");
+    Voice.listening = false; (function(){ const _m = el("mic"); if(_m) _m.classList.remove("on"); })();
     Native.toast(o.text || t("stt_fail"));
   }
 };
@@ -3506,7 +3519,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 58;
+const WEB_CODE = 59;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
