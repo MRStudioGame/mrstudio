@@ -271,6 +271,8 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   white-space:pre-wrap;word-break:break-word}
 .smsg.me{background:var(--accent);color:#fff;margin-left:auto}
 .smsg.op{background:var(--msg);border:1px solid var(--border)}
+.smsg .stime{font-size:11px;color:var(--muted2);margin-top:5px;letter-spacing:.2px}
+.smsg.me .stime{color:rgba(255,255,255,.78);text-align:right}
 .sub2{text-align:center;color:var(--muted2);font-size:12.5px;margin:-6px 0 16px;
   letter-spacing:.2px}
 </style>
@@ -830,6 +832,15 @@ function uiSheet(title, actions){
   });
 }
 function uiSheetPick(i){ const a = _sheetActions[i]; uiClose(a ? a.value : null); }
+/* 完整日期时间：2026-09-24 12:17 */
+function fmtDT(ts){
+  if(!ts) return "";
+  const d = new Date(ts);
+  if(isNaN(d.getTime())) return "";
+  const p = x => (x < 10 ? "0" : "") + x;
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) +
+         " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
 function fmtTime(ts){
   if(!ts) return "";
   const d = new Date(ts), n = new Date();
@@ -2457,7 +2468,7 @@ const Adm = {
         b2.innerHTML = arr.map(function(x){
           return "<div class='gcard'><h4>" + esc(x.title || ("#" + x.post_id)) + "</h4>" +
             "<div class='gm'>" + esc(x.author || "") + " · 举报人 " + esc(x.reporter) + " · " +
-            fmtTime(new Date(x.created_at).getTime()) + "</div>" +
+            esc(fmtDT(x.created_at)) + "</div>" +
             "<p>" + esc(x.reason || "") + "</p>" +
             "<div class='gbar'><span onclick=\"Adm.handle(" + x.id + ",false)\">" + t("adm_ok") + "</span>" +
             "<span onclick=\"Adm.handle(" + x.id + ",true)\">" + t("adm_bad") + "</span></div></div>";
@@ -2471,7 +2482,7 @@ const Adm = {
         if(!arr.length){ b2.innerHTML = "<div class='empty'>" + t("support_empty") + "</div>"; return; }
         b2.innerHTML = arr.map(function(x){
           return "<div class='gcard' onclick=\"Adm.openSup('" + esc(x.username) + "')\">" +
-            "<h4>" + esc(x.username) + "</h4><div class='gm'>" + fmtTime(new Date(x.last_at).getTime()) + "</div>" +
+            "<h4>" + esc(x.username) + "</h4><div class='gm'>" + esc(fmtDT(x.last_at)) + "</div>" +
             "<p>" + esc(String(x.last_body || "").slice(0, 60)) + "</p></div>";
         }).join("");
       });
@@ -2562,7 +2573,7 @@ const Adm = {
       const arr = Array.isArray(a) ? a : [];
       box.innerHTML = arr.map(function(m){
         return "<div class='gm'>" + esc(m.sender === "admin" ? "我" : m.username) + " · " +
-          fmtTime(new Date(m.created_at).getTime()) + "</div><p>" +
+          esc(fmtDT(m.created_at)) + "</div><p>" +
           linkify(esc(m.body || "")) + "</p>" + Attach.html(m.attach);
       }).join("") || "<div class='empty'>" + t("notice_empty") + "</div>";
     });
@@ -2640,7 +2651,7 @@ const Notice = {
     Notice.list.slice(0, 40).forEach(function(x){
       h += "<div class='nlist " + (x.seen ? "" : "unread") + "'>" +
         "<div class='nt'>" + esc(x.text) + "</div>" +
-        "<div class='nm'>" + fmtTime(new Date(x.created_at).getTime()) + "</div></div>";
+        "<div class='nm'>" + esc(fmtDT(x.created_at)) + "</div></div>";
     });
     h += "<div style='height:12px'></div><button class='btn' onclick='uiClose(null)'>" + t("ok") + "</button></div>";
     b.classList.remove("hide");
@@ -2696,7 +2707,7 @@ const GC = {
                " onmousedown='GC.ps(" + x.id + ")' onmouseup='GC.pe()' onmouseleave='GC.pe()'";
     return "<div class='gcard" + (x.pinned ? " pin" : "") + "' onclick='GC.open(" + x.id + ")'" + lp + ">" +
       "<h4>" + badges + linkify(esc(x.title)) + "</h4>" +
-      "<div class='gm'>" + esc(x.username) + " · " + fmtTime(new Date(x.created_at).getTime()) + "</div>" +
+      "<div class='gm'>" + esc(x.username) + " · " + esc(fmtDT(x.created_at)) + "</div>" +
       "<p>" + linkify(esc(String(x.body || "").slice(0, 120))) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
       "<div class='gbar'><span>" + (x.liked ? "❤️" : "🤍") + " " + (x.likes || 0) + "</span>" +
@@ -2724,7 +2735,7 @@ const GC = {
     const media = (post.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
     let h = "<div class='gwrap'><div class='gcard'>" +
       "<h4>" + linkify(esc(post.title)) + "</h4>" +
-      "<div class='gm'>" + esc(post.username) + " · " + fmtTime(new Date(post.created_at).getTime()) +
+      "<div class='gm'>" + esc(post.username) + " · " + esc(fmtDT(post.created_at)) +
       (post.board ? " · " + esc(post.board) : "") +
       (post.place ? " · 📍" + esc(post.place) : "") +
       (post.declared ? " · " + t("gc_declared_tag") : "") +
@@ -2741,7 +2752,7 @@ const GC = {
     h += replies.map(function(r){
       const m2 = (r.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
       return "<div class='gcard'><div class='gm'>" + esc(r.username) + " · " +
-        fmtTime(new Date(r.created_at).getTime()) + "</div><p>" + linkify(esc(r.body || "")) + "</p>" +
+        esc(fmtDT(r.created_at)) + "</div><p>" + linkify(esc(r.body || "")) + "</p>" +
         (m2 ? "<div class='gmedia'>" + m2 + "</div>" : "") + "</div>";
     }).join("");
     h += "<div class='gcard'><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
@@ -3159,7 +3170,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 48;
+const WEB_CODE = 49;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -3343,7 +3354,8 @@ const Support = {
     if(!a.length) h = "<div class='empty'>" + t("support_empty") + "</div>";
     a.forEach(function(m){
       h += "<div class='smsg " + (m.sender === "user" ? "me" : "op") + "'>" +
-        linkify(esc(m.body)) + Attach.html(m.attach) + "</div>";
+        linkify(esc(m.body)) + Attach.html(m.attach) +
+        "<div class='stime'>" + esc(fmtDT(m.created_at)) + "</div></div>";
     });
     box.innerHTML = h;
     box.scrollTop = box.scrollHeight;
