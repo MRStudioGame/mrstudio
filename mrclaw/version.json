@@ -1,5 +1,5 @@
 {
-  "versionCode": 51,
+  "versionCode": 52,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 160682,
-  "notes": "用户可以管理自己的帖子：详情页与长按菜单新增「编辑」「删除」——编辑可改标题/正文/版块/位置/自主声明并可增删图片，改完显示「已编辑」；删除需二次确认，评论与点赞一并清除。",
+  "notes": "修复左上角通知弹窗：通知过多时不再把「知道了/关闭」按钮顶出屏幕，标题与按钮固定，中间可上下滑动查看；点弹窗空白处也能关闭。",
   "official": false
 }
