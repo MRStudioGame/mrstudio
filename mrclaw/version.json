@@ -1,5 +1,5 @@
 {
-  "versionCode": 47,
+  "versionCode": 48,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "管理员「龙岗」在广场发帖或回复时，名字后面会显示「✓ 官方」认证标识（英文 Official）；管理端帖子列表同步显示。",
+  "notes": "官方标识补全：管理员「龙岗」在广场发帖/回复、客服消息（用户端与管理端）、管理端帖子/举报/评价列表、官网好评墙，名字后都带「✓ 官方」认证标识。",
   "official": false
 }
