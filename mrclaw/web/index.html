@@ -56,11 +56,21 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   padding:14px;margin:10px 12px}
 .gcard h4{margin:0 0 6px;font-size:15.5px}
 .gcard.pin{border-color:#4A3A12;background:linear-gradient(180deg,rgba(255,196,0,.07),transparent 60%)}
-.offbadge{display:inline-flex;align-items:center;gap:3px;margin-left:6px;
-  background:linear-gradient(135deg,#2F6BFF,#39C6F0);color:#fff;font-size:10.5px;
-  font-weight:700;line-height:1.55;padding:1px 8px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.28);vertical-align:2px;letter-spacing:.4px;
-  box-shadow:0 1px 6px rgba(47,107,255,.35);white-space:nowrap}
+.offbadge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  margin-left:5px;border-radius:50%;vertical-align:-2px;flex:0 0 15px;
+  background:linear-gradient(140deg,#4F8BFF 0%,#2F6BFF 45%,#12C2E9 100%);
+  box-shadow:0 1px 4px rgba(47,107,255,.45),inset 0 1px 0 rgba(255,255,255,.45)}
+.offbadge svg{width:10px;height:10px;display:block}
+.offbadge svg path{fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.rp{border-left:3px solid var(--bd2)}
+.rp .gcard{border:0;background:transparent;padding:8px 0 2px}
+.rto{color:var(--tip-fg);font-size:12px}
+.kbtn{color:var(--tip-fg)}
+.kids{margin-top:2px}
+.rtochip{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg);
+  border-radius:10px;padding:7px 11px;font-size:12.5px;margin-bottom:9px}
+.rtochip i{cursor:pointer;font-style:normal;opacity:.85;padding:0 3px}
 .pinbadge{font-size:11px;padding:2px 7px;border-radius:8px;border:1px solid var(--tip-bd);
   background:var(--tip-bg);color:var(--tip-fg);margin-right:6px;white-space:nowrap}
 .gcard .gm{font-size:12px;color:var(--muted2);margin-bottom:6px}
@@ -451,7 +461,9 @@ zh:{
   adm_bc_text:"广播内容（显示在软件顶部滚动）",
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
-  adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方", adm_sup:"客服私信", adm_users:"用户管理",
+  adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
+  gc_reply_btn:"回复", gc_to:"回复", gc_kids:"查看回复", gc_kids_hide:"收起回复",
+  gc_reply_to:"正在回复", adm_sup:"客服私信", adm_users:"用户管理",
   adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
   adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
   adm_ban:"封禁", adm_unban:"解封", adm_days:"封禁天数（0=永久）", adm_points:"加减积分",
@@ -594,7 +606,9 @@ en:{
   adm_bc_text:"Broadcast text (scrolls at the top of the app)",
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
-  adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official", adm_sup:"Support inbox", adm_users:"Users",
+  adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
+  gc_reply_btn:"Reply", gc_to:"replied to", gc_kids:"View replies", gc_kids_hide:"Hide replies",
+  gc_reply_to:"Replying to", adm_sup:"Support inbox", adm_users:"Users",
   adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
   adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
   adm_ban:"Ban", adm_unban:"Unban", adm_days:"Ban days (0 = permanent)", adm_points:"Points",
@@ -846,7 +860,9 @@ function uiSheetPick(i){ const a = _sheetActions[i]; uiClose(a ? a.value : null)
 const ADMIN_NAME = "龙岗";
 function offBadge(name){
   if(String(name || "") !== ADMIN_NAME) return "";
-  return "<span class='offbadge'>✓ " + esc(t("off_badge")) + "</span>";
+  const tt = (LANG === "en") ? "Verified" : "已认证";
+  return "<span class='offbadge' title='" + tt + "' aria-label='" + tt + "'>" +
+         "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5.6 12.7l4.1 4.1 8.7-8.7'/></svg></span>";
 }
 function nameBadge(name){ return esc(name) + offBadge(name); }
 
@@ -2744,6 +2760,7 @@ const GC = {
     if(this._lp){ this._lp = false; return; }
     this.cur = id;
     Attach.gcPending = [];
+    GC.parent = null;
     rpc("mrclaw_post_get", { p_id: id, p_user: S.user.name }).then(function(d){
       if(!d || d.__err || !d.post){ Native.toast(t("gc_fail")); return; }
       GC.detail(d.post, d.replies || []);
@@ -2767,13 +2784,9 @@ const GC = {
       (Admin.on() ? "<span onclick=\"GC.menu(" + post.id + ")\">🛡 " + t("nav_adm") + "</span>" : "") +
       "</div></div>";
     h += "<div class='hd'>" + t("gc_replies") + " (" + replies.length + ")</div>";
-    h += replies.map(function(r){
-      const m2 = (r.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
-      return "<div class='gcard'><div class='gm'>" + nameBadge(r.username) + " · " +
-        esc(fmtDT(r.created_at)) + "</div><p>" + linkify(esc(r.body || "")) + "</p>" +
-        (m2 ? "<div class='gmedia'>" + m2 + "</div>" : "") + "</div>";
-    }).join("");
-    h += "<div class='gcard'><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
+    const tree = GC.tree(replies);
+    h += tree.map(function(r){ return GC.rp(r, 0, ""); }).join("");
+    h += "<div class='gcard'><div id='gc-rto' class='hide'></div><textarea id='gc-rep' rows='3' placeholder='" + esc(t("gc_reply_ph")) +
       "' style='width:100%;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:12px;padding:11px 13px;color:var(--fg);resize:none'></textarea>" +
       "<div id='gc-chips' class='chips hide'></div>" +
       "<div style='height:10px'></div><div style='display:flex;gap:8px'>" +
@@ -2783,6 +2796,63 @@ const GC = {
     const g = el("guide");
     g.classList.remove("hide");
     g.innerHTML = h;
+    if(GC._expand){
+      const bx = el("kids" + GC._expand);
+      if(bx) bx.classList.remove("hide");
+      GC._expand = null;
+    }
+  },
+  /* ---- 评论树 ---- */
+  tree(list){
+    const by = {}, roots = [];
+    (list || []).forEach(function(r){ r.kids = []; by[r.id] = r; });
+    (list || []).forEach(function(r){
+      if(r.parent_id && by[r.parent_id]) by[r.parent_id].kids.push(r);
+      else roots.push(r);
+    });
+    return roots;
+  },
+  rp(r, depth, toName){
+    const kids = r.kids || [];
+    const m2 = (r.media || []).filter(function(m){ return m && m.url; }).map(GC.media).join("");
+    const to = r.parent_name || toName;
+    const ind = Math.min(depth, 4) * 12;
+    return "<div class='gcard" + (depth ? " rp" : "") + "' style='" + (ind ? "margin-left:" + ind + "px;" : "") + "'>" +
+      "<div class='gm'>" + nameBadge(r.username) +
+      (to ? " <span class='rto'>" + t("gc_to") + " " + esc(to) + "</span>" : "") +
+      " · " + esc(fmtDT(r.created_at)) + "</div>" +
+      "<p>" + linkify(esc(r.body || "")) + "</p>" +
+      (m2 ? "<div class='gmedia'>" + m2 + "</div>" : "") +
+      "<div class='gbar'>" +
+      "<span onclick=\"GC.setTo(" + r.id + ",'" + esc(r.username) + "')\">" + t("gc_reply_btn") + "</span>" +
+      (kids.length ? "<span class='kbtn' onclick='GC.kids(" + r.id + ",this)'>" + t("gc_kids") + " " + kids.length + "</span>" : "") +
+      "</div>" +
+      (kids.length ? "<div id='kids" + r.id + "' class='kids hide'>" +
+        kids.map(function(k){ return GC.rp(k, depth + 1, r.username); }).join("") + "</div>" : "") +
+      "</div>";
+  },
+  kids(id, node){
+    const box = el("kids" + id);
+    if(!box) return;
+    const wasHidden = box.classList.contains("hide");
+    box.classList.toggle("hide", !wasHidden);
+    if(node) node.textContent = (wasHidden ? t("gc_kids_hide") : t("gc_kids")) + " " + (node.textContent.match(/\d+/) || [""])[0];
+  },
+  setTo(id, name){
+    GC.parent = id;
+    const b = el("gc-rto");
+    if(b){
+      b.className = "rtochip";
+      b.innerHTML = "<span>" + t("gc_reply_to") + " <b>" + esc(name) + "</b></span>" +
+        "<i onclick='GC.clearTo()'>✕</i>";
+    }
+    const ta = el("gc-rep");
+    if(ta){ try{ ta.focus(); }catch(e){} }
+  },
+  clearTo(){
+    GC.parent = null;
+    const b = el("gc-rto");
+    if(b){ b.className = "hide"; b.innerHTML = ""; }
   },
   shareText(sh){
     let o = sh;
@@ -2853,9 +2923,12 @@ const GC = {
     const v = (box && box.value ? box.value : "").trim();
     const atts = Attach.takeGc();
     if(!v && !atts.length) return;
+    const parent = GC.parent || null;
     const r = await rpc("mrclaw_reply_add", { p_user: S.user.name, p_post_id: id,
-                                              p_body: v, p_media: atts });
+                                              p_body: v, p_media: atts, p_parent: parent });
     if(r && r.__err){ Native.toast(t("gc_fail")); return; }
+    GC.clearTo();
+    GC._expand = parent;
     GC.open(id);
   },
   async report(id){
@@ -3188,7 +3261,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 53;
+const WEB_CODE = 54;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
