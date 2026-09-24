@@ -80,6 +80,11 @@ h1{font-size:20px;margin:0}
 .smsg.me{background:#2F6BFF;color:#fff;margin-left:auto}
 .smsg.op{background:#1A2028;border:1px solid #262E39}
 .smsg .meta{margin-top:4px}
+.offbadge{display:inline-flex;align-items:center;gap:3px;margin-left:6px;
+  background:linear-gradient(135deg,#2F6BFF,#39C6F0);color:#fff;font-size:10.5px;
+  font-weight:700;line-height:1.55;padding:1px 8px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);vertical-align:2px;letter-spacing:.4px;
+  box-shadow:0 1px 6px rgba(47,107,255,.35);white-space:nowrap}
 #sup{position:fixed;inset:0;background:rgba(6,9,13,.72);z-index:80;
   display:flex;align-items:center;justify-content:center;padding:18px}
 .supbox{width:100%;max-width:620px;max-height:86vh;display:flex;flex-direction:column;
@@ -595,7 +600,7 @@ const Panel = {
                  (x.status === "removed" ? "<span class='tag' style='color:#FF8A9A'>已下架</span>" : "");
       return "<div class='u'><div class='top'><div class='name'>" + st +
         esc(String(x.title || "")) + "</div><div class='meta'>" + fmt(x.created_at) + "</div></div>" +
-        "<div class='meta'>作者 " + esc(x.username) + " · 赞 " + (x.likes || 0) +
+        "<div class='meta'>作者 " + esc(x.username) + offBadge(x.username) + " · 赞 " + (x.likes || 0) +
         " · 回复 " + (x.reply_n || 0) + "</div>" +
         "<div class='meta'>" + esc(String(x.body || "").slice(0, 80)) + "</div>" +
         "<div class='row' style='margin-top:9px;flex-wrap:wrap'>" +
@@ -881,6 +886,9 @@ function banLabel(u){
 
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,
   c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/* 官方标识（管理员账号） */
+function offBadge(n){ return String(n || "") === "龙岗" ? "<span class='offbadge'>✓ 官方</span>" : ""; }
+
 function fmt(t){
   if(!t) return "-";
   try{ return new Date(t).toLocaleString("zh-CN", {hour12:false}); }catch(e){ return t; }
