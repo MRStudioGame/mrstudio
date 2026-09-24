@@ -1,5 +1,5 @@
 {
-  "versionCode": 46,
+  "versionCode": 47,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "客服消息（用户端与管理端）、帖子/回复、通知 全部显示完整日期时间（如 2026-09-24 12:17）；仍走软件内热更新。",
+  "notes": "管理员「龙岗」在广场发帖或回复时，名字后面会显示「✓ 官方」认证标识（英文 Official）；管理端帖子列表同步显示。",
   "official": false
 }
