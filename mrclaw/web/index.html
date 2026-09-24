@@ -472,6 +472,7 @@ zh:{
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
   adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", off_badge:"官方",
+  mem_auto_saved:"已自动记入长期记忆：", mem_auto_hint:"（可在「记忆」页查看或修改）",
   ver_latest:"线上最新：", ver_ok:"已是最新", ver_new:"有新版本可更新",
   adm_purge:"彻底删除用户", adm_purge_q1:"彻底删除用户",
   adm_purge_warn:"会删除他的账号、帖子、评论、点赞、客服消息、积分等全部数据，且无法恢复。\n（他留下的评价会保留）",
@@ -626,6 +627,7 @@ en:{
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
   adm_bc_off_s:"off", save:"Save", me_lbl:"Me", off_badge:"Official",
+  mem_auto_saved:"Saved to long-term memory: ", mem_auto_hint:"(view or edit it on the Memory page)",
   ver_latest:"Latest online: ", ver_ok:"up to date", ver_new:"update available",
   adm_purge:"Delete user permanently", adm_purge_q1:"Permanently delete user",
   adm_purge_warn:"This removes their account, posts, comments, likes, support messages and points — irreversible.\n(Their reviews are kept)",
@@ -1028,6 +1030,10 @@ const Voice = {
 };
 /* 语音输入已移除：保留空回调，避免原生旧代码调用时报错 */
 window.MR_onStt = function(){};
+/* 自带 Key 模式：Java 侧 remember 工具回调 */
+window.MR_onRemember = function(txt){
+  try{ Mem.autoAdd(String(txt || ""), false); }catch(e){}
+};
 
 /* ================= 登录 / 注册 ================= */
 const Auth = {
@@ -1284,6 +1290,9 @@ const Chat = {
       : "你是 MRClaw，运行在用户安卓手机上的 AI 助手。";
     if(taskMode){
       sys += LANG === "en"
+        ? " Memory: whenever the user asks or implies that you should remember something (names, preferences, habits, requirements, appointments — even without words like \"remember\"), call the remember tool to save it."
+        : " 记忆：只要用户明说或暗示希望你记住某些内容（名字、喜好、习惯、要求、约定等，即使没有「记住」这类词），就用 remember 工具把它存进长期记忆。";
+      sys += LANG === "en"
         ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Use screen between steps to verify."
         : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成；每步之后用 screen 确认结果。";
     } else {
@@ -1328,6 +1337,7 @@ const Chat = {
     const atts = Attach.take();
     const c = this.cur();
     c.msgs.push({ role:"user", content: text, attach: atts });
+    try{ Mem.scan(text).forEach(function(x){ Mem.autoAdd(x); }); }catch(e){}
     if(c.title === t("new_chat")){ c.title = text.slice(0,14); }
     c.t = nowMs();
     ta.value = ""; ta.style.height = "auto";
@@ -1478,6 +1488,22 @@ const Chat = {
   callTool(name, argsJson, cb){
     let a = {};
     try{ a = JSON.parse(argsJson || "{}") || {}; }catch(e){ a = {}; }
+    if(name === "remember"){
+      const okSaved = Mem.autoAdd(a.text || a.content || "", true);
+      if(okSaved){
+        try{
+          const c = Chat.cur();
+          if(c){
+            c.msgs.push({ role:"system", content: t("mem_auto_saved") + "「" +
+              String(a.text || "").slice(0, 80) + "」\n" + t("mem_auto_hint") });
+            saveConvs(); Chat.render();
+          }
+        }catch(e){}
+      }
+      cb(okSaved ? (LANG === "en" ? "Saved to long-term memory." : "已存入长期记忆。")
+                 : (LANG === "en" ? "Already in memory." : "这条已经在记忆里了。"));
+      return;
+    }
     if(name === "get_time"){ cb(WebTools.time()); return; }
     if(name === "weather"){ WebTools.weather(a.city || a.name || "", cb); return; }
     if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
@@ -1977,6 +2003,59 @@ const Mem = {
         "<button class='btn mini danger' onclick='Mem.del(" + i + ")'>" + t("del") + "</button></div></div>";
     });
     App.content(h);
+  },
+  /* 自动记忆：去重后写入长期记忆 */
+  autoAdd(text, quiet){
+    let v = String(text == null ? "" : text).trim();
+    v = v.replace(/^[，,。.、；;：:\s]+/, "").replace(/[。.，,；;\s]+$/, "");
+    if(v.length < 2) return false;
+    const dup = S.mems.some(function(m){
+      const a = String(m.text || "").trim();
+      return a === v || (a.length > 3 && v.length > 3 && (a.indexOf(v) >= 0 || v.indexOf(a) >= 0));
+    });
+    if(dup) return false;
+    S.mems.unshift({ id: "m" + nowMs(), text: v, auto: true, t: nowMs() });
+    if(S.mems.length > 300) S.mems = S.mems.slice(0, 300);
+    saveMems();
+    if(!quiet){
+      try{
+        const c = Chat.cur();
+        if(c){
+          c.msgs.push({ role: "system", content: t("mem_auto_saved") + "「" +
+            v.slice(0, 80) + "」\n" + t("mem_auto_hint") });
+          saveConvs(); Chat.render();
+        } else {
+          Native.toast(t("mem_auto_saved") + v.slice(0, 24));
+        }
+      }catch(e){}
+    }
+    return true;
+  },
+  /* 关键词扫描：含「记住 / 永远 / 都 / 以后 / 下次 / 我喜欢 …」等的句子自动摘取 */
+  scan(text){
+    const s = String(text == null ? "" : text);
+    if(!s.trim()) return [];
+    const TR = ["记住了","记住","记牢","记一下","记下","记着","记得","别忘了","别忘记","别忘","千万别忘",
+                "永远记住","永远不要","永远别","永远都","以后都","以后不要","以后别","下次要","下次不要",
+                "以后要","我喜欢","我不喜欢","我爱吃","我讨厌","我习惯","我的名字叫","我的名字是","我叫",
+                "我的生日","我住在","我在做","我的工作是","我是做","我的手机","我的邮箱"];
+    const out = [];
+    s.split(/[。！？!?；;\n]+/).forEach(function(seg){
+      const line = seg.trim();
+      if(!line || line.length < 3) return;
+      let hit = false;
+      for(let i = 0; i < TR.length; i++){ if(line.indexOf(TR[i]) >= 0){ hit = true; break; } }
+      if(!hit) return;
+      let v = line;
+      v = v.replace(/^(请你|请|帮我|帮忙|麻烦|拜托|你要|你需要|我想让你|我想请你)/, "").trim();
+      v = v.replace(/^(记住|记住了|记牢|记一下|记下|记着|记得|别忘了|别忘记|永远记住)/, "").trim();
+      v = v.replace(/^(都|永远都|以后都)/, "").trim();
+      v = v.replace(/[吧啊呀哦哟啦]$/, "").trim();
+      if(v.length >= 3 && v.length <= 200) out.push(v);
+    });
+    const seen = {}, res = [];
+    out.forEach(function(x){ if(!seen[x]){ seen[x] = 1; res.push(x); } });
+    return res.slice(0, 3);
   },
   async create(){
     const x = await uiAsk(t("mem_what_q"), "");
@@ -3355,6 +3434,9 @@ const TOOLS_JS = [
     parameters:{ type:"object", properties:{ path:{ type:"string" }, content:{ type:"string" } }, required:["path","content"] } } },
   { type:"function", function:{ name:"shell", description:"执行 shell 命令（有 root 时以 root 执行）",
     parameters:{ type:"object", properties:{ cmd:{ type:"string" } }, required:["cmd"] } } },
+  { type:"function", function:{ name:"remember",
+    description:"把值得长期记住的内容保存到长期记忆。只要用户表达了希望你记住的信息（个人信息、偏好、习惯、要求、约定等），即使没有出现「记住」这类词，也要主动调用它保存。",
+    parameters:{ type:"object", properties:{ text:{ type:"string", description:"要记住的内容，尽量简洁完整（例如：用户的名字叫小明；用户不喜欢吃香菜）" } }, required:["text"] } } },
   { type:"function", function:{ name:"get_time",
     description:"获取当前真实日期、时间与星期。任何需要知道今天日期/时间的问题都必须先调用它，不要凭记忆猜。",
     parameters:{ type:"object", properties:{}, required:[] } } },
@@ -3553,7 +3635,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 63;
+const WEB_CODE = 64;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
