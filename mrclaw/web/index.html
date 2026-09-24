@@ -2049,7 +2049,6 @@ const Mem = {
       let v = line;
       v = v.replace(/^(请你|请|帮我|帮忙|麻烦|拜托|你要|你需要|我想让你|我想请你)/, "").trim();
       v = v.replace(/^(记住|记住了|记牢|记一下|记下|记着|记得|别忘了|别忘记|永远记住)/, "").trim();
-      v = v.replace(/^(都|永远都|以后都)/, "").trim();
       v = v.replace(/[吧啊呀哦哟啦]$/, "").trim();
       if(v.length >= 3 && v.length <= 200) out.push(v);
     });
@@ -3635,7 +3634,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 64;
+const WEB_CODE = 65;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
