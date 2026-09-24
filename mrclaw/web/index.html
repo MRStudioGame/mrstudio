@@ -733,7 +733,8 @@ function rpc(fn, args){
   ).then(function(raw){
     if(raw && String(raw).indexOf("ERR:") === 0) return { __err: String(raw) };
     const v = (raw === null || raw === undefined) ? "" : String(raw).trim();
-    if(v === "") return null;
+    // 空响应 = 数据库里 RETURNS void 的接口，调用就是成功的（以前返回 null 会被误判为失败）
+    if(v === "") return { ok: true };
     try {
       const o = JSON.parse(v);
       if(o && typeof o === "object" && !Array.isArray(o) &&
@@ -2523,7 +2524,7 @@ const Adm = {
       p_speed: parseInt((sp && sp.value) || "60", 10) || 60,
       p_enabled: !!(on && on.checked),
       p_start: keep.start_at || null, p_end: keep.end_at || null });
-    if(!r || r.__err){ Native.toast(t("gc_fail") + " " + String((r && r.__err) || "").slice(0, 60)); return; }
+    if(r && r.__err){ Native.toast(t("gc_fail") + " " + String(r.__err || "").slice(0, 60)); return; }
     Native.toast((on && on.checked) ? t("adm_bc_on_s") : t("adm_bc_off_s"));
     try{ BC.load(); }catch(e){}
     Adm.load();
@@ -3158,7 +3159,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 47;
+const WEB_CODE = 48;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
