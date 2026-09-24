@@ -1,5 +1,5 @@
 {
-  "versionCode": 49,
+  "versionCode": 50,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 156586,
-  "notes": "新用户默认主题改为白色（浅色）：网页层默认值、启动页/状态栏/窗口底色、冷启动首帧全部改为白色；老用户已选过的主题不受影响。",
+  "notes": "官方标识改为图形认证徽章（蓝色渐变圆形 + 白色对勾，不再用文字）；广场评论支持多层回复：可回复任意评论、有回复可展开查看、标注谁回复谁、回复数不限。",
   "official": false
 }
