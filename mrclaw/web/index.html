@@ -444,7 +444,7 @@ zh:{
   adm_bc_text:"广播内容（显示在软件顶部滚动）",
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
   adm_bc_on:"开启广播", adm_bc_now:"当前状态：", adm_bc_on_s:"已开启",
-  adm_bc_off_s:"已关闭", save:"保存", adm_sup:"客服私信", adm_users:"用户管理",
+  adm_bc_off_s:"已关闭", save:"保存", me_lbl:"我", adm_sup:"客服私信", adm_users:"用户管理",
   adm_none:"暂无待处理举报", adm_handle:"处理", adm_ok:"未违规", adm_bad:"违规",
   adm_reason:"理由", adm_punish:"处罚（文字说明）", adm_done:"已处理并通知相关用户",
   adm_ban:"封禁", adm_unban:"解封", adm_days:"封禁天数（0=永久）", adm_points:"加减积分",
@@ -587,7 +587,7 @@ en:{
   adm_bc_text:"Broadcast text (scrolls at the top of the app)",
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
   adm_bc_on:"Enable broadcast", adm_bc_now:"Current: ", adm_bc_on_s:"on",
-  adm_bc_off_s:"off", save:"Save", adm_sup:"Support inbox", adm_users:"Users",
+  adm_bc_off_s:"off", save:"Save", me_lbl:"Me", adm_sup:"Support inbox", adm_users:"Users",
   adm_none:"No pending reports", adm_handle:"Handle", adm_ok:"Not violating", adm_bad:"Violating",
   adm_reason:"Reason", adm_punish:"Punishment (text)", adm_done:"Handled and notified",
   adm_ban:"Ban", adm_unban:"Unban", adm_days:"Ban days (0 = permanent)", adm_points:"Points",
@@ -2572,7 +2572,7 @@ const Adm = {
       if(!box) return;
       const arr = Array.isArray(a) ? a : [];
       box.innerHTML = arr.map(function(m){
-        return "<div class='gm'>" + esc(m.sender === "admin" ? "我" : m.username) + " · " +
+        return "<div class='gm'>" + esc(m.sender === "admin" ? t("me_lbl") : (m.username || Adm.user)) + " · " +
           esc(fmtDT(m.created_at)) + "</div><p>" +
           linkify(esc(m.body || "")) + "</p>" + Attach.html(m.attach);
       }).join("") || "<div class='empty'>" + t("notice_empty") + "</div>";
@@ -3170,7 +3170,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 49;
+const WEB_CODE = 50;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
