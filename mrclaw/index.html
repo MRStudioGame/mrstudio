@@ -260,7 +260,6 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
     <p class="tsub">跑起来是什么样？用真实录屏看一下——装之前先感受感受。</p>
     <div class="vwrap">
       <video id="promo-v" class="pv" controls playsinline preload="metadata" poster="video/poster.jpg">
-        <source src="https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/video/MRClaw-promo.mp4" type="video/mp4">
         <source src="video/MRClaw-promo.mp4" type="video/mp4">
         您的浏览器不支持视频播放。
       </video>
@@ -736,6 +735,39 @@ const Bgm = {
 };
 Bgm.init();
 try{ Bgm.bindVideo(); }catch(e){}
+/* 宣传片：探测最快可用线路（每个只取 1KB），避免国内直连慢 */
+(function(){
+  var REL = "video/MRClaw-promo.mp4";
+  var CANDS = [
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/video/MRClaw-promo.mp4",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/video/MRClaw-promo.mp4",
+    "https://cdn.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/video/MRClaw-promo.mp4"
+  ];
+  var v = document.getElementById("promo-v");
+  if(!v || typeof fetch !== "function") return;
+  var probe = function(u){
+    return new Promise(function(res){
+      var done = false;
+      var ctl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      var to = setTimeout(function(){ if(!done){ done = true; try{ ctl && ctl.abort(); }catch(e){} res(false); } }, 4000);
+      var t0 = Date.now();
+      fetch(u, { method: "GET", headers: { Range: "bytes=0-1023" }, signal: ctl ? ctl.signal : undefined })
+        .then(function(r){ if(done) return; done = true; clearTimeout(to);
+          res((r && (r.status === 200 || r.status === 206)) ? (Date.now() - t0) : false); })
+        .catch(function(){ if(done) return; done = true; clearTimeout(to); res(false); });
+    });
+  };
+  Promise.all(CANDS.map(probe)).then(function(res){
+    var best = -1, bt = 1e9;
+    res.forEach(function(ms, i){ if(ms !== false && ms < bt){ bt = ms; best = i; } });
+    if(best >= 0){
+      var list = v.querySelectorAll("source");
+      for(var i = 0; i < list.length; i++) list[i].remove();
+      v.src = CANDS[best];
+      try{ v.load(); }catch(e){}
+    }
+  });
+})();
 
 /* 好评墙 */
 (async function(){
