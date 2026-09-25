@@ -740,14 +740,6 @@ const Panel = {
     if(!b) return;
     if(n > 0){ b.className = "badge"; b.textContent = n; } else b.className = "badge hide";
   },
-  tab(v){
-    Panel.tabView = v;
-    document.getElementById("view-users").className = (v === "users") ? "" : "hide";
-    document.getElementById("view-sup").className = (v === "sup") ? "" : "hide";
-    document.getElementById("tab-users").className = "btn s" + (v === "users" ? "" : " g");
-    document.getElementById("tab-sup").className = "btn s" + (v === "sup" ? "" : " g");
-    if(v === "sup") Panel.convs();
-  },
   seen(){ try{ return JSON.parse(localStorage.getItem("mrclaw_seen") || "{}"); }catch(e){ return {}; } },
   markSeen(u, iso){ const s = Panel.seen(); s[u] = iso || new Date().toISOString();
     localStorage.setItem("mrclaw_seen", JSON.stringify(s)); },
