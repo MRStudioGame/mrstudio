@@ -215,7 +215,9 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
   h1{font-size:38px}
   section{padding:46px 0}
   .subform{flex-direction:column}
-  /* 顶栏改两行：品牌一行、功能按钮一行，避免按钮被挤出屏幕 */
+  /* 手机端顶部不吸附：往下滑自动收走，把屏幕留给内容 */
+  header{position:static}
+  /* 顶栏改多行：品牌 / 导航 / 功能按钮，避免按钮被挤出屏幕 */
   .nav{height:auto;flex-direction:column;align-items:stretch;gap:9px;padding:10px 0}
   .brand{width:100%;justify-content:center}
   .navright{margin-left:0;width:100%;justify-content:center;flex-wrap:wrap;gap:8px}
