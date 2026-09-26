@@ -1,5 +1,5 @@
 {
-  "versionCode": 62,
+  "versionCode": 63,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 168874,
-  "notes": "手机端触控优化：广场帖子的点赞/举报/编辑/删除/回复等操作按钮触控区加大（原来仅 21px 高不好点），输入区小按钮加高到 38px。",
+  "notes": "注册赠送积分由 30 万调整为 10 万（软件内、官网、管理端文案同步；兑换码仍为每张 +30 万）；官网宣传片下方新增一行小字「具体内容以软件内为准」。",
   "official": false
 }
