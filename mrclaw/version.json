@@ -1,5 +1,5 @@
 {
-  "versionCode": 63,
+  "versionCode": 64,
   "versionName": "1.0.41",
   "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
   "mirrors": [
@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
   ],
   "size": 168874,
-  "notes": "注册赠送积分由 30 万调整为 10 万（软件内、官网、管理端文案同步；兑换码仍为每张 +30 万）；官网宣传片下方新增一行小字「具体内容以软件内为准」。",
+  "notes": "注册赠送 10 万积分（同步补 webCode，确保老版本能收到软件内文案更新）。",
   "official": false
 }
