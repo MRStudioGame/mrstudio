@@ -112,9 +112,9 @@ h1{font-size:20px;margin:0}
   .stat b{font-size:22px}
   .card{padding:13px;margin:10px 0;border-radius:14px}
   .row{gap:8px;flex-wrap:wrap}
-  #tabs, #logtabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;
-    padding-bottom:4px}
-  #tabs .btn, #logtabs .btn{flex:0 0 auto}
+  /* 页签自动换行：手机上全部可见，不用横滑去找 */
+  #tabs, #logtabs{flex-wrap:wrap;overflow:visible;padding-bottom:0;row-gap:6px}
+  #tabs .btn, #logtabs .btn{flex:0 1 auto}
   input{font-size:16px}
   .btn{padding:9px 14px;font-size:14px}
   .btn.s{padding:8px 12px}
