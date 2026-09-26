@@ -37,6 +37,7 @@ header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 8
 .navlinks{display:flex;gap:18px;font-size:14px;color:var(--muted);margin-left:6px}
 .navlinks a:hover{color:var(--fg)}
 .navright{margin-left:auto;display:flex;align-items:center;gap:9px}
+.navtools{display:inline-flex;align-items:center;gap:9px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid transparent;border-radius:10px;padding:9px 15px;font-size:14px;
   font-weight:600;cursor:pointer;background:var(--panel);color:var(--fg);transition:.16s;white-space:nowrap}
@@ -218,6 +219,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
   .nav{height:auto;flex-direction:column;align-items:stretch;gap:9px;padding:10px 0}
   .brand{width:100%;justify-content:center}
   .navright{margin-left:0;width:100%;justify-content:center;flex-wrap:wrap;gap:8px}
+  .navtools{width:100%;justify-content:center}
   .navright .btn{padding:8px 12px;font-size:13px}
   .navright .btn.sm{padding:8px 11px}
   /* 导航链接改成一行可横向滑动，手机也能直接跳转 */
@@ -252,8 +254,10 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
       <button class="btn ghost sm" onclick="wxOpen()">官方公众号</button>
       <button class="btn ghost sm" onclick="Support.open()">咨询客服</button>
       <button class="btn primary sm" onclick="pay()">充值积分</button>
-      <button class="btn ghost sm" id="thm" onclick="theme()" title="切换主题">◐</button>
-      <button class="btn ghost sm" id="lng" onclick="toggleLang()" title="Switch to English">EN</button>
+      <span class="navtools">
+        <button class="btn ghost sm" id="thm" onclick="theme()" title="切换主题">◐</button>
+        <button class="btn ghost sm" id="lng" onclick="toggleLang()" title="Switch to English">EN</button>
+      </span>
     </div>
   </div>
 </header>
