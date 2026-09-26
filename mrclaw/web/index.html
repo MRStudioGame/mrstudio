@@ -36,7 +36,7 @@ button,input,textarea,select{font:inherit;color:inherit;outline:none;border:none
   width:100%;transition:.15s}
 .btn:active{transform:scale(.98);opacity:.88}
 .btn.ghost{background:var(--ghost-bg);border:1px solid var(--ghost-bd);color:var(--ghost-fg)}
-.btn.mini{width:auto;padding:8px 14px;font-size:13px;border-radius:10px}
+.btn.mini{min-height:38px;width:auto;padding:8px 14px;font-size:13px;border-radius:10px}
 .btn.danger{background:var(--danger-bg);color:var(--danger-fg);border:1px solid var(--danger-bd)}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -81,8 +81,10 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   background:var(--tip-bg);color:var(--tip-fg);margin-right:6px;white-space:nowrap}
 .gcard .gm{font-size:12px;color:var(--muted2);margin-bottom:6px}
 .gcard p{margin:0;color:var(--muted);font-size:14px;white-space:pre-wrap}
-.gbar{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--muted2)}
-.gbar span{cursor:pointer}
+.gbar{display:flex;gap:6px;margin-top:8px;font-size:13px;color:var(--muted2);
+  flex-wrap:wrap;align-items:center}
+.gbar span{cursor:pointer;padding:9px 8px;border-radius:9px;background:var(--panel2);
+  border:1px solid var(--border);line-height:1.1}
 .gbar .on{color:#FF6A8A}
 .gmedia{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .gmedia img{max-width:104px;max-height:104px;border-radius:10px}
@@ -3634,7 +3636,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.41";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 65;
+const WEB_CODE = 66;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
