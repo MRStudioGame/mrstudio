@@ -212,9 +212,23 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 @keyframes updown{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @media (max-width:820px){
   h1{font-size:38px}
-  .navlinks{display:none}
   section{padding:46px 0}
   .subform{flex-direction:column}
+  /* 顶栏改两行：品牌一行、功能按钮一行，避免按钮被挤出屏幕 */
+  .nav{height:auto;flex-direction:column;align-items:stretch;gap:9px;padding:10px 0}
+  .brand{width:100%;justify-content:center}
+  .navright{margin-left:0;width:100%;justify-content:center;flex-wrap:wrap;gap:8px}
+  .navright .btn{padding:8px 12px;font-size:13px}
+  .navright .btn.sm{padding:8px 11px}
+  /* 导航链接改成一行可横向滑动，手机也能直接跳转 */
+  .navlinks{display:flex;width:100%;margin-left:0;gap:14px;font-size:13.5px;
+    overflow-x:auto;white-space:nowrap;padding-bottom:3px;-webkit-overflow-scrolling:touch}
+  .navlinks a{flex:0 0 auto}
+  .wrap{padding:0 16px}
+}
+@media (max-width:400px){
+  .navright .btn{padding:7px 10px;font-size:12.5px}
+  .navright{gap:6px}
 }
 </style>
 </head>
