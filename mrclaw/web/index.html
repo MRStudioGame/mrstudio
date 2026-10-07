@@ -191,6 +191,9 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
 .aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
 .fbtn{display:inline-block;padding:5px 9px;border-radius:8px;background:rgba(125,125,150,.18);color:#cfd6e2;font-size:12px;margin-left:6px;cursor:pointer}
+.qgrid{display:flex;flex-wrap:wrap;gap:8px;padding:8px 10px}
+.qbtn{display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(125,125,150,.16);color:#dfe5ee;font-size:13px;cursor:pointer}
+.qclose{text-align:center;padding:8px;color:#9aa4b2;cursor:pointer}
 .spk,.cost{margin-left:38px}
 body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),transparent 62%),var(--bg)}
 #macro-panel{position:fixed;left:12px;right:12px;bottom:96px;z-index:70;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 12px 6px;box-shadow:0 14px 44px rgba(0,0,0,.28)}
@@ -400,6 +403,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
         <span id="pts-chip"></span>
         <div style="display:flex;gap:8px">
           <button id="macro-btn" class="btn ghost mini" onclick="Macro.open()">宏</button>
+          <button id="quick-btn" class="btn ghost mini" onclick="Quick.open()">⚡</button>
           <button id="task-btn" class="btn ghost mini" onclick="Mode.task()"></button>
           <button id="mode-btn" class="btn mini" onclick="Acc.mode()"></button>
           <button id="att-btn" class="btn ghost mini" onclick="Attach.openMenu(false)">＋</button>
@@ -418,6 +422,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       </div>
       <div id="mp-list"></div>
     </div>
+    <div id="quick-panel" class="hide"></div>
     <div id="nav">
       <button data-tab="chat" class="act" onclick="App.tab('chat')"><b>💬</b><span id="nv-chat"></span></button>
       <button data-tab="gc" onclick="App.tab('gc')"><b>🏛</b><span id="nv-gc"></span></button>
@@ -1289,6 +1294,43 @@ const Conv = {
 };
 
 /* ================= 聊天 ================= */
+/* ===== 内置快捷脚本库（对标游龙：一点秒跑，不经过 AI） ===== */
+const QUICK = [
+  { zh:"返回桌面", en:"Home", steps:[{act:"key",action:"home"}] },
+  { zh:"返回上一页", en:"Back", steps:[{act:"key",action:"back"}] },
+  { zh:"最近任务", en:"Recents", steps:[{act:"key",action:"recents"}] },
+  { zh:"向下滚动", en:"Scroll down", steps:[{act:"scroll",dir:"down",times:3}] },
+  { zh:"向上滚动", en:"Scroll up", steps:[{act:"scroll",dir:"up",times:3}] },
+  { zh:"打开微信", en:"WeChat", steps:[{act:"open",name:"微信"}] },
+  { zh:"打开 QQ", en:"QQ", steps:[{act:"open",name:"QQ"}] },
+  { zh:"打开快手", en:"Kuaishou", steps:[{act:"open",name:"快手"}] },
+  { zh:"打开抖音", en:"Douyin", steps:[{act:"open",name:"抖音"}] },
+  { zh:"打开小红书", en:"RedNote", steps:[{act:"open",name:"小红书"}] },
+  { zh:"打开淘宝", en:"Taobao", steps:[{act:"open",name:"淘宝"}] },
+  { zh:"打开支付宝", en:"Alipay", steps:[{act:"open",name:"支付宝"}] },
+  { zh:"打开相机", en:"Camera", steps:[{act:"open",name:"相机"}] },
+  { zh:"打开设置", en:"Settings", steps:[{act:"open",name:"设置"}] }
+];
+const Quick = {
+  open(){
+    const p = el("quick-panel"); if(!p) return;
+    let h = "<div class='mp-head'><b>" + (LANG === "en" ? "Quick actions" : "一键快捷") + "</b><button class='btn ghost mini' onclick='Quick.close()'>✕</button></div><div class='qgrid'>";
+    QUICK.forEach(function(q, i){
+      h += "<span class='qbtn' onclick='Quick.run(" + i + ")'>" + esc(LANG === "en" ? q.en : q.zh) + "</span>";
+    });
+    h += "</div>";
+    p.innerHTML = h;
+    p.classList.remove("hide");
+  },
+  close(){ const p = el("quick-panel"); if(p) p.classList.add("hide"); },
+  run(i){
+    const q = QUICK[i]; if(!q) return;
+    if(!scriptOk()){ Native.toast(LANG === "en" ? "Please update the app first" : "请先更新安装包（需 v1.1.0+）"); return; }
+    Quick.close();
+    const nm = LANG === "en" ? q.en : q.zh;
+    Macro.runSteps(nm, [{ n:"run_script", a: JSON.stringify({ note: nm, steps: q.steps, done: true }) }]);
+  }
+};
 const Macro = {
   KEY: "mrclaw_macros_v1",
   rec: false,
@@ -1333,29 +1375,32 @@ const Macro = {
   run(id){
     const m = this.byId(id);
     if(!m) return;
-    if(!m.steps.length) return;
-    if(Chat.busy){ Native.toast(LANG === "en" ? "Busy, try again later" : "正在忙，稍后再试"); return; }
     this.close();
+    this.runSteps(m.name, m.steps);
+  },
+  runSteps(name, steps){
+    if(!steps || !steps.length) return;
+    if(Chat.busy){ Native.toast(LANG === "en" ? "Busy, try again later" : "正在忙，稍后再试"); return; }
     this.replaying = true; Chat.busy = true; Chat._pcancel = false;
     const c = Chat.cur();
     if(!c){ this.replaying = false; Chat.busy = false; return; }
-    const bubble = { role: "assistant", content: "▶ " + m.name, _steps: [] };
+    const bubble = { role: "assistant", content: "▶ " + name, _steps: [] };
     c.msgs.push(bubble); saveConvs(); Chat.render();
-    Chat.agentBar(true, "▶ " + m.name);
+    Chat.agentBar(true, "▶ " + name);
     let i = 0;
     const self = this;
     const next = function(){
-      if(i >= m.steps.length){
+      if(i >= steps.length){
         self.replaying = false; Chat.busy = false;
         Chat.agentBar(false); saveConvs(); Chat.render();
         Overlay.flash(t("done_t"), "ok", 2000);
         return;
       }
-      const s = m.steps[i++];
+      const s = steps[i++];
       bubble._steps.push(Chat.toolDesc(s.n, s.a));
-      bubble.content = "▶ " + m.name + "\n" + bubble._steps.map(function(x){ return "· " + x; }).join("\n");
+      bubble.content = "▶ " + name + "\n" + bubble._steps.map(function(x){ return "· " + x; }).join("\n");
       Chat.paint(bubble);
-      Chat.callTool(s.n, s.a, function(){ setTimeout(next, 260); });
+      Chat.callTool(s.n, s.a, function(){ setTimeout(next, 200); });
     };
     next();
   },
@@ -4050,10 +4095,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.57";
+const WEB_VERSION = "1.0.58";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 82;
+const WEB_CODE = 83;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
