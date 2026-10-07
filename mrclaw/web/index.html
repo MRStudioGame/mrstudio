@@ -1470,9 +1470,15 @@ const Chat = {
       sys += LANG === "en"
         ? " Memory: whenever the user asks or implies that you should remember something (names, preferences, habits, requirements, appointments — even without words like \"remember\"), call the remember tool to save it."
         : " 记忆：只要用户明说或暗示希望你记住某些内容（名字、喜好、习惯、要求、约定等，即使没有「记住」这类词），就用 remember 工具把它存进长期记忆。";
-      sys += LANG === "en"
-        ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
-        : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
+      if(scriptOk()){
+        sys += LANG === "en"
+          ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
+          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
+      } else {
+        sys += LANG === "en"
+          ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear."
+          : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。";
+      }
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -1778,7 +1784,7 @@ const Chat = {
       }
       if(step === 1) msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
-        model: "deepseek-chat", messages: msgs, tools: TOOLS_JS,
+        model: "deepseek-chat", messages: msgs, tools: toolsForNative(),
         tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
         if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
@@ -3668,13 +3674,22 @@ const TOOLS_JS = [
     description:"抓取一个网页或接口并返回纯文本（只读）。用于获取实时信息：天气、汇率、股价、新闻、百科、翻译接口等。",
     parameters:{ type:"object", properties:{
       url:{ type:"string", description:"以 http:// 或 https:// 开头的网址" },
-      max:{ type:"number", description:"最多返回多少字符，默认 3000，最大 8000" } }, required:["url"] } } },
-  { type:"function", function:{ name:"run_script",
+      max:{ type:"number", description:"最多返回多少字符，默认 3000，最大 8000" } }, required:["url"] } } }
+];
+/* run_script 是【原生】能力：安装包 >= vc67 才支持。老包静默隐藏，不强制重装。 */
+const TOOL_RUN_SCRIPT = { type:"function", function:{ name:"run_script",
     description:"【首选·最快】把一整套手机操作写成一个脚本，App 在本机连续执行（中间不再请求大模型），适合任何多步操作：打开应用、按文字查找并点击、滚动查找、连续点赞/滑动等。能用它就不要一步步调用 tap/swipe。steps 为步骤数组按序执行，每步是 {act:...}：{act:'open',name:'快手'} 打开应用；{act:'tap',text:'赞'} 按文字点击；{act:'tap',x:100,y:200} 按坐标；{act:'waitText',text:'首页',timeout:8000} 等待文字出现；{act:'scroll',dir:'down',times:3} 滚动；{act:'scrollFind',text:'赞',dir:'down',max:10} 滚动查找；{act:'input',text:'你好'} 输入；{act:'key',action:'back'} 按键；{act:'wait',ms:800} 等待；{act:'repeat',times:5,steps:[...]} 循环；{act:'ifText',text:'登录',then:[...],else:[...]} 条件分支。",
     parameters:{ type:"object", properties:{
       note:{ type:"string", description:"一句话说明这段脚本做什么" },
-      steps:{ type:"array", description:"步骤数组" } }, required:["steps"] } } }
-];
+      steps:{ type:"array", description:"步骤数组" } }, required:["steps"] } } };
+/* 当前安装包是否支持 run_script */
+function scriptOk(){
+  try{ return !!(native && native.versionCode && Number(native.versionCode()) >= 67); }catch(e){ return false; }
+}
+/* 下发工具：老包装不下 run_script，就不发（也不会弹重装） */
+function toolsForNative(){
+  try{ return scriptOk() ? TOOLS_JS.concat([TOOL_RUN_SCRIPT]) : TOOLS_JS; }catch(e){ return TOOLS_JS; }
+}
 /* ===== 网页层自带工具（不需要任何权限、真联网） ===== */
 const WMO = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"有雾",48:"雾凇",51:"小毛毛雨",53:"毛毛雨",
   55:"大毛毛雨",56:"冻毛毛雨",57:"强冻毛毛雨",61:"小雨",63:"中雨",65:"大雨",66:"冻雨",67:"强冻雨",
@@ -3858,10 +3873,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.47";
+const WEB_VERSION = "1.0.48";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 72;
+const WEB_CODE = 73;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
