@@ -1,13 +1,13 @@
 {
-  "versionCode": 67,
-  "versionName": "1.0.47",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.47",
+  "versionCode": 68,
+  "versionName": "1.1.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.0",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.47",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.47",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.47"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.0",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.0",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.0"
   ],
-  "size": 177066,
-  "notes": "新增【脚本模式】（对标游龙）：AI 一次性把整套操作写成脚本，App 本机连续执行、步骤之间不再请求大模型 → 点赞/关注/滚动查找等多步操作从几十秒降到秒级。内置 run_script（打开应用/按文字点击/等待控件出现/滚动查找/循环/条件分支）。功能全保留",
+  "size": 181162,
+  "notes": "新增「看屏幕」视觉能力：AI 看不懂图标/符号时可截图识别（免费视觉模型 glm-4.6v-flash），配合脚本模式更快更聪明。本次因新增原生截屏能力需更新安装包",
   "official": false
 }
