@@ -1,13 +1,13 @@
 {
-  "versionCode": 68,
-  "versionName": "1.1.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.0",
+  "versionCode": 69,
+  "versionName": "1.1.1",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.1",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.0",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.0",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.0"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.1",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.1",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.1"
   ],
-  "size": 181162,
-  "notes": "新增「看屏幕」视觉能力：AI 看不懂图标/符号时可截图识别（免费视觉模型 glm-4.6v-flash），配合脚本模式更快更聪明。本次因新增原生截屏能力需更新安装包",
+  "size": 185258,
+  "notes": "① 文件现在能真正保存：聊天里的文件带「存到手机」和「复制」按钮（安卓 WebView 不支持下载链接，改为原生保存到「下载」目录）；② 修复思考过程在任务进行中不显示的问题。本次因新增原生保存能力需更新一次安装包",
   "official": false
 }
