@@ -184,6 +184,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .msg pre{background:var(--inp);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:6px 0;overflow:auto;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace}
 .msg code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--chip);border-radius:6px;padding:1px 5px;font-size:13px}
 .mline .msg.a .ahead{margin-bottom:6px}
+.mchip{display:inline-block;font-size:10px;line-height:1;padding:2px 6px;border-radius:6px;margin-right:6px;background:rgba(125,125,150,.18);color:#9aa4b2;vertical-align:middle}
 .spk,.cost{margin-left:38px}
 body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),transparent 62%),var(--bg)}
 #macro-panel{position:fixed;left:12px;right:12px;bottom:96px;z-index:70;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 12px 6px;box-shadow:0 14px 44px rgba(0,0,0,.28)}
@@ -1412,11 +1413,14 @@ const Chat = {
   },
   headHtml(x){
     if(!x) return "";
-    if(x._running) return "<div class='ahead'><span class='run'>" + t("running") + "</span></div>";
-    if(x._state === "done") return "<div class='ahead'><span class='ok'>" + t("done_t") + "</span></div>";
-    if(x._state === "stop") return "<div class='ahead'><span class='warn'>" + t("stop_t") + "</span></div>";
-    if(x._state === "err") return "<div class='ahead'><span class='bad'>" + t("err_t") + "</span></div>";
-    return "";
+    const _chip = x._model ? "<span class='mchip'>" + esc(String(x._model)) + "</span>" : "";
+    let _st = "";
+    if(x._running) _st = "<span class='run'>" + t("running") + "</span>";
+    else if(x._state === "done") _st = "<span class='ok'>" + t("done_t") + "</span>";
+    else if(x._state === "stop") _st = "<span class='warn'>" + t("stop_t") + "</span>";
+    else if(x._state === "err") _st = "<span class='bad'>" + t("err_t") + "</span>";
+    if(!_chip && !_st) return "";
+    return "<div class='ahead'>" + _chip + _st + "</div>";
   },
   render(){
     if(!this.cur()) this.newConv();
@@ -1472,12 +1476,12 @@ const Chat = {
         : " 记忆：只要用户明说或暗示希望你记住某些内容（名字、喜好、习惯、要求、约定等，即使没有「记住」这类词），就用 remember 工具把它存进长期记忆。";
       if(scriptOk()){
         sys += LANG === "en"
-          ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
-          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
+          ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). To search inside an app: tap the search entry ('🔍' icon or 'Search'), type the keyword, then tap Search / press enter. NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
+          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。在 App 内搜索：先点顶部/页面的「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
       } else {
         sys += LANG === "en"
-          ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear."
-          : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。";
+          ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear. To search in an app: tap the search entry ('🔍' or 'Search'), type the keyword, then tap Search / press enter."
+          : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。在 App 内搜索：先点「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。";
       }
     } else {
       sys += LANG === "en"
@@ -1614,6 +1618,7 @@ const Chat = {
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
       if(st.err === "banned"){ Show.ban(); Chat.ptsEnd(bubble, false); return; }
       if(st.err){ Chat.ptsFail(bubble, st.err); return; }
+      if(st.model){ bubble._model = st.model; Chat.paint(bubble); }
       Chat.pollPts(bubble, st.id, 0);
     });
   },
@@ -1628,7 +1633,7 @@ const Chat = {
         Chat.busy = false;
         Chat.reveal(bubble, full, function(){ saveConvs(); Chat.render(); Chat.afterReply(); if(Acc.data.points <= 0) Show.out(); });
       });
-    }, 350);
+    }, 150);
   },
   reveal(bubble, full, done){
     const text = String(full == null ? "" : full);
@@ -1749,7 +1754,7 @@ const Chat = {
         if(!pp || pp.__err || !pp.done){ Chat.pollAgent(id, ok, err, n + 1); return; }
         ok(pp);
       });
-    }, 300);
+    }, 150);
   },
   pointsAgent(c, bubble, atts){
     const self = this;
@@ -1790,6 +1795,7 @@ const Chat = {
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
         if(st.err === "banned"){ Show.ban(); finish("", "err"); return; }
         if(st.err){ finish(t("exec_fail") + st.err, "err"); return; }
+        if(st.model){ bubble._model = st.model; self.paint(bubble); }
         self.pollAgent(st.id, function(pp){
           let m = null;
           try{
@@ -1835,6 +1841,7 @@ const Chat = {
   },
   agentRun(bubble, url, headers, body){
     const c = this.cur();
+    try{ bubble._model = S.cfg.model || (providerById(S.cfg.provider) || {}).model; }catch(e){}
     const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-12)
       .map(function(x){
         let txt = x.content || "";
@@ -1931,6 +1938,7 @@ const Chat = {
     if(!b || !b._steps) return;
     if(o.type === "run"){
       Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
+      if(o.model) b._model = o.model;
       b._running = true; this.agentBar(true); this.paint(b);
       Overlay.on(t("running").replace("● ", ""), "run", true);
       return;
@@ -3873,10 +3881,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.48";
+const WEB_VERSION = "1.0.49";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 73;
+const WEB_CODE = 74;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
