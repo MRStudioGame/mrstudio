@@ -1309,7 +1309,18 @@ const QUICK = [
   { zh:"打开淘宝", en:"Taobao", steps:[{act:"open",name:"淘宝"}] },
   { zh:"打开支付宝", en:"Alipay", steps:[{act:"open",name:"支付宝"}] },
   { zh:"打开相机", en:"Camera", steps:[{act:"open",name:"相机"}] },
-  { zh:"打开设置", en:"Settings", steps:[{act:"open",name:"设置"}] }
+  { zh:"打开设置", en:"Settings", steps:[{act:"open",name:"设置"}] },
+  { zh:"微信朋友圈", en:"Moments", steps:[{act:"open",name:"微信"},{act:"wait",ms:1500},{act:"tap",text:"发现"},{act:"wait",ms:1200},{act:"tap",text:"朋友圈"}] },
+  { zh:"微信扫一扫", en:"Scan", steps:[{act:"open",name:"微信"},{act:"wait",ms:1500},{act:"tap",text:"发现"},{act:"wait",ms:1200},{act:"tap",text:"扫一扫"}] },
+  { zh:"微信收付款", en:"Pay codes", steps:[{act:"open",name:"微信"},{act:"wait",ms:1500},{act:"tap",text:"我"},{act:"wait",ms:1200},{act:"tap",text:"服务"}] },
+  { zh:"微信搜联系人", en:"Find contact", ask:"搜谁？（联系人/群名）", steps:[{act:"open",name:"微信"},{act:"wait",ms:1500},{act:"tap",text:"搜索"},{act:"wait",ms:1000},{act:"input",text:"{{1}}"},{act:"wait",ms:1800},{act:"tap",text:"{{1}}"}] },
+  { zh:"快手搜索", en:"Kuaishou search", ask:"搜什么？", steps:[{act:"open",name:"快手"},{act:"wait",ms:2500},{act:"tap",text:"搜索"},{act:"wait",ms:1000},{act:"input",text:"{{1}}"},{act:"key",action:"enter"},{act:"wait",ms:1500}] },
+  { zh:"抖音搜索", en:"Douyin search", ask:"搜什么？", steps:[{act:"open",name:"抖音"},{act:"wait",ms:2500},{act:"tap",text:"搜索"},{act:"wait",ms:1000},{act:"input",text:"{{1}}"},{act:"key",action:"enter"},{act:"wait",ms:1500}] },
+  { zh:"小红书搜索", en:"RedNote search", ask:"搜什么？", steps:[{act:"open",name:"小红书"},{act:"wait",ms:2500},{act:"tap",text:"搜索"},{act:"wait",ms:1000},{act:"input",text:"{{1}}"},{act:"key",action:"enter"},{act:"wait",ms:1500}] },
+  { zh:"淘宝搜索", en:"Taobao search", ask:"搜什么？", steps:[{act:"open",name:"淘宝"},{act:"wait",ms:3000},{act:"tap",text:"搜索"},{act:"wait",ms:1000},{act:"input",text:"{{1}}"},{act:"key",action:"enter"},{act:"wait",ms:1500}] },
+  { zh:"快手点赞", en:"Kuaishou like", steps:[{act:"open",name:"快手"},{act:"wait",ms:3000},{act:"tap",text:"赞"},{act:"wait",ms:800}] },
+  { zh:"抖音点赞", en:"Douyin like", steps:[{act:"open",name:"抖音"},{act:"wait",ms:3000},{act:"tap",text:"赞"},{act:"wait",ms:800}] },
+  { zh:"刷视频10条", en:"Browse 10 videos", steps:[{act:"open",name:"抖音"},{act:"wait",ms:3000},{act:"scroll",dir:"down",times:10}] }
 ];
 const Quick = {
   open(){
@@ -1326,9 +1337,22 @@ const Quick = {
   run(i){
     const q = QUICK[i]; if(!q) return;
     if(!scriptOk()){ Native.toast(LANG === "en" ? "Please update the app first" : "请先更新安装包（需 v1.1.0+）"); return; }
-    Quick.close();
     const nm = LANG === "en" ? q.en : q.zh;
-    Macro.runSteps(nm, [{ n:"run_script", a: JSON.stringify({ note: nm, steps: q.steps, done: true }) }]);
+    const go = function(txt){
+      const sub = function(o){
+        if(typeof o === "string") return (txt == null ? o : o.replace(/\{\{1\}\}/g, String(txt)));
+        if(Array.isArray(o)) return o.map(sub);
+        if(o && typeof o === "object"){ const r = {}; for(const k in o){ r[k] = sub(o[k]); } return r; }
+        return o;
+      };
+      Quick.close();
+      Macro.runSteps(nm, [{ n:"run_script", a: JSON.stringify({ note: nm, steps: sub(q.steps), done: true }) }]);
+    };
+    if(q.ask){
+      uiAsk((LANG === "en" ? "Input: " : "") + q.ask, "").then(function(v){ if(v === null) return; go(String(v || "").trim()); });
+      return;
+    }
+    go(null);
   }
 };
 /* ===== 脚本记忆：同一任务第二次直接本地跑，不调用大模型 ===== */
@@ -4127,10 +4151,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.59";
+const WEB_VERSION = "1.0.60";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 84;
+const WEB_CODE = 85;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
