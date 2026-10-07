@@ -213,7 +213,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 #bar{padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--panel2)}
 .barline{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
-#pts-chip{font-size:12px;color:var(--muted2)}
+#pts-chip{font-size:12px;color:var(--muted2);padding:4px 9px;border-radius:9px;background:rgba(125,125,150,.13);white-space:nowrap}
 .tb2{font-size:12px;padding:7px 10px}
 #chips,.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .chip{display:flex;align-items:center;gap:6px;background:var(--chip);
@@ -229,7 +229,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 .att a{font-size:12px;color:var(--tip-fg);border:1px solid var(--tip-bd);
   background:var(--tip-bg);border-radius:9px;padding:5px 9px;text-decoration:none}
 .att .up{opacity:.55}
-#toolrow .btn.mini{width:auto;font-size:12.5px;padding:6px 12px}
+#toolrow .btn.mini{width:auto;font-size:12px;padding:5px 10px;border-radius:9px;white-space:nowrap}
 #bar textarea{flex:1;background:var(--inp);border:1px solid var(--ghost-bd);border-radius:22px;
   padding:12px 16px;max-height:130px;resize:none;color:var(--fg);transition:border-color .15s,box-shadow .15s}
 #bar textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,255,.15)}
@@ -503,9 +503,9 @@ zh:{
   upd_downloading:"下载中 {0}%", upd_installing:"正在安装…",
   upd_latest:"已是最新版本 v{0}", upd_checking:"正在检查更新…", upd_check_fail:"检查失败，请稍后再试",
   mobile_only:"仅手机端可用", need_install_perm:"请先允许安装未知应用",
-  pts:"积分", mode_pts:"消耗：积分", mode_key:"消耗：我的Key",
+  pts:"积分", mode_pts:"💎 积分", mode_key:"🔑 我的Key",
   mode_tip:"点一下切换：用积分 或 用自己的 Key",
-  task_mode_on:"做任务", task_mode_off:"仅聊天",
+  task_mode_on:"🎮 做任务", task_mode_off:"💬 仅聊天",
   task_mode_tip:"点一下切换：仅聊天（不需权限）/ 做任务（需权限）",
   mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
   mode_chat_on:"已切到「仅聊天」，不需要任何权限",
@@ -657,9 +657,9 @@ en:{
   upd_installing:"Installing…", upd_latest:"You are on the latest version v{0}",
   upd_checking:"Checking for updates…", upd_check_fail:"Check failed, please try again later",
   mobile_only:"Available on phone only", need_install_perm:"Please allow installing unknown apps first",
-  pts:"Points", mode_pts:"Use points", mode_key:"Use my key",
+  pts:"Points", mode_pts:"💎 Points", mode_key:"🔑 My key",
   mode_tip:"Tap to switch: use points or your own key",
-  task_mode_on:"Task", task_mode_off:"Chat only",
+  task_mode_on:"🎮 Task", task_mode_off:"💬 Chat",
   task_mode_tip:"Tap to switch: Chat only (no permissions) / Task (permissions needed)",
   mode_task_on:"Task mode on – permissions are required",
   mode_chat_on:"Chat-only mode on – no permissions needed",
@@ -4160,10 +4160,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.61";
+const WEB_VERSION = "1.0.62";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 86;
+const WEB_CODE = 87;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -4199,7 +4199,7 @@ const Acc = {
   },
   paint(){
     const c = el("pts-chip");
-    if(c) c.textContent = t("pts") + " " + (Acc.data.ready
+    if(c) c.textContent = "💎 " + (Acc.data.ready
       ? Number(Acc.data.points || 0).toLocaleString() : t("loading"));
     const b = el("mode-btn");
     if(b){
