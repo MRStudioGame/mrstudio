@@ -3881,7 +3881,16 @@ const TOOL_RUN_SCRIPT = { type:"function", function:{ name:"run_script",
     parameters:{ type:"object", properties:{
       note:{ type:"string", description:"一句话说明这段脚本做什么" },
       done:{ type:"boolean", description:"若这条脚本就能完成整个任务，设为 true（并在 content 写完成话术），App 会直接结束，不再多问一次模型" },
-      steps:{ type:"array", description:"步骤数组" } }, required:["steps"] } } };
+      steps:{ type:"array", description:"步骤数组，每步必须有 act 字段", items:{ type:"object", properties:{
+        act:{ type:"string", description:"动作：open/tap/swipe/scroll/scrollFind/waitText/input/key/wait/repeat/ifText" },
+        name:{ type:"string", description:"open 用：应用名" },
+        text:{ type:"string", description:"tap/input/waitText/scrollFind/ifText 用：文字" },
+        x:{ type:"number" }, y:{ type:"number" },
+        dir:{ type:"string", description:"scroll/scrollFind 用：up/down" },
+        times:{ type:"number" }, max:{ type:"number" }, ms:{ type:"number" },
+        action:{ type:"string", description:"key 用：back/home/recents/enter" },
+        timeout:{ type:"number" }, then:{ type:"array" }, else:{ type:"array" }
+      } } } }, required:["steps"] } } };
 /* 当前安装包是否支持 run_script */
 function scriptOk(){
   try{ return !!(native && native.versionCode && Number(native.versionCode()) >= 67); }catch(e){ return false; }
@@ -4151,10 +4160,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.60";
+const WEB_VERSION = "1.0.61";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 85;
+const WEB_CODE = 86;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
