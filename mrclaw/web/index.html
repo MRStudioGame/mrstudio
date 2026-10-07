@@ -189,6 +189,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .think summary{cursor:pointer;outline:none;opacity:.85}
 .think .tk{white-space:pre-wrap;line-height:1.5;background:rgba(125,125,150,.10);border-radius:8px;padding:6px 8px;margin-top:4px;max-height:220px;overflow:auto}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
+.aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
 .spk,.cost{margin-left:38px}
 body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),transparent 62%),var(--bg)}
 #macro-panel{position:fixed;left:12px;right:12px;bottom:96px;z-index:70;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 12px 6px;box-shadow:0 14px 44px rgba(0,0,0,.28)}
@@ -1446,7 +1447,9 @@ const Chat = {
           ? "<details class='think'><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
         const _fl = x._file
           ? "<div class='afile'><a href='" + x._file.url + "' download='" + esc(x._file.name) + "'>⬇ " + esc(x._file.name) + "</a></div>" : "";
-        const _body = _fl ? _fl : (_tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content)));
+        const _im = x._img
+          ? "<div class='aimg'><img src='" + x._img.url + "' alt='image'>" + (x.content ? "<div>" + linkify(esc(x.content)) + "</div>" : "") + "</div>" : "";
+        const _body = _fl ? _fl : (_im ? _im : (_tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))));
         h += "<div class='mline a'><div class='av a'>MR</div><div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.headHtml(x) + _th + _body + "</div></div>";
         if(x.content && !_fl) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
         if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
@@ -1499,6 +1502,11 @@ const Chat = {
       sys += LANG === "en"
         ? " Before each tool call, say in Chinese what you are about to do (it will be shown as your thinking). When the user asks you to write/produce a file and send it, call make_file with the file name and full content."
         : " 每次调用工具前，先用一句中文说明你打算做什么（会显示为你的思考过程）；用户要你写文件/生成文档/发文件给他时，调用 make_file 工具生成并发送。";
+      if(scriptOk()){
+        sys += LANG === "en"
+          ? " TASK RULE: first write ONE complete run_script and run it; if a step fails, read the log, FIX the script and run again; keep retrying until the task is really done - never give up and never just reply with text. To send an image, call send_image (source='screen' for the current screen, or an http(s) image URL)."
+          : " 做任务铁律：第一步先把整套操作写成 run_script 一次执行；某步失败就读日志、改写脚本后重跑；不断尝试直到任务真正完成，绝不半途放弃、也不要只回一段文字。要给用户发图片时调用 send_image（source 填 screen 发当前屏幕，或填图片网址）。";
+      }
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -1776,6 +1784,7 @@ const Chat = {
     if(name === "weather"){ WebTools.weather(a.city || a.name || "", cb); return; }
     if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
     if(name === "make_file"){ WebTools.makeFile(a.name || a.filename, a.content != null ? a.content : a.text, cb); return; }
+    if(name === "send_image"){ WebTools.sendImage(a.source || a.url || a.src, a.caption || a.text, cb); return; }
     if(name === "look"){ Chat.look(cb); return; }
     if(native && native.a11yDetail){
       let st = "off";
@@ -3755,11 +3764,15 @@ const TOOL_LOOK = { type:"function", function:{ name:"look",
 const TOOL_MAKE_FILE = { type:"function", function:{ name:"make_file",
     description:"生成一个文件并发给用户（聊天里出现下载按钮）。用户要求「写文件/生成文档/导出/发一个文件给我」时用它。name 为文件名（带扩展名，如 笔记.txt、数据.csv），content 为完整文件内容。",
     parameters:{ type:"object", properties:{ name:{type:"string"}, content:{type:"string"} }, required:["name","content"] } } };
+const TOOL_SEND_IMAGE = { type:"function", function:{ name:"send_image",
+    description:"给用户发送一张图片（聊天里直接显示）。用户可以要求「把屏幕截图发我」「把这张图发我」。source 填图片网址(http(s)://) 或填 screen（发送当前手机屏幕截图）；caption 可选，是图片配文。",
+    parameters:{ type:"object", properties:{ source:{type:"string"}, caption:{type:"string"} }, required:["source"] } } };
 function visionOk(){ try{ return !!(native && native.screenshot); }catch(e){ return false; } }
 function toolsForNative(){
   try{
     let t = TOOLS_JS.slice();
     t.push(TOOL_MAKE_FILE);
+    t.push(TOOL_SEND_IMAGE);
     if(scriptOk()) t.push(TOOL_RUN_SCRIPT);
     if(visionOk()) t.push(TOOL_LOOK);
     return t;
@@ -3817,6 +3830,22 @@ const WebTools = {
       saveConvs(); Chat.render();
       cb((LANG === "en" ? "File ready: " : "文件已生成：") + nm + (LANG === "en" ? " (tap the button to download)" : "（点消息里的按钮下载）"));
     }catch(e){ cb((LANG === "en" ? "Failed: " : "生成文件失败：") + e); }
+  },
+  sendImage(src, caption, cb){
+    let url = String(src || "").trim();
+    if(!url){ cb(LANG === "en" ? "No image source." : "缺少图片地址（source）。"); return; }
+    if(/^(screen|截图|当前屏幕)$/i.test(url)){
+      if(!(native && native.screenshot)){ cb(LANG === "en" ? "(this version cannot capture the screen)" : "（当前版本不支持截图）"); return; }
+      let b = "";
+      try{ b = String(native.screenshot() || ""); }catch(e){ b = ""; }
+      if(!b){ cb(LANG === "en" ? "(screenshot failed)" : "（截图失败）"); return; }
+      url = "data:image/jpeg;base64," + b;
+    }
+    if(!/^(https?:\/\/|data:image\/)/i.test(url)){ cb(LANG === "en" ? "Image URL must start with http(s):// or data:image/" : "图片地址必须以 http(s):// 或 data:image/ 开头"); return; }
+    const c = Chat.cur();
+    c.msgs.push({ role:"assistant", content:String(caption || ""), _img:{ url:url } });
+    saveConvs(); Chat.render();
+    cb((LANG === "en" ? "Image sent" : "图片已发送") + (caption ? ("：" + caption) : ""));
   },
   weather(city, cb){
     const c = String(city || "").trim();
@@ -3963,10 +3992,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.52";
+const WEB_VERSION = "1.0.53";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 77;
+const WEB_CODE = 78;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
