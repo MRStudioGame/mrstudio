@@ -156,6 +156,19 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .ahead .ok{color:#3AAE6A}
 .ahead .warn{color:#D3920F}
 .ahead .bad{color:#D0394F}
+/* === 输出动效 & 质感增强（2026-10-07） === */
+@keyframes dotPulse{0%,80%,100%{opacity:.22;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+@keyframes caretBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes sheen{0%{background-position:-160% 0}100%{background-position:260% 0}}
+.msg.a{background:linear-gradient(180deg,var(--msg),var(--panel2));box-shadow:0 6px 18px -14px rgba(0,0,0,.55)}
+.msg.u{background:linear-gradient(135deg,#3B77FF,#2F6BFF 55%,#12A7E9);box-shadow:0 8px 20px -14px rgba(47,107,255,.9)}
+.caret{display:inline-block;width:8px;height:1.05em;margin-left:2px;vertical-align:-2px;border-radius:2px;background:var(--accent);animation:caretBlink 1s steps(1) infinite}
+.dots{display:inline-flex;gap:4px;align-items:center;padding:2px 0}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--tip-fg);animation:dotPulse 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.18s}
+.dots i:nth-child(3){animation-delay:.36s}
+.msg.a.streaming{position:relative;overflow:hidden}
+.msg.a.streaming::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 32%,rgba(90,140,255,.10) 50%,transparent 68%);background-size:220% 100%;animation:sheen 1.7s linear infinite}
 #agentbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
   margin:0 12px 8px;padding:9px 14px;border-radius:12px;font-size:13px;
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
@@ -1259,7 +1272,9 @@ const Chat = {
         h += "<div class='msg u'>" + linkify(esc(x.content)) + Attach.html(x.attach) + "</div>";
       }
       else {
-        h += "<div class='msg a'>" + Chat.headHtml(x) + linkify(esc(x.content)) + "</div>";
+        const _tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
+        h += "<div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.headHtml(x) +
+          (_tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))) + "</div>";
         if(x.content) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
         if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
@@ -1394,7 +1409,7 @@ const Chat = {
   apiMsgs(c, bubble, atts){
     const model = S.cfg.model || providerById(S.cfg.provider).model;
     const vision = /vl|vision|4v|omni|glm-4v|gpt-4/i.test(String(model));
-    const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-24);
+    const hist = c.msgs.filter(function(x){ return x !== bubble && x.role !== "system"; }).slice(-10); // 精简上下文，降低 token
     const out = [{ role:"system", content: this.systemText() }];
     hist.forEach(function(x, i){
       const last = (i === hist.length - 1);
@@ -1426,7 +1441,7 @@ const Chat = {
     const msgs = this.apiMsgs(c, bubble, atts);
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
-      p_body: { model:"deepseek-chat", messages: msgs, stream:false, max_tokens: 2048 }
+      p_body: { model:"deepseek-chat", messages: msgs, stream:false, max_tokens: 1024 }
     }).then(function(st){
       if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
@@ -1440,14 +1455,33 @@ const Chat = {
     setTimeout(function(){
       rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
         if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
-        bubble.content = Chat.extract(p.body);
+        const full = Chat.extract(p.body);
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
-        Chat.busy = false; saveConvs(); Chat.render();
-        Chat.afterReply();
-        if(Acc.data.points <= 0) Show.out();
+        Chat.busy = false;
+        Chat.reveal(bubble, full, function(){ saveConvs(); Chat.render(); Chat.afterReply(); if(Acc.data.points <= 0) Show.out(); });
       });
-    }, 1200);
+    }, 350);
+  },
+  reveal(bubble, full, done){
+    const text = String(full == null ? "" : full);
+    const box = el("msgs");
+    const nodes = box ? box.querySelectorAll(".msg.a") : null;
+    const n = nodes && nodes[nodes.length - 1];
+    if(!n || text.length < 2){ bubble.content = text; if(done) done(); return; }
+    n.classList.add("streaming");
+    const total = text.length;
+    const dur = Math.max(500, Math.min(2400, total * 10));
+    const t0 = nowMs();
+    const step = function(){
+      const p = Math.min(1, (nowMs() - t0) / dur);
+      const cut = Math.floor(total * p);
+      n.innerHTML = linkify(esc(text.slice(0, cut))) + (p < 1 ? "<span class='caret'></span>" : "");
+      const cw = el("content"); if(cw) cw.scrollTop = cw.scrollHeight;
+      if(p < 1){ requestAnimationFrame(step); }
+      else { n.classList.remove("streaming"); bubble.content = text; if(done) done(); }
+    };
+    requestAnimationFrame(step);
   },
   ptsEnd(bubble, dialog){
     bubble.role = "system";
@@ -1534,7 +1568,7 @@ const Chat = {
         if(!pp || pp.__err || !pp.done){ Chat.pollAgent(id, ok, err, n + 1); return; }
         ok(pp);
       });
-    }, 1100);
+    }, 350);
   },
   pointsAgent(c, bubble, atts){
     const self = this;
@@ -1565,10 +1599,10 @@ const Chat = {
         });
         return;
       }
-      msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
+      if(step === 1) msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
         model: "deepseek-chat", messages: msgs, tools: TOOLS_JS,
-        tool_choice: "auto", stream: false, max_tokens: 1500 } }).then(function(st){
+        tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
         if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
         if(st.err === "banned"){ Show.ban(); finish("", "err"); return; }
@@ -1657,7 +1691,7 @@ const Chat = {
       if(box){
         const nodes = box.querySelectorAll(".msg.a");
         const n = nodes[nodes.length-1];
-        if(n) n.textContent = last.content;
+        if(n){ n.classList.add("streaming"); n.innerHTML = linkify(esc(last.content)) + "<span class='caret'></span>"; }
         el("content").scrollTop = el("content").scrollHeight;
       }
     }
@@ -3633,10 +3667,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.41";
+const WEB_VERSION = "1.0.42";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 67;
+const WEB_CODE = 68;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
