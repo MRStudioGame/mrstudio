@@ -191,6 +191,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
 .aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
 .fbtn{display:inline-block;padding:5px 9px;border-radius:8px;background:rgba(125,125,150,.18);color:#cfd6e2;font-size:12px;margin-left:6px;cursor:pointer}
+.fname{font-size:13px;color:#dfe5ee;margin-right:4px}
 .qgrid{display:flex;flex-wrap:wrap;gap:8px;padding:8px 10px}
 .qbtn{display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(125,125,150,.16);color:#dfe5ee;font-size:13px;cursor:pointer}
 .qclose{text-align:center;padding:8px;color:#9aa4b2;cursor:pointer}
@@ -1527,7 +1528,7 @@ const Chat = {
       ? "<details class='think'" + (x._running ? " open" : "") + "><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
     const fid = x._file ? esc(x._file.id || "") : "";
     const fl = x._file
-      ? "<div class='afile'><a href='" + x._file.url + "' download='" + esc(x._file.name) + "'>⬇ " + esc(x._file.name) + "</a><span class='fbtn' onclick=\"Save.byId('" + fid + "')\">" + (LANG === "en" ? "Save" : "存到手机") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
+      ? "<div class='afile'><span class='fname'>📄 " + esc(x._file.name) + "</span><span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + (LANG === "en" ? "Open" : "打开") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
     const im = x._img
       ? "<div class='aimg'><img src='" + x._img.url + "' alt='image'>" + (x.content ? "<div>" + linkify(esc(x.content)) + "</div>" : "") + "</div>" : "";
     const body = fl ? fl : (im ? im : (tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))));
@@ -3945,6 +3946,23 @@ const Save = {
     }
     Save.copy(id);
   },
+  open(id){
+    const f = Save.find(id); if(!f) return;
+    const mime = String(WebTools.mimeOf(f.name)).split(";")[0];
+    if(native && native.saveFile){
+      let r = "";
+      try{ r = String(native.saveFile(f.name, Save.bytes(id))); }catch(e){ r = "ERR:" + e; }
+      if(r.indexOf("OK:") === 0){
+        const uri = r.slice(3);
+        if(native.openFile){
+          try{ native.openFile(uri, mime); Native.toast(LANG === "en" ? "Opening… (saved to Downloads)" : "正在打开…（已存到「下载」）"); return; }catch(e){}
+        }
+        Native.toast(LANG === "en" ? "Saved to Downloads" : "已存到「下载」目录");
+        return;
+      }
+    }
+    Save.copy(id);
+  },
   copy(id){
     const b = Save.bytes(id); if(!b) return;
     try{
@@ -4178,10 +4196,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.64";
+const WEB_VERSION = "1.0.65";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 89;
+const WEB_CODE = 90;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
