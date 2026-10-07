@@ -1,13 +1,13 @@
 {
-  "versionCode": 69,
-  "versionName": "1.1.1",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.1",
+  "versionCode": 70,
+  "versionName": "1.1.2",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.2",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.1",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.1",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.1"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.2",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.2",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.2"
   ],
-  "size": 185258,
-  "notes": "① 文件现在能真正保存：聊天里的文件带「存到手机」和「复制」按钮（安卓 WebView 不支持下载链接，改为原生保存到「下载」目录）；② 修复思考过程在任务进行中不显示的问题。本次因新增原生保存能力需更新一次安装包",
+  "size": 189354,
+  "notes": "文件现在可直接打开：AI 发来的文件多了「打开」按钮，点一下自动保存并用系统应用直接打开，不用再去文件管理器找。本次因新增原生「打开文件」能力需更新一次安装包",
   "official": false
 }
