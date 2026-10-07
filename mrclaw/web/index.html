@@ -1810,8 +1810,36 @@ const Chat = {
     this.busy = false; saveConvs(); Chat.render();
     if(dialog) Show.out();
   },
+  /* 新对话第一次回复后，让 AI 取一个恰当的标题 */
+  autoTitle(c){
+    try{
+      if(!c || !S.user || c._titled) return;
+      const um = (c.msgs || []).filter(function(m){ return m.role === "user" && m.content; });
+      const am = (c.msgs || []).filter(function(m){ return m.role === "assistant" && m.content; });
+      if(um.length !== 1 || !am.length) return;
+      c._titled = true;
+      const q = String(um[0].content || "").slice(0, 60).replace(/\s+/g, " ");
+      const a = String(am[0].content || "").slice(0, 80).replace(/\s+/g, " ");
+      const body = { model: "deepseek-chat", max_tokens: 24, stream: false, messages: [{ role: "user", content: (LANG === "en"
+        ? "Give a short title (max 6 words, no quotes, no punctuation) for this chat. Output ONLY the title.\nUser: " + q + "\nAI: " + a
+        : "为下面这段对话取一个恰当的标题：不超过 12 个字，不要标点、不要引号，只输出标题本身。\n用户：" + q + "\nAI：" + a) }] };
+      rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: body }).then(function(st){
+        if(!st || st.__err || st.err) return;
+        Chat.pollAgent(st.id, function(pp){
+          let o = {}; try{ o = JSON.parse(pp.body || "{}"); }catch(e){}
+          const m = o.choices && o.choices[0] && o.choices[0].message;
+          let ttl = String((m && m.content) || "").trim().replace(/^["\u300c\u300e\uff02]+|[,\uff0c\u3002.!\uff01?\uff1f"'\u300d\u300f\uff02]+$/g, "").replace(/\n/g, " ").slice(0, 16);
+          if(ttl){
+            c.title = ttl; saveConvs();
+            if(S.cur === c.id){ try{ App.title(ttl); Chat.render(); }catch(e){} }
+          }
+        }, function(){});
+      });
+    }catch(e){}
+  },
   afterReply(){
     if(!S.user) return;
+    try{ Chat.autoTitle(Chat.cur()); }catch(e){}
     rpc("mrclaw_bump", { p_user: S.user.name }).then(function(st){
       if(!st || st.__err || typeof st.count !== "number") return;
       if(st.reviewed && !S.cfg.reviewed){ S.cfg.reviewed = true; saveCfg(); }
@@ -4198,10 +4226,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.66";
+const WEB_VERSION = "1.0.67";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 91;
+const WEB_CODE = 92;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
