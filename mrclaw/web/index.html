@@ -392,7 +392,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       <button class="mbtn" id="menu-btn" onclick="Conv.open()">☰</button>
       <b id="top-title"></b>
       <button class="mbtn" id="notice-btn" onclick="Notice.open()">🔔<i class="reddot hide" id="notice-dot"></i></button>
-      <button class="btn ghost mini tb2" id="rd-btn" onclick="Show.welfare(true)"></button>
+      <button class="btn ghost mini tb2" id="rd-btn" onclick="Show.welfare(false)"></button>
       <button class="btn ghost mini tb2" id="top-btn" onclick="App.topAction()"></button>
     </div>
     <div id="content"></div>
@@ -4266,10 +4266,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.74";
+const WEB_VERSION = "1.0.75";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 99;
+const WEB_CODE = 100;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
