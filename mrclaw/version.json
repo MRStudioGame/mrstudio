@@ -1,13 +1,13 @@
 {
-  "versionCode": 65,
-  "versionName": "1.0.45",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.45",
+  "versionCode": 66,
+  "versionName": "1.0.46",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.46",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.45",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.45",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.45"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.46",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.46",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.46"
   ],
   "size": 172970,
-  "notes": "操控提速：读屏走无障碍事件缓存（屏幕没变化不重复遍历）、屏幕无变化自动去重、Agent 历史瘦身（旧读屏结果自动截断，只留最近几条）——同样任务更快、更省 token；功能全保留",
+  "notes": "新增「一键宏」：把做过的任务一键存为宏，之后点一下就能本地直跑（不再每步问大模型），固定高频任务秒级完成；支持录制、重命名、删除、多宏管理。同任务更快更省 token。功能全保留",
   "official": false
 }
