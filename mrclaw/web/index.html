@@ -190,6 +190,7 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .think .tk{white-space:pre-wrap;line-height:1.5;background:rgba(125,125,150,.10);border-radius:8px;padding:6px 8px;margin-top:4px;max-height:220px;overflow:auto}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
 .aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
+.fbtn{display:inline-block;padding:5px 9px;border-radius:8px;background:rgba(125,125,150,.18);color:#cfd6e2;font-size:12px;margin-left:6px;cursor:pointer}
 .spk,.cost{margin-left:38px}
 body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),transparent 62%),var(--bg)}
 #macro-panel{position:fixed;left:12px;right:12px;bottom:96px;z-index:70;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 12px 6px;box-shadow:0 14px 44px rgba(0,0,0,.28)}
@@ -1427,6 +1428,19 @@ const Chat = {
     if(!_chip && !_st) return "";
     return "<div class='ahead'>" + _chip + _st + "</div>";
   },
+  /* 消息内容拼装（render 与 paint 共用，保证思考/文件块不被重绘清掉） */
+  aHeadBody(x){
+    const tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
+    const th = (x._think && x._think.length)
+      ? "<details class='think'><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
+    const fid = x._file ? esc(x._file.id || "") : "";
+    const fl = x._file
+      ? "<div class='afile'><a href='" + x._file.url + "' download='" + esc(x._file.name) + "'>⬇ " + esc(x._file.name) + "</a><span class='fbtn' onclick=\"Save.byId('" + fid + "')\">" + (LANG === "en" ? "Save" : "存到手机") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
+    const im = x._img
+      ? "<div class='aimg'><img src='" + x._img.url + "' alt='image'>" + (x.content ? "<div>" + linkify(esc(x.content)) + "</div>" : "") + "</div>" : "";
+    const body = fl ? fl : (im ? im : (tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))));
+    return Chat.headHtml(x) + th + body;
+  },
   render(){
     if(!this.cur()) this.newConv();
     App.title(this.cur().title);
@@ -1443,15 +1457,8 @@ const Chat = {
       }
       else {
         const _tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
-        const _th = (x._think && x._think.length)
-          ? "<details class='think'><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
-        const _fl = x._file
-          ? "<div class='afile'><a href='" + x._file.url + "' download='" + esc(x._file.name) + "'>⬇ " + esc(x._file.name) + "</a></div>" : "";
-        const _im = x._img
-          ? "<div class='aimg'><img src='" + x._img.url + "' alt='image'>" + (x.content ? "<div>" + linkify(esc(x.content)) + "</div>" : "") + "</div>" : "";
-        const _body = _fl ? _fl : (_im ? _im : (_tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))));
-        h += "<div class='mline a'><div class='av a'>MR</div><div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.headHtml(x) + _th + _body + "</div></div>";
-        if(x.content && !_fl) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
+        h += "<div class='mline a'><div class='av a'>MR</div><div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.aHeadBody(x) + "</div></div>";
+        if(x.content && !x._file) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
         if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
     });
@@ -2007,7 +2014,7 @@ const Chat = {
     const box = el("msgs"); if(!box) return;
     const nodes = box.querySelectorAll(".msg.a");
     const n = nodes[nodes.length-1];
-    if(n) n.innerHTML = Chat.headHtml(b) + esc(b.content);
+    if(n) n.innerHTML = Chat.aHeadBody(b);
     el("content").scrollTop = el("content").scrollHeight;
   },
   agentEvent(s){
@@ -3801,6 +3808,36 @@ const WMO = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"有雾",48:"雾凇"
   55:"大毛毛雨",56:"冻毛毛雨",57:"强冻毛毛雨",61:"小雨",63:"中雨",65:"大雨",66:"冻雨",67:"强冻雨",
   71:"小雪",73:"中雪",75:"大雪",77:"雪粒",80:"小阵雨",81:"阵雨",82:"强阵雨",85:"小阵雪",
   86:"大阵雪",95:"雷阵雨",96:"雷阵雨伴小冰雹",99:"雷阵雨伴大冰雹"};
+const Save = {
+  find(id){
+    let f = null;
+    try{ S.convs.some(function(c){ return (c.msgs || []).some(function(m){ if(m._file && m._file.id === id){ f = m._file; return true; } return false; }); }); }catch(e){}
+    return f;
+  },
+  bytes(id){
+    const f = Save.find(id); if(!f) return "";
+    return String(f.url).split(",")[1] || "";
+  },
+  byId(id){
+    const f = Save.find(id); if(!f) return;
+    if(native && native.saveFile){
+      let r = "";
+      try{ r = String(native.saveFile(f.name, Save.bytes(id))); }catch(e){ r = "ERR:" + e; }
+      if(r.indexOf("OK") === 0){ Native.toast((LANG === "en" ? "Saved to Downloads: " : "已存到手机「下载」目录：") + f.name); return; }
+    }
+    Save.copy(id);
+  },
+  copy(id){
+    const b = Save.bytes(id); if(!b) return;
+    try{
+      const txt = decodeURIComponent(escape(atob(b)));
+      const ta = document.createElement("textarea");
+      ta.value = txt; ta.style.position = "fixed"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+      Native.toast(LANG === "en" ? "Copied to clipboard" : "已复制到剪贴板，可粘贴到任意地方");
+    }catch(e){ Native.toast(LANG === "en" ? "Copy failed" : "复制失败"); }
+  }
+};
 const WebTools = {
   time(){
     const d = new Date();
@@ -3844,7 +3881,7 @@ const WebTools = {
       const mime = isText ? "text/plain;charset=utf-8" : "application/octet-stream";
       const url = "data:" + mime + ";base64," + btoa(unescape(encodeURIComponent(body)));
       const c = Chat.cur();
-      c.msgs.push({ role:"assistant", content:"", _file:{ name:nm, url:url, size:body.length } });
+      c.msgs.push({ role:"assistant", content:"", _file:{ id:"f" + Date.now() + Math.floor(Math.random()*1000), name:nm, url:url, size:body.length } });
       saveConvs(); Chat.render();
       cb((LANG === "en" ? "File ready: " : "文件已生成：") + nm + (LANG === "en" ? " (tap the button to download)" : "（点消息里的按钮下载）"));
     }catch(e){ cb((LANG === "en" ? "Failed: " : "生成文件失败：") + e); }
@@ -4010,10 +4047,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.55";
+const WEB_VERSION = "1.0.56";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 80;
+const WEB_CODE = 81;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
