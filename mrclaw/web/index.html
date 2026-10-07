@@ -1608,7 +1608,7 @@ const Chat = {
       }
       sys += LANG === "en"
         ? " App know-how (use it, do not guess): WeChat bottom = 微信/通讯录/发现/我, search = the magnifier at the TOP; Kuaishou top = 关注/发现/同城, on a video the right side has ♥ like / 💬 comment / ↗ share, double-tap the video = like; Douyin bottom = 首页/朋友/消息/我, double-tap = like, swipe up = next video; Xiaohongshu/Taobao/Alipay/Pinduoduo/JD: search is the magnifier in the TOP bar; Bilibili bottom = 首页/动态/我的; Android Settings: use the search box at the top. If you cannot find something, open the app's TOP search first, or call look to see the screen."
-        : " 常见 App 位置（直接用，别瞎猜）：微信 底部【微信/通讯录/发现/我】，搜索是顶部🔍；快手 顶部【关注/发现/同城】，视频右侧 ♥点赞/💬评论/↗分享，**双击视频=点赞**；抖音 底部【首页/朋友/消息/我】，**双击=点赞**、上滑=下一个；小红书/淘宝/支付宝/拼多多/京东 搜索都在顶部🔍；B站 底部【首页/动态/我的】；系统设置 用顶部搜索框搜设置项。找不到就先点顶部🔍搜索，或调用 look 看屏幕确认。";
+        : " 常见 App 位置（直接用，别瞎猜）：微信 底部【微信/通讯录/发现/我】，搜索是顶部🔍；快手 顶部【关注/发现/同城】，视频右侧 ♥点赞/💬评论/↗分享，**双击视频=点赞**；抖音 底部【首页/朋友/消息/我】，**双击=点赞**、上滑=下一个；小红书/淘宝/支付宝/拼多多/京东 搜索都在顶部🔍；B站 底部【首页/动态/我的】；系统设置 用顶部搜索框搜设置项。找不到就先点顶部🔍搜索，或调用 look 看屏幕确认。生成文件时按内容选对扩展名：表格用 .csv、图文文档用 .md/.html、图表用 .html、图标或简单图形用 .svg。";
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -3900,7 +3900,7 @@ const TOOL_LOOK = { type:"function", function:{ name:"look",
     description:"看当前手机屏幕的截图（视觉识别）。当你看不懂屏幕上的图标/符号，或在 screen 返回的控件里找不到要点的东西时，调用它；它会返回屏上的图标/按钮说明及位置。",
     parameters:{ type:"object", properties:{}, required:[] } } };
 const TOOL_MAKE_FILE = { type:"function", function:{ name:"make_file",
-    description:"生成一个文件并发给用户（聊天里出现下载按钮）。用户要求「写文件/生成文档/导出/发一个文件给我」时用它。name 为文件名（带扩展名，如 笔记.txt、数据.csv），content 为完整文件内容。",
+    description:"生成一个文件发给用户（聊天里出现下载/存到手机按钮）。用户要求「写文件/生成文档/导出/发个文件给我」时用它。**支持各类文本文件**：.txt 纯文本、.md 文档、.csv 表格（Excel 可开）、.json、.html 网页/报告、.svg 矢量图、.xml、.js/.py 代码等。务必按内容选对扩展名：表格→.csv，图文文档→.md 或 .html，图表/报告→.html，图标或简单图形→.svg；不要什么都写成 .txt。name 为文件名（带扩展名），content 为完整文件内容。",
     parameters:{ type:"object", properties:{ name:{type:"string"}, content:{type:"string"} }, required:["name","content"] } } };
 const TOOL_SEND_IMAGE = { type:"function", function:{ name:"send_image",
     description:"给用户发送一张图片（聊天里直接显示）。用户可以要求「把屏幕截图发我」「把这张图发我」。source 填图片网址(http(s)://) 或填 screen（发送当前手机屏幕截图）；caption 可选，是图片配文。",
@@ -3984,15 +3984,28 @@ const WebTools = {
       cb(txt.slice(0, lim));
     });
   },
+  mimeOf(nm){
+    const n = String(nm || "").toLowerCase();
+    if(n.endsWith(".csv")) return "text/csv;charset=utf-8";
+    if(n.endsWith(".json")) return "application/json;charset=utf-8";
+    if(n.endsWith(".html") || n.endsWith(".htm")) return "text/html;charset=utf-8";
+    if(n.endsWith(".md")) return "text/markdown;charset=utf-8";
+    if(n.endsWith(".svg")) return "image/svg+xml;charset=utf-8";
+    if(n.endsWith(".xml")) return "application/xml;charset=utf-8";
+    if(n.endsWith(".js")) return "text/javascript;charset=utf-8";
+    if(n.endsWith(".css")) return "text/css;charset=utf-8";
+    if(n.endsWith(".py")) return "text/x-python;charset=utf-8";
+    return "text/plain;charset=utf-8";
+  },
   makeFile(name, content, cb){
     try{
       let nm = String(name || "MRClaw-文件.txt").replace(/[\\/:*?"<>|]/g, "_").trim() || "MRClaw-文件.txt";
-      const body = String(content == null ? "" : content);
+      let body = String(content == null ? "" : content);
       if(!body){ cb(LANG === "en" ? "Empty content." : "内容为空，没东西可写。"); return; }
       if(body.length > 200000){ cb(LANG === "en" ? "File too large for chat." : "文件太大（超 20 万字符），请改用 write_file 存到手机里。"); return; }
-      const isText = /\.(txt|md|json|csv|html?|js|css|py|java|xml|log)$/i.test(nm);
-      const mime = isText ? "text/plain;charset=utf-8" : "application/octet-stream";
-      const url = "data:" + mime + ";base64," + btoa(unescape(encodeURIComponent(body)));
+      if(!/\.[a-z0-9]{1,5}$/i.test(nm)) nm += ".txt";
+      if(/\.csv$/i.test(nm) && body.charCodeAt(0) !== 0xFEFF) body = "\uFEFF" + body;
+      const url = "data:" + WebTools.mimeOf(nm) + ";base64," + btoa(unescape(encodeURIComponent(body)));
       const c = Chat.cur();
       c.msgs.push({ role:"assistant", content:"", _file:{ id:"f" + Date.now() + Math.floor(Math.random()*1000), name:nm, url:url, size:body.length } });
       saveConvs(); Chat.render();
@@ -4160,10 +4173,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.62";
+const WEB_VERSION = "1.0.63";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 87;
+const WEB_CODE = 88;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
