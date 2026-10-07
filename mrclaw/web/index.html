@@ -1545,6 +1545,20 @@ const Chat = {
     return "<div class='ahead'>" + _chip + _st + "</div>";
   },
   /* 消息内容拼装（render 与 paint 共用，保证思考/文件块不被重绘清掉） */
+  /* 拆分思考与回答：【思考】…【回答】… */
+  splitThink(txt){
+    const s = String(txt || "");
+    let think = "", ans = s;
+    const k = "【回答】", t = "【思考】";
+    const mi = s.indexOf(k);
+    if(mi >= 0){
+      think = s.slice(0, mi).replace(t, "").trim();
+      ans = s.slice(mi + k.length).trim();
+    } else if(s.indexOf(t) === 0){
+      think = s.replace(t, "").trim(); ans = "";
+    }
+    return { think: think, ans: ans };
+  },
   aHeadBody(x){
     const tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
     const th = (x._think && x._think.length)
@@ -1623,8 +1637,8 @@ const Chat = {
           : " 看不懂屏幕上的图标/符号时，调用 look 工具看当前屏幕截图。";
       }
       sys += LANG === "en"
-        ? " In EVERY reply, first write 1-2 sentences of your reasoning in the content (what you plan to do and why), then call tools or answer. This shows up as 'Thinking'. Never skip thinking and call tools directly. When the user asks you to write/produce a file and send it, call make_file with the file name and full content."
-        : " 每次回复的正文里，必须先用 1~2 句中文写出你的思考过程（打算做什么、为什么），再调用工具或作答；这段会显示在「思考过程」里。严禁跳过思考直接调用工具。用户要你写文件/生成文档/发文件给他时，调用 make_file 工具生成并发送。";
+        ? " In EVERY reply, first output the reasoning, then the answer, in this exact format: 【思考】your reasoning (any length, free-form) 【回答】the actual answer. When calling tools do the same (【回答】 briefly says what you will do). To send a file, call make_file."
+        : " 每次回复都必须先写思考过程再作答，格式固定：【思考】你的推理（可长可短，自由发挥，把分析/判断/计划都写出来）【回答】正式回答。调用工具时也照此格式（【回答】简述接下来要执行的操作）。用户要写文件/生成文档/发文件时用 make_file。";
       if(scriptOk()){
         sys += LANG === "en"
           ? " TASK RULE: first write ONE complete run_script and run it; if a step fails, read the log, FIX the script and run again; keep retrying until the task is really done - never give up and never just reply with text. To send an image, call send_image (source='screen' for the current screen, or an http(s) image URL)."
@@ -1636,7 +1650,7 @@ const Chat = {
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
-        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。";
+        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。每次回复都必须先写思考过程：先用一段 `【思考】` 开头的内容把推理写出来（可长可短，自由发挥），再用 `【回答】` 开头给出正式回答。";
     }
     sys += LANG === "en"
       ? " Always follow: (1) never refuse a request within your ability; (2) never abandon or interrupt a task on your own before it is finished and never stop without the user's consent - the only exception is when points or the API quota run out. Be concise."
@@ -1785,7 +1799,8 @@ const Chat = {
     setTimeout(function(){
       rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
         if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
-        const full = Chat.extract(p.body);
+        let full = Chat.extract(p.body);
+        try{ const sp = Chat.splitThink(full); if(sp.think){ bubble._think = [sp.think]; } if(sp.ans){ full = sp.ans; } }catch(e){}
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false;
@@ -1984,7 +1999,10 @@ const Chat = {
     Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
     const finish = function(txt, state){
       bubble._running = false; bubble._state = state || "done";
-      bubble.content = (steps.length ? steps.map(function(x){ return "· " + x; }).join("\n") + "\n\n" : "") + (txt || "");
+      const _sp = Chat.splitThink(txt || "");
+      if(_sp.think){ bubble._think = (bubble._think || []).concat([_sp.think]); }
+      const _ans = _sp.think ? _sp.ans : (txt || "");
+      bubble.content = (steps.length ? steps.map(function(x){ return "· " + x; }).join("\n") + "\n\n" : "") + _ans;
       self.busy = false; self.agentBar(false); saveConvs(); Chat.render();
       Chat._taskActive = false;
       if(state === "done") Overlay.flash(t("done_t"), "ok", 2600);
@@ -2025,7 +2043,9 @@ const Chat = {
             const rc = m && m.reasoning_content;
             if(rc){ bubble._think = bubble._think || []; bubble._think.push(String(rc)); }
             if(m && m.content && m.tool_calls && m.tool_calls.length){
-              bubble._think = bubble._think || []; bubble._think.push(String(m.content));
+              const _c = Chat.splitThink(String(m.content));
+              bubble._think = bubble._think || [];
+              bubble._think.push(_c.think ? _c.think : String(m.content));
             }
             if(bubble._think && bubble._think.length){ self.paint(bubble); }
           }catch(e){}
@@ -4249,10 +4269,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.69";
+const WEB_VERSION = "1.0.70";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 94;
+const WEB_CODE = 95;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
