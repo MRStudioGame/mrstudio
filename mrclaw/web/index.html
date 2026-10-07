@@ -186,6 +186,16 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .mline .msg.a .ahead{margin-bottom:6px}
 .spk,.cost{margin-left:38px}
 body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),transparent 62%),var(--bg)}
+#macro-panel{position:fixed;left:12px;right:12px;bottom:96px;z-index:70;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 12px 6px;box-shadow:0 14px 44px rgba(0,0,0,.28)}
+#macro-panel.hide{display:none}
+.mp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mp-actions{display:flex;gap:8px;margin-bottom:8px}
+.mp-actions .btn.mini,.mp-ops .btn.mini{width:auto}
+.mp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 2px;border-top:1px solid var(--line)}
+.mp-row:first-child{border-top:0}
+.mp-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-ops{display:flex;gap:6px;flex:0 0 auto}
+.mp-empty{padding:10px 2px}
 #agentbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
   margin:0 12px 8px;padding:9px 14px;border-radius:12px;font-size:13px;
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
@@ -382,6 +392,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       <div id="toolrow">
         <span id="pts-chip"></span>
         <div style="display:flex;gap:8px">
+          <button id="macro-btn" class="btn ghost mini" onclick="Macro.open()">宏</button>
           <button id="task-btn" class="btn ghost mini" onclick="Mode.task()"></button>
           <button id="mode-btn" class="btn mini" onclick="Acc.mode()"></button>
           <button id="att-btn" class="btn ghost mini" onclick="Attach.openMenu(false)">＋</button>
@@ -391,6 +402,14 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
         <textarea id="ta" rows="1" placeholder=""></textarea>
         <button id="send" onclick="Chat.send()">↑</button>
       </div>
+    </div>
+    <div id="macro-panel" class="hide">
+      <div class="mp-head"><b id="mp-title"></b><button class="btn ghost mini" onclick="Macro.close()">✕</button></div>
+      <div class="mp-actions">
+        <button id="mp-rec" class="btn mini" onclick="Macro.toggleRec()"></button>
+        <button id="mp-save" class="btn ghost mini" onclick="Macro.saveLast()"></button>
+      </div>
+      <div id="mp-list"></div>
     </div>
     <div id="nav">
       <button data-tab="chat" class="act" onclick="App.tab('chat')"><b>💬</b><span id="nv-chat"></span></button>
@@ -1263,6 +1282,128 @@ const Conv = {
 };
 
 /* ================= 聊天 ================= */
+const Macro = {
+  KEY: "mrclaw_macros_v1",
+  rec: false,
+  replaying: false,
+  buf: [],
+  lastRun: [],
+  all(){ try{ const v = LS.get(this.KEY); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  put(list){ LS.set(this.KEY, list); },
+  byId(id){ const l = this.all(); for(let i=0;i<l.length;i++){ if(l[i].id===id) return l[i]; } return null; },
+  add(name, steps){ const l = this.all(); l.unshift({ id: "m" + Date.now(), name: name, steps: steps, ts: Date.now() }); this.put(l); },
+  del(id){ this.put(this.all().filter(function(m){ return m.id !== id; })); },
+  rename(id, name){ const l = this.all(); for(let i=0;i<l.length;i++){ if(l[i].id===id) l[i].name = name; } this.put(l); },
+  startRun(){ this.lastRun = []; },
+  capture(name, argsJson){
+    if(!name || name === "screen" || this.replaying) return;
+    if(!this.rec && !Chat._taskActive) return;
+    const s = { n: name, a: (argsJson || "{}") };
+    this.lastRun.push(s);
+    if(this.rec){ this.buf.push(s); this.paintHead(); }
+  },
+  toggleRec(){
+    this.rec = !this.rec;
+    if(this.rec){ this.buf = []; }
+    Native.toast(this.rec ? (LANG === "en" ? "Recording…" : "开始录制宏…")
+                          : (LANG === "en" ? "Stopped" : "已停止录制"));
+    this.paintHead();
+  },
+  saveLast(){
+    const steps = this.buf.length ? this.buf.slice() : this.lastRun.slice();
+    if(!steps.length){ Native.toast(LANG === "en" ? "Nothing to save yet" : "还没有可保存的步骤"); return; }
+    const d = new Date();
+    const def = (LANG === "en" ? "Macro " : "宏 ") + (d.getMonth() + 1) + "-" + d.getDate() + " " +
+      String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    uiAsk(LANG === "en" ? "Macro name" : "宏名称", def).then(function(name){
+      if(!name) return;
+      Macro.add(String(name).slice(0, 24), steps);
+      if(Macro.rec){ Macro.rec = false; Macro.buf = []; }
+      Macro.open();
+      Native.toast(LANG === "en" ? "Saved" : "已保存");
+    });
+  },
+  run(id){
+    const m = this.byId(id);
+    if(!m) return;
+    if(!m.steps.length) return;
+    if(Chat.busy){ Native.toast(LANG === "en" ? "Busy, try again later" : "正在忙，稍后再试"); return; }
+    this.close();
+    this.replaying = true; Chat.busy = true; Chat._pcancel = false;
+    const c = Chat.cur();
+    if(!c){ this.replaying = false; Chat.busy = false; return; }
+    const bubble = { role: "assistant", content: "▶ " + m.name, _steps: [] };
+    c.msgs.push(bubble); saveConvs(); Chat.render();
+    Chat.agentBar(true, "▶ " + m.name);
+    let i = 0;
+    const self = this;
+    const next = function(){
+      if(i >= m.steps.length){
+        self.replaying = false; Chat.busy = false;
+        Chat.agentBar(false); saveConvs(); Chat.render();
+        Overlay.flash(t("done_t"), "ok", 2000);
+        return;
+      }
+      const s = m.steps[i++];
+      bubble._steps.push(Chat.toolDesc(s.n, s.a));
+      bubble.content = "▶ " + m.name + "\n" + bubble._steps.map(function(x){ return "· " + x; }).join("\n");
+      Chat.paint(bubble);
+      Chat.callTool(s.n, s.a, function(){ setTimeout(next, 260); });
+    };
+    next();
+  },
+  open(){
+    const p = el("macro-panel");
+    if(!p) return;
+    this.paintHead(); this.paint();
+    p.classList.remove("hide");
+  },
+  close(){ const p = el("macro-panel"); if(p) p.classList.add("hide"); },
+  paintHead(){
+    const ttl = el("mp-title");
+    if(ttl) ttl.textContent = (LANG === "en" ? "Macros" : "一键宏") + (this.rec ? ("  ·  " + this.buf.length) : "");
+    const b = el("mp-rec");
+    if(b){
+      b.textContent = this.rec ? (LANG === "en" ? "■ Stop" : "■ 停止录制")
+                               : (LANG === "en" ? "● Record" : "● 录制");
+      if(this.rec) b.classList.add("danger"); else b.classList.remove("danger");
+    }
+    const sv = el("mp-save");
+    if(sv) sv.textContent = LANG === "en" ? "Save last" : "存为宏";
+  },
+  paint(){
+    const box = el("mp-list");
+    if(!box) return;
+    const list = this.all();
+    if(!list.length){
+      box.innerHTML = "<div class='muted mp-empty'>" +
+        (LANG === "en" ? "No macros yet — record one, or save the last task."
+                       : "还没有宏 — 录一段，或把上次任务存为宏。") + "</div>";
+      return;
+    }
+    box.innerHTML = list.map(function(m){
+      return "<div class='mp-row'><div class='mp-name'>" + esc(m.name) +
+        " <span class='muted'>" + m.steps.length + "</span></div><div class='mp-ops'>" +
+        "<button class='btn mini' onclick=\"Macro.run('" + m.id + "')\">▶</button>" +
+        "<button class='btn ghost mini' onclick=\"Macro.doRename('" + m.id + "')\">✎</button>" +
+        "<button class='btn ghost mini danger' onclick=\"Macro.doDel('" + m.id + "')\">🗑</button>" +
+        "</div></div>";
+    }).join("");
+  },
+  doRename(id){
+    const m = this.byId(id);
+    if(!m) return;
+    uiAsk(LANG === "en" ? "Macro name" : "宏名称", m.name).then(function(v){
+      if(v){ Macro.rename(id, String(v).slice(0, 24)); Macro.paint(); }
+    });
+  },
+  doDel(id){
+    uiAsk(LANG === "en" ? "Delete this macro?" : "删除这个宏？", null, { input: false }).then(function(ok){
+      if(ok === true){ Macro.del(id); Macro.paint(); }
+    });
+  }
+};
+
 const Chat = {
   cur(){ return S.convs.filter(c=>c.id===S.cur)[0] || null; },
   newConv(){
@@ -1556,6 +1697,7 @@ const Chat = {
   callTool(name, argsJson, cb){
     let a = {};
     try{ a = JSON.parse(argsJson || "{}") || {}; }catch(e){ a = {}; }
+    try{ Macro.capture(name, argsJson); }catch(e){}
     if(name === "remember"){
       const okSaved = Mem.autoAdd(a.text || a.content || "", true);
       if(okSaved){
@@ -1607,10 +1749,12 @@ const Chat = {
     const msgs = this.apiMsgs(c, bubble, atts);
     let step = 0, guard = 0;
     const steps = bubble._steps;
+    Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
     const finish = function(txt, state){
       bubble._running = false; bubble._state = state || "done";
       bubble.content = (steps.length ? steps.map(function(x){ return "· " + x; }).join("\n") + "\n\n" : "") + (txt || "");
       self.busy = false; self.agentBar(false); saveConvs(); Chat.render();
+      Chat._taskActive = false;
       if(state === "done") Overlay.flash(t("done_t"), "ok", 2600);
       else if(state === "stop") Overlay.flash(t("stop_t"), "warn", 2600);
       else Overlay.flash(t("err_t"), "bad", 3200);
@@ -1779,8 +1923,13 @@ const Chat = {
     const b = c.msgs[c.msgs.length-1];
     if(!b || !b._steps) return;
     if(o.type === "run"){
+      Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
       b._running = true; this.agentBar(true); this.paint(b);
       Overlay.on(t("running").replace("● ", ""), "run", true);
+      return;
+    }
+    if(o.type === "tool"){
+      try{ Macro.capture(o.name, o.arguments || "{}"); }catch(e){}
       return;
     }
     if(o.type === "status"){
@@ -1798,15 +1947,18 @@ const Chat = {
       b._running = false; b._state = "err";
       b.content = String(o.text).slice(0,300);
       this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
+      Chat._taskActive = false;
       Overlay.flash(t("err_t"), "bad", 3200); return;
     }
     if(o.type === "stop"){
       b._running = false; b._state = "stop";
+      Chat._taskActive = false;
       this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
       Overlay.flash(t("stop_t"), "warn", 2600); return;
     }
     if(o.type === "done"){
       b._running = false; b._state = "done";
+      Chat._taskActive = false;
       this.busy = false; this.agentBar(false); saveConvs(); Chat.render();
       Overlay.flash(t("done_t"), "ok", 2600);
     }
@@ -3700,10 +3852,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.44";
+const WEB_VERSION = "1.0.46";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 70;
+const WEB_CODE = 71;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -3968,6 +4120,7 @@ function paintStatic(){
   el("stop-btn").textContent = t("stop_btn");
   el("att-btn").textContent = "＋";
   el("att-btn").title = t("attach");
+  try{ el("macro-btn").textContent = (LANG === "en" ? "Macros" : "宏"); }catch(e){}
   el("bc-in").textContent = "";
   try{ Mode.paint(); }catch(e){}
   el("rd-btn").textContent = t("redeem");
