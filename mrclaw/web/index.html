@@ -1483,6 +1483,11 @@ const Chat = {
           ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear. To search in an app: tap the search entry ('🔍' or 'Search'), type the keyword, then tap Search / press enter."
           : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。在 App 内搜索：先点「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。";
       }
+      if(visionOk()){
+        sys += LANG === "en"
+          ? " If you cannot tell what an icon or symbol is, call the look tool to see the current screen as an image."
+          : " 看不懂屏幕上的图标/符号时，调用 look 工具看当前屏幕截图。";
+      }
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -1706,6 +1711,36 @@ const Chat = {
     if(name === "run_script") return (en ? "▶ Script: " : "▶ 脚本：") + (a.note || (((a.steps && a.steps.length) || 0) + (en ? " steps" : " 步")));
     return name;
   },
+  look(cb){
+    if(!native || !native.screenshot){
+      cb(LANG === "en" ? "(this version cannot see the screen)" : "（当前版本不支持看屏幕）");
+      return;
+    }
+    let shot = "";
+    try{ shot = String(native.screenshot() || ""); }catch(e){ shot = ""; }
+    if(!shot || shot.length < 100){
+      cb(LANG === "en" ? "(screenshot failed; make sure screen capture is allowed)" : "（截图失败：请确认无障碍服务已开启并允许截屏）");
+      return;
+    }
+    const body = {
+      model: "vision", max_tokens: 500, stream: false,
+      messages: [{ role: "user", content: [
+        { type: "text", text: (LANG === "en"
+          ? "This is the current phone screen. Briefly list ALL tappable icons/buttons with position (e.g. 'top-right magnifier = search'), then the main text, then which element likely matches the goal."
+          : "这是安卓手机当前屏幕。请简要列出：①所有可点的图标/按钮（带位置，例如“右上角放大镜=搜索”“右侧爱心=点赞”）；②主要文字；③用户最可能要点哪个元素。不要多余解释。") },
+        { type: "image_url", image_url: { url: "data:image/jpeg;base64," + shot } }
+      ] }]
+    };
+    rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: body }).then(function(st){
+      if(!st || st.__err || st.err){ cb(LANG === "en" ? "(vision failed)" : "（视觉识别失败）"); return; }
+      Chat.pollAgent(st.id, function(pp){
+        let o = {}; try{ o = JSON.parse(pp.body || "{}"); }catch(e){}
+        const m = o.choices && o.choices[0] && o.choices[0].message;
+        if(typeof pp.points === "number"){ Acc.data.points = pp.points; Acc.paint(); }
+        cb((m && m.content) ? m.content : (LANG === "en" ? "(nothing recognized)" : "（没有识别到内容）"));
+      }, function(e){ cb(LANG === "en" ? "(vision failed)" : "（视觉识别失败）"); });
+    });
+  },
   callTool(name, argsJson, cb){
     let a = {};
     try{ a = JSON.parse(argsJson || "{}") || {}; }catch(e){ a = {}; }
@@ -1729,6 +1764,7 @@ const Chat = {
     if(name === "get_time"){ cb(WebTools.time()); return; }
     if(name === "weather"){ WebTools.weather(a.city || a.name || "", cb); return; }
     if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
+    if(name === "look"){ Chat.look(cb); return; }
     if(native && native.a11yDetail){
       let st = "off";
       try{ st = String(native.a11yDetail()); }catch(e){}
@@ -3695,8 +3731,17 @@ function scriptOk(){
   try{ return !!(native && native.versionCode && Number(native.versionCode()) >= 67); }catch(e){ return false; }
 }
 /* 下发工具：老包装不下 run_script，就不发（也不会弹重装） */
+const TOOL_LOOK = { type:"function", function:{ name:"look",
+    description:"看当前手机屏幕的截图（视觉识别）。当你看不懂屏幕上的图标/符号，或在 screen 返回的控件里找不到要点的东西时，调用它；它会返回屏上的图标/按钮说明及位置。",
+    parameters:{ type:"object", properties:{}, required:[] } } };
+function visionOk(){ try{ return !!(native && native.screenshot); }catch(e){ return false; } }
 function toolsForNative(){
-  try{ return scriptOk() ? TOOLS_JS.concat([TOOL_RUN_SCRIPT]) : TOOLS_JS; }catch(e){ return TOOLS_JS; }
+  try{
+    let t = TOOLS_JS.slice();
+    if(scriptOk()) t.push(TOOL_RUN_SCRIPT);
+    if(visionOk()) t.push(TOOL_LOOK);
+    return t;
+  }catch(e){ return TOOLS_JS; }
 }
 /* ===== 网页层自带工具（不需要任何权限、真联网） ===== */
 const WMO = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"有雾",48:"雾凇",51:"小毛毛雨",53:"毛毛雨",
@@ -3881,10 +3926,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.50";
+const WEB_VERSION = "1.0.51";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 75;
+const WEB_CODE = 76;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
