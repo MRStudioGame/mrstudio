@@ -1488,7 +1488,7 @@ const Chat = {
       if(scriptOk()){
         sys += LANG === "en"
           ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). To search inside an app: tap the search entry ('🔍' icon or 'Search'), type the keyword, then tap Search / press enter. NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
-          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。在 App 内搜索：先点顶部/页面的「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
+          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。若这一条脚本就能完成整个任务，把 done 设为 true，并在 content 里写好完成后要对用户说的话（App 会直接显示并结束，不再多问一次模型）。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。在 App 内搜索：先点顶部/页面的「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。";
       } else {
         sys += LANG === "en"
           ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear. To search in an app: tap the search entry ('🔍' or 'Search'), type the keyword, then tap Search / press enter."
@@ -1882,9 +1882,19 @@ const Chat = {
               Overlay.on(desc, "run", true);
               guard++;
               self.callTool(fn.name, fn.arguments, function(res){
+                const sres = String(res);
                 msgs.push({ role: "tool", tool_call_id: tc.id || ("c" + i),
-                            content: String(res).slice(0, 2000) });
+                            content: sres.slice(0, 2000) });
                 Chat.slimMsgs(msgs);
+                let fa = {};
+                try{ fa = JSON.parse(fn.arguments || "{}") || {}; }catch(e){}
+                // 一步完成：脚本一次成功且模型标记 done -> 直接结束，不再多问一次模型（对标游龙的秒级）
+                if(fn.name === "run_script" && fa.done === true && i >= m.tool_calls.length && sres.indexOf("✗") < 0){
+                  const say = (m.content && String(m.content).trim()) ? String(m.content).trim()
+                             : (LANG === "en" ? "Done." : "已完成。");
+                  finish(say, "done");
+                  return;
+                }
                 next();
               });
             };
@@ -3749,9 +3759,10 @@ const TOOLS_JS = [
 ];
 /* run_script 是【原生】能力：安装包 >= vc67 才支持。老包静默隐藏，不强制重装。 */
 const TOOL_RUN_SCRIPT = { type:"function", function:{ name:"run_script",
-    description:"【首选·最快】把一整套手机操作写成一个脚本，App 在本机连续执行（中间不再请求大模型），适合任何多步操作：打开应用、按文字查找并点击、滚动查找、连续点赞/滑动等。能用它就不要一步步调用 tap/swipe。steps 为步骤数组按序执行，每步是 {act:...}：{act:'open',name:'快手'} 打开应用；{act:'tap',text:'赞'} 按文字点击；{act:'tap',x:100,y:200} 按坐标；{act:'waitText',text:'首页',timeout:8000} 等待文字出现；{act:'scroll',dir:'down',times:3} 滚动；{act:'scrollFind',text:'赞',dir:'down',max:10} 滚动查找；{act:'input',text:'你好'} 输入；{act:'key',action:'back'} 按键；{act:'wait',ms:800} 等待；{act:'repeat',times:5,steps:[...]} 循环；{act:'ifText',text:'登录',then:[...],else:[...]} 条件分支。",
+    description:"【首选·最快】把一整套手机操作写成一个脚本，App 在本机连续执行（中间不再请求大模型），适合任何多步操作：打开应用、按文字查找并点击、滚动查找、连续点赞/滑动等。能用它就不要一步步调用 tap/swipe。steps 为步骤数组按序执行，每步是 {act:...}：{act:'open',name:'快手'} 打开应用；{act:'tap',text:'赞'} 按文字点击；{act:'tap',x:100,y:200} 按坐标；{act:'waitText',text:'首页',timeout:8000} 等待文字出现；{act:'scroll',dir:'down',times:3} 滚动；{act:'scrollFind',text:'赞',dir:'down',max:10} 滚动查找；{act:'input',text:'你好'} 输入；{act:'key',action:'back'} 按键；{act:'wait',ms:800} 等待；{act:'repeat',times:5,steps:[...]} 循环；{act:'ifText',text:'登录',then:[...],else:[...]} 条件分支。若这一条脚本就能完成整个任务，请设 done=true，并在 content 里写好完成话术。",
     parameters:{ type:"object", properties:{
       note:{ type:"string", description:"一句话说明这段脚本做什么" },
+      done:{ type:"boolean", description:"若这条脚本就能完成整个任务，设为 true（并在 content 写完成话术），App 会直接结束，不再多问一次模型" },
       steps:{ type:"array", description:"步骤数组" } }, required:["steps"] } } };
 /* 当前安装包是否支持 run_script */
 function scriptOk(){
@@ -3992,10 +4003,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.53";
+const WEB_VERSION = "1.0.54";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 78;
+const WEB_CODE = 79;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
