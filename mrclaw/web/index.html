@@ -565,6 +565,7 @@ zh:{
   mode_to_pts:"已切换为钻石模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
   redeem:"兑换码兑换", redeem_title:"兑换码兑换",
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
+  redeem_tiers:"在淘宝下单后，把收到的卡密粘到这里兑换。档位：1元=30万钻石 / 2元=80万 / 5元=300万 / 15元=1000万",
   redeem_none:"未识别到有效卡密", redeem_found:"识别到 {0} 个卡密，是否全部兑换？",
   redeem_ok:"兑换成功，+{0} 钻石，当前余额 {1}",
   redeem_part:"成功 {0} 个，失败 {1} 个", redeem_fail:"兑换失败，请稍后再试",
@@ -721,6 +722,7 @@ en:{
   need_key_first:"Please enter your API Key first",
   redeem:"Redeem code", redeem_title:"Redeem code",
   redeem_ph:"Paste codes, multiple allowed", redeem_scan:"Scan",
+  redeem_tiers:"After ordering on Taobao, paste the code(s) here to redeem. Tiers: ¥1=300k / ¥2=800k / ¥5=3M / ¥15=10M",
   redeem_none:"No valid code found", redeem_found:"Found {0} code(s). Redeem all?",
   redeem_ok:"Redeemed +{0} points, balance {1}",
   redeem_part:"{0} ok, {1} failed", redeem_fail:"Redeem failed, try again later",
@@ -4258,10 +4260,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.72";
+const WEB_VERSION = "1.0.73";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 97;
+const WEB_CODE = 98;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -4368,13 +4370,14 @@ const Redeem = {
     b.classList.remove("hide");
     b.innerHTML = "<div class='rw'><div class='gt'><b>" + t("redeem_title") + "</b></div>" +
       "<textarea id='rd-in' placeholder='" + esc(t("redeem_ph")) + "' autocorrect='off' autocapitalize='off' spellcheck='false'></textarea>" +
+      "<div class='tiny' style='margin:8px 0 0;color:var(--muted2);line-height:1.6'>" + t("redeem_tiers") + "</div>" +
       "<div style='height:16px'></div><button class='btn' onclick='Redeem.scan()'>" + t("redeem_scan") + "</button>" +
       "<div style='height:10px'></div><button class='btn ghost' onclick='Redeem.close()'>" + t("cancel") + "</button></div>";
   },
   close(){ el("redeem").classList.add("hide"); },
   scan(){
     const raw = String(el("rd-in").value || "").toUpperCase();
-    const found = raw.match(/LG\d{4}NB/g) || [];
+    const found = raw.match(/LG[A-Z0-9]{4,14}NB/g) || [];
     const uniq = found.filter(function(v, i){ return found.indexOf(v) === i; });
     if(!uniq.length){ Native.toast(t("redeem_none")); return; }
     Redeem.go(uniq);
