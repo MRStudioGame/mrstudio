@@ -1310,8 +1310,8 @@ const Chat = {
         ? " Memory: whenever the user asks or implies that you should remember something (names, preferences, habits, requirements, appointments — even without words like \"remember\"), call the remember tool to save it."
         : " 记忆：只要用户明说或暗示希望你记住某些内容（名字、喜好、习惯、要求、约定等，即使没有「记住」这类词），就用 remember 工具把它存进长期记忆。";
       sys += LANG === "en"
-        ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Use screen between steps to verify."
-        : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成；每步之后用 screen 确认结果。";
+        ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear; if the next UI state is predictable, just continue."
+        : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait/read_file/write_file/shell）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。";
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -1483,6 +1483,18 @@ const Chat = {
     };
     requestAnimationFrame(step);
   },
+  slimMsgs(msgs){
+    // 只保留最近 3 条工具结果原文，更早的长结果（如读屏）截断，避免上下文膨胀（又慢又费 token）
+    let kept = 0;
+    for(let i = msgs.length - 1; i >= 0; i--){
+      const m = msgs[i];
+      if(m.role !== "tool") continue;
+      kept++;
+      if(kept > 3 && m.content && m.content.length > 220){
+        m.content = m.content.slice(0, 220) + "…（已省略）";
+      }
+    }
+  },
   ptsEnd(bubble, dialog){
     bubble.role = "system";
     bubble.content = t("pts_empty");
@@ -1568,7 +1580,7 @@ const Chat = {
         if(!pp || pp.__err || !pp.done){ Chat.pollAgent(id, ok, err, n + 1); return; }
         ok(pp);
       });
-    }, 350);
+    }, 300);
   },
   pointsAgent(c, bubble, atts){
     const self = this;
@@ -1631,7 +1643,8 @@ const Chat = {
               guard++;
               self.callTool(fn.name, fn.arguments, function(res){
                 msgs.push({ role: "tool", tool_call_id: tc.id || ("c" + i),
-                            content: String(res).slice(0, 4000) });
+                            content: String(res).slice(0, 2000) });
+                Chat.slimMsgs(msgs);
                 next();
               });
             };
@@ -3667,10 +3680,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.42";
+const WEB_VERSION = "1.0.43";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 68;
+const WEB_CODE = 69;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
