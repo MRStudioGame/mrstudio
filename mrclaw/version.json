@@ -1,13 +1,13 @@
 {
-  "versionCode": 64,
-  "versionName": "1.0.41",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.41",
+  "versionCode": 65,
+  "versionName": "1.0.45",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.0.45",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.41",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.41"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.45",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.0.45",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.0.45"
   ],
-  "size": 168874,
-  "notes": "注册赠送 10 万积分（同步补 webCode，确保老版本能收到软件内文案更新）。",
+  "size": 172970,
+  "notes": "操控提速：读屏走无障碍事件缓存（屏幕没变化不重复遍历）、屏幕无变化自动去重、Agent 历史瘦身（旧读屏结果自动截断，只留最近几条）——同样任务更快、更省 token；功能全保留",
   "official": false
 }
