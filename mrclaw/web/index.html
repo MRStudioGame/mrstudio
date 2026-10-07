@@ -1331,6 +1331,29 @@ const Quick = {
     Macro.runSteps(nm, [{ n:"run_script", a: JSON.stringify({ note: nm, steps: q.steps, done: true }) }]);
   }
 };
+/* ===== 脚本记忆：同一任务第二次直接本地跑，不调用大模型 ===== */
+const ScriptMem = {
+  KEY: "mrclaw_scriptmem_v1",
+  norm(s){ return String(s || "").toLowerCase().replace(/\s+/g, "").replace(/[，。！？,.!?、；;：:""''（）()【】\[\]]/g, ""); },
+  list(){ try{ const v = LS.get(this.KEY); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  put(l){ try{ LS.set(this.KEY, l.slice(0, 40)); }catch(e){} },
+  find(q){
+    const n = this.norm(q);
+    if(!n || n.length < 4) return null;
+    const l = this.list();
+    for(let i = 0; i < l.length; i++){ if(this.norm(l[i].q) === n) return l[i]; }
+    return null;
+  },
+  remember(q, steps, name){
+    try{
+      const n = this.norm(q);
+      if(!n || !steps || !steps.length) return;
+      let l = this.list().filter(function(x){ return ScriptMem.norm(x.q) !== n; });
+      l.unshift({ q: String(q).slice(0, 80), n: String(name || "").slice(0, 24), steps: steps, ts: Date.now() });
+      this.put(l);
+    }catch(e){}
+  }
+};
 const Macro = {
   KEY: "mrclaw_macros_v1",
   rec: false,
@@ -1614,6 +1637,14 @@ const Chat = {
       if(Acc.data.points <= 0){ Show.out(); return; }
       const taskOn = !!(native && Mode.on() && Perm.done());
       if(taskOn){
+        this._taskText = text;
+        let memo = null;
+        try{ memo = ScriptMem.find(text); }catch(e){}
+        if(memo && memo.steps && memo.steps.length && scriptOk()){
+          Overlay.on(LANG === "en" ? "Reusing saved script (no AI)" : "复用上次脚本（不调 AI）", "run", true);
+          Macro.runSteps(memo.n || text.slice(0, 14), [{ n:"run_script", a: JSON.stringify({ note: memo.n || text.slice(0, 20), steps: memo.steps, done: true }) }]);
+          return;
+        }
         this.busy = true; this.syncSendBtn();
         const pb = { role:"assistant", content:"", _agent:true, _steps:[], _running:true };
         c.msgs.push(pb);
@@ -1947,6 +1978,7 @@ const Chat = {
                 const _verified = /waitText|ifText|scrollFind/.test(_st);
                 // 一步完成：脚本一次成功 + 有验证步骤 + 模型标记 done -> 直接结束（否则继续，绝不谎报完成）
                 if(fn.name === "run_script" && fa.done === true && i >= m.tool_calls.length && sres.indexOf("✗") < 0 && _verified){
+                  try{ ScriptMem.remember(Chat._taskText || "", fa.steps, fa.note); }catch(e){}
                   const say = (m.content && String(m.content).trim()) ? String(m.content).trim()
                              : (LANG === "en" ? "Done." : "已完成。");
                   finish(say, "done");
@@ -4095,10 +4127,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.58";
+const WEB_VERSION = "1.0.59";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 83;
+const WEB_CODE = 84;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
