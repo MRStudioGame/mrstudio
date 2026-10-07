@@ -1524,7 +1524,7 @@ const Chat = {
   aHeadBody(x){
     const tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
     const th = (x._think && x._think.length)
-      ? "<details class='think'><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
+      ? "<details class='think'" + (x._running ? " open" : "") + "><summary>💭 " + (LANG === "en" ? "Thinking" : "思考过程") + " (" + x._think.length + ")</summary><div class='tk'>" + esc(x._think.join("\n")) + "</div></details>" : "";
     const fid = x._file ? esc(x._file.id || "") : "";
     const fl = x._file
       ? "<div class='afile'><a href='" + x._file.url + "' download='" + esc(x._file.name) + "'>⬇ " + esc(x._file.name) + "</a><span class='fbtn' onclick=\"Save.byId('" + fid + "')\">" + (LANG === "en" ? "Save" : "存到手机") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
@@ -1670,7 +1670,7 @@ const Chat = {
           return;
         }
         this.busy = true; this.syncSendBtn();
-        const pb = { role:"assistant", content:"", _agent:true, _steps:[], _running:true };
+        const pb = { role:"assistant", content:"", _agent:true, _steps:[], _think:[], _running:true };
         c.msgs.push(pb);
         this.agentBar(true);
         Overlay.on(t("running").replace("● ", ""), "run", true);
@@ -1928,6 +1928,7 @@ const Chat = {
     const msgs = this.apiMsgs(c, bubble, atts);
     let step = 0, guard = 0;
     const steps = bubble._steps;
+    try{ bubble._think = [(LANG === "en" ? "Task: " : "任务：") + String(Chat._taskText || "").trim().slice(0, 60)]; }catch(e){ if(!bubble._think) bubble._think = []; }
     Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
     const finish = function(txt, state){
       bubble._running = false; bubble._state = state || "done";
@@ -1987,6 +1988,7 @@ const Chat = {
               const fn = tc.function || {};
               const desc = self.toolDesc(fn.name, fn.arguments);
               steps.push(desc);
+              try{ if(!bubble._think) bubble._think = []; bubble._think.push(desc); }catch(e){}
               bubble.content = steps.map(function(x){ return "· " + x; }).join("\n");
               self.paint(bubble);
               Overlay.on(desc, "run", true);
@@ -2130,16 +2132,19 @@ const Chat = {
     if(o.type === "run"){
       Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
       if(o.model) b._model = o.model;
+      if(!b._think) b._think = [];
       b._running = true; this.agentBar(true); this.paint(b);
       Overlay.on(t("running").replace("● ", ""), "run", true);
       return;
     }
     if(o.type === "tool"){
       try{ Macro.capture(o.name, o.arguments || "{}"); }catch(e){}
+      try{ if(!b._think) b._think = []; b._think.push("▶ " + (o.name || "") + " " + String(o.arguments || "").slice(0, 60)); this.paint(b); }catch(e){}
       return;
     }
     if(o.type === "status"){
       b._steps.push(o.text);
+      try{ if(!b._think) b._think = []; b._think.push(String(o.text)); }catch(e){}
       b.content = b._steps.map(x=>"· " + x).join("\n");
       this.paint(b);
       Overlay.on(o.text, "run", true);
@@ -4173,10 +4178,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 积分与账号状态 ================= */
-const WEB_VERSION = "1.0.63";
+const WEB_VERSION = "1.0.64";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 88;
+const WEB_CODE = 89;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
