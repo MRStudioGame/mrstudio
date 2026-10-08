@@ -1692,7 +1692,7 @@ const Chat = {
       if(scriptOk()){
         sys += LANG === "en"
           ? " TASK RULE: first write ONE complete run_script and run it; if a step fails, read the log, FIX the script and run again; keep retrying until the task is really done - never give up and never just reply with text. To send an image, call send_image (source='screen' for the current screen, or an http(s) image URL)."
-          : " 做任务铁律：**动手前必须先调用 screen 真实看一下当前界面**（别凭猜），再决定点哪里/输入什么；第一步先把整套操作写成 run_script 一次执行；某步失败就读日志、改写脚本后重跑；不断尝试直到任务真正完成，绝不半途放弃、也不要只回一段文字。⚠ 若任务需要把别的应用里的信息取回来（例如“打开豆包问它…并把回答发我”、读某页面的内容、查聊天记录），**绝不要用 done 一步收工**：分步做——先操作，再用 screen（或 look）读取屏幕上的结果，再把结果回答给用户。脚本失败时先用 screen/look 看当前界面、改写步骤重试，而不是让用户自己去弄。要给用户发图片时调用 send_image（source 填 screen 发当前屏幕，或填图片网址）。";
+          : " 做任务铁律：**动手前必须先调用 screen 真实看一下当前界面**（别凭猜），再决定点哪里/输入什么；第一步先把整套操作写成 run_script 一次执行；**脚本里每一步的 act 必须用英文关键字**（open/tap/input/key/scroll/scrollFind/waitText/wait/swipe/repeat/ifText），坐标用 x/y、文字用 text——不要用中文写动作词（中文会被自动转换，但英文最稳）；某步失败就读日志、改写脚本后重跑；不断尝试直到任务真正完成，绝不半途放弃、也不要只回一段文字。⚠ 若任务需要把别的应用里的信息取回来（例如“打开豆包问它…并把回答发我”、读某页面的内容、查聊天记录），**绝不要用 done 一步收工**：分步做——先操作，再用 screen（或 look）读取屏幕上的结果，再把结果回答给用户。脚本失败时先用 screen/look 看当前界面、改写步骤重试，而不是让用户自己去弄。要给用户发图片时调用 send_image（source 填 screen 发当前屏幕，或填图片网址）。";
       }
       sys += LANG === "en"
         ? " App know-how (use it, do not guess): WeChat bottom = 微信/通讯录/发现/我, search = the magnifier at the TOP; Kuaishou top = 关注/发现/同城, on a video the right side has ♥ like / 💬 comment / ↗ share, double-tap the video = like; Douyin bottom = 首页/朋友/消息/我, double-tap = like, swipe up = next video; Xiaohongshu/Taobao/Alipay/Pinduoduo/JD: search is the magnifier in the TOP bar; Bilibili bottom = 首页/动态/我的; Android Settings: use the search box at the top. If you cannot find something, open the app's TOP search first, or call look to see the screen."
@@ -2012,7 +2012,44 @@ const Chat = {
       return out.length ? out.join("\n") : "（屏幕上没有可识别文字）";
     }catch(e){ return String(raw); }
   },
+  /* 把中文写法（动作/字段）自动转成执行器认的英文 DSL */
+  normSteps(steps){
+    const K = { "动作":"act","操作":"act","名称":"name","应用":"name","应用名":"name","名字":"name","文字":"text","文本":"text","内容":"text","方向":"dir","次数":"times","最多":"max","毫秒":"ms","按键":"action","超时":"timeout","步骤":"steps","那么":"then","否则":"else" };
+    const A = { "打开":"open","启动":"open","开":"open","点击":"tap","点":"tap","点一下":"tap","输入":"input","打字":"input","滑动":"swipe","滚动":"scroll","滑":"scroll","滚动查找":"scrollFind","查找":"scrollFind","等待出现":"waitText","等待文字":"waitText","按键":"key","等待":"wait","等待一下":"wait","循环":"repeat","重复":"repeat","如果":"ifText","判断":"ifText" };
+    const D = { "下":"down","上":"up","向下":"down","向上":"up","左":"left","右":"right" };
+    const KK = { "返回":"back","返回键":"back","桌面":"home","主页":"home","回到桌面":"home","最近":"recents","最近任务":"recents","多任务":"recents","回车":"enter","确定":"enter" };
+    const conv = function(o){
+      if(Array.isArray(o)) return o.map(conv);
+      if(o && typeof o === "object"){
+        const r = {};
+        for(const k in o){
+          let kk = K[k] || k;
+          let v = o[k];
+          if(typeof v === "string"){
+            const t = v.trim();
+            if(kk === "act"){
+              v = A[t] || t;
+              const m = t.match(/^(打开|启动|点击|点一下|输入|打字|等待出现|等待)(.+)$/);
+              if(m){ v = A[m[1]]; r["act"] = v; r[(m[1] === "打开" || m[1] === "启动") ? "name" : "text"] = m[2]; continue; }
+            }
+            else if(kk === "dir") v = D[t] || t;
+            else if(kk === "action") v = KK[t] || t;
+          }
+          r[kk] = conv(v);
+        }
+        return r;
+      }
+      return o;
+    };
+    try{ return conv(steps); }catch(e){ return steps; }
+  },
   callTool(name, argsJson, cb){
+    if(name === "run_script"){
+      try{
+        const o = JSON.parse(argsJson || "{}");
+        if(o && o.steps){ o.steps = Chat.normSteps(o.steps); argsJson = JSON.stringify(o); }
+      }catch(e){}
+    }
     let a = {};
     try{ a = JSON.parse(argsJson || "{}") || {}; }catch(e){ a = {}; }
     try{ Macro.capture(name, argsJson); }catch(e){}
@@ -4363,10 +4400,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.89";
+const WEB_VERSION = "1.0.90";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 112;
+const WEB_CODE = 113;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
