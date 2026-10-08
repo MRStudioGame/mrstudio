@@ -616,6 +616,7 @@
     $("#overScreen").classList.remove("on");
     S.state = "running";
     ensure();
+    tryPlay();
     lastTs = 0;
   }
   function share() {
@@ -642,6 +643,67 @@
     setTimeout(function () { t.style.transition = "opacity .4s"; t.style.opacity = "0"; setTimeout(function () { t.remove(); }, 420); }, 1100);
   }
 
+  /* ================= 背景音乐 ================= */
+  var MUSIC = {
+    list: [
+      { id: "kushan", name: "东南苦山行", sub: "殷正洋 · 原唱", src: "bgm/kushan.mp3" },
+      { id: "yilian", name: "我记得你眼里的依恋", sub: "万芳 · 原唱", src: "bgm/yilian.mp3" }
+    ],
+    cur: "kushan", muted: false, el: null, started: false, panelOpen: false
+  };
+  function mget(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }
+  function mset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function trackById(id) { for (var i = 0; i < MUSIC.list.length; i++) if (MUSIC.list[i].id === id) return MUSIC.list[i]; return MUSIC.list[0]; }
+  function initMusic() {
+    var saved = mget("lj_bgm", "kushan");
+    MUSIC.cur = (trackById(saved).id === saved) ? saved : "kushan";
+    MUSIC.muted = mget("lj_mute", "0") === "1";
+    MUSIC.el = new Audio();
+    MUSIC.el.loop = true; MUSIC.el.volume = 0.5; MUSIC.el.preload = "auto";
+    MUSIC.el.setAttribute("src", trackById(MUSIC.cur).src);
+    renderMusicPanel();
+    var kick = function () { tryPlay(); };
+    window.addEventListener("pointerdown", kick);
+    window.addEventListener("touchstart", kick, { passive: true });
+    window.addEventListener("keydown", kick);
+    var bs = $("#btnSettings");
+    if (bs) bs.addEventListener("click", function () {
+      MUSIC.panelOpen = !MUSIC.panelOpen;
+      $("#setPanel").classList.toggle("on", MUSIC.panelOpen);
+      tryPlay();
+    });
+    var mc = $("#muteChk");
+    if (mc) { mc.checked = MUSIC.muted; mc.addEventListener("change", function () { setMute(mc.checked); }); }
+  }
+  function applyTrack() {
+    var t = trackById(MUSIC.cur);
+    if (MUSIC.el.getAttribute("src") !== t.src) { MUSIC.el.setAttribute("src", t.src); try { MUSIC.el.load(); } catch (e) {} }
+  }
+  function tryPlay() {
+    if (!MUSIC.el || MUSIC.muted) return;
+    MUSIC.started = true;
+    var p = MUSIC.el.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+  function setMute(m) {
+    MUSIC.muted = !!m; mset("lj_mute", m ? "1" : "0");
+    if (MUSIC.muted) { if (MUSIC.el) MUSIC.el.pause(); }
+    else tryPlay();
+    var mc = $("#muteChk"); if (mc) mc.checked = MUSIC.muted;
+  }
+  function pickTrack(id) { MUSIC.cur = id; mset("lj_bgm", id); applyTrack(); renderMusicPanel(); tryPlay(); }
+  function renderMusicPanel() {
+    var box = $("#musicList"); if (!box) return;
+    box.innerHTML = "";
+    MUSIC.list.forEach(function (t) {
+      var b = document.createElement("div");
+      b.className = "song" + (t.id === MUSIC.cur ? " sel" : "");
+      b.innerHTML = '<span class="dot2"></span><span>' + t.name + '</span><span class="sub">' + t.sub + '</span>';
+      b.addEventListener("click", function () { pickTrack(t.id); });
+      box.appendChild(b);
+    });
+  }
+
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     var dt = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
@@ -660,6 +722,7 @@
     $("#btnStart").addEventListener("click", startGame);
     $("#btnRetry").addEventListener("click", startGame);
     $("#btnShare").addEventListener("click", share);
+    initMusic();
     requestAnimationFrame(frame);
     if (AI && AI.hasKey) { ensure(); }
   }
