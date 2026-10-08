@@ -1,13 +1,13 @@
 {
-  "versionCode": 75,
-  "versionName": "1.1.7",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.7",
+  "versionCode": 76,
+  "versionName": "1.1.8",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.8",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.7",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.7",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.7"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.8",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.8",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.8"
   ],
   "size": 197546,
-  "notes": "朗读改用国内自然女声（不再依赖失效的微软接口），长文本自动分段连续朗读；修复「关闭自动朗读无法停止」；设置里可选「女声（自然）/ 系统语音」。本次需更新安装包",
+  "notes": "打开应用匹配修复：改成后台模糊搜索（字符重合度+包名+全量扫描），并按名字相似度给 AI 候选；无障碍未开也能启动应用。本次需更新安装包",
   "official": false
 }
