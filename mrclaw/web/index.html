@@ -494,7 +494,7 @@ zh:{
   model:"模型", base_url:"接口地址", temp:"温度", current_ver:"当前版本",
   check_update:"检查更新", autonomy:"AI 独自操控",
   voice:"朗读声音", voice_change:"更换", voice_title:"选择朗读声音",
-  voice_female:"女声（晓晓）", voice_male:"男声（云希）", voice_system:"系统语音",
+  voice_female:"女声（自然）", voice_male:"男声（暂无）", voice_system:"系统语音",
   autonomy_sub:"开启后 AI 每一步都不再向你确认", language:"语言", theme:"主题",
   theme_dark:"深色", theme_light:"白色",
   upd_found:"发现新版本 v{0}", upd_failed:"更新失败", upd_retry_line:"换线路重试…",
@@ -654,7 +654,7 @@ en:{
   model:"Model", base_url:"Endpoint", temp:"Temperature", current_ver:"Current version",
   check_update:"Check for updates", autonomy:"Autonomous control",
   voice:"Read-aloud voice", voice_change:"Change", voice_title:"Choose voice",
-  voice_female:"Female (Xiaoxiao)", voice_male:"Male (Yunxi)", voice_system:"System voice",
+  voice_female:"Female (natural)", voice_male:"Male (n/a)", voice_system:"System voice",
   autonomy_sub:"When on, the AI no longer asks before each step", language:"Language",
   theme:"Theme", theme_dark:"Dark", theme_light:"Light",
   upd_found:"New version v{0} available", upd_failed:"Update failed",
@@ -1091,7 +1091,7 @@ document.addEventListener("visibilitychange", function(){
 const Voice = {
   listening:false,
   VKEY:"mrclaw_voice_v1",
-  VOICES:{ female:"zh-CN-XiaoxiaoNeural", male:"zh-CN-YunxiNeural", system:"" },
+  VOICES:{ female:"baidu", male:"baidu", system:"" },
   voiceId(){ try{ const v = LS.get(this.VKEY); return (v === "male" || v === "system") ? v : "female"; }catch(e){ return "female"; } },
   setVoice(v){ try{ LS.set(this.VKEY, v); }catch(e){} },
   voiceLabel(){ const v = this.voiceId(); return v === "male" ? t("voice_male") : (v === "system" ? t("voice_system") : t("voice_female")); },
@@ -1099,7 +1099,6 @@ const Voice = {
     const self = this;
     uiSheet(t("voice_title"), [
       { label: t("voice_female"), value: "female" },
-      { label: t("voice_male"), value: "male" },
       { label: t("voice_system"), value: "system" }
     ]).then(function(v){
       if(v === null || v === undefined) return;
@@ -4326,10 +4325,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.84";
+const WEB_VERSION = "1.0.85";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 107;
+const WEB_CODE = 108;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
