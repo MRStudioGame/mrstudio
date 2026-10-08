@@ -1605,14 +1605,17 @@ const Chat = {
   },
   aHeadBody(x){
     const tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
-    const th = (x._think && x._think.length)
+    const th = ((x._think && x._think.length) || x._running)
       ? "<details class='think'" + (x._running ? " open" : "") + "><summary>" + esc(Chat.thinkHead(x)) + "</summary><div class='tk'>" +
-        x._think.map(function(e){
-          const isTool = (e && typeof e === "object" && e.k === "tool");
-          const lb = isTool ? (LANG === "en" ? "Tool" : "工具") : (LANG === "en" ? "Think" : "思考");
-          const tx = (e && typeof e === "object") ? e.t : String(e || "");
-          return "<div class='tstep'><b>" + lb + "</b><span>" + esc(tx) + "</span></div>";
-        }).join("") + "</div></details>" : "";
+        ((x._think && x._think.length)
+          ? x._think.map(function(e){
+              const isTool = (e && typeof e === "object" && e.k === "tool");
+              const lb = isTool ? (LANG === "en" ? "Tool" : "工具") : (LANG === "en" ? "Think" : "思考");
+              const tx = (e && typeof e === "object") ? e.t : String(e || "");
+              return "<div class='tstep'><b>" + lb + "</b><span>" + esc(tx) + "</span></div>";
+            }).join("")
+          : ("<div class='tstep'><b>" + (LANG === "en" ? "Think" : "思考") + "</b><span>" + (LANG === "en" ? "Thinking…" : "正在思考…") + "</span></div>")) +
+        "</div></details>" : "";
     const fid = x._file ? esc(x._file.id || "") : "";
     const fl = x._file
       ? "<div class='afile'><span class='fname'>📄 " + esc(x._file.name) + "</span><span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + (LANG === "en" ? "Open" : "打开") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
@@ -1829,7 +1832,7 @@ const Chat = {
     const last = c.msgs[c.msgs.length - 1];
     const atts = (last && last.attach) ? last.attach : [];
     if(atts.some(function(a){ return Attach.isImg(a); })) Native.toast(t("no_vision"));
-    const bubble = { role:"assistant", content: t("thinking"), _pts:true };
+    const bubble = { role:"assistant", content: t("thinking"), _pts:true, _think: [], _running:true };
     c.msgs.push(bubble); this.render();
     const msgs = this.apiMsgs(c, bubble, atts);
     rpc("mrclaw_ai_start", {
@@ -1874,7 +1877,7 @@ const Chat = {
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false;
-        Chat.reveal(bubble, full, function(){ saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
+        Chat.reveal(bubble, full, function(){ bubble._running = false; saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
       });
     }, 150);
   },
@@ -4437,10 +4440,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.93";
+const WEB_VERSION = "1.0.94";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 116;
+const WEB_CODE = 117;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
