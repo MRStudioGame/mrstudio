@@ -1,13 +1,13 @@
 {
-  "versionCode": 77,
-  "versionName": "1.1.9",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.9",
+  "versionCode": 78,
+  "versionName": "1.2.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.0",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.9",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.9",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.9"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.0",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.0",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.0"
   ],
   "size": 197546,
-  "notes": "从根上解决「看不懂界面」：原生屏幕信息补全（控件类型/可滚动/可输入/可聚焦），看屏幕返回人话列表（输入框/按钮/列表/文字）；并要求 AI 动手前必须先看屏。本次需更新安装包",
+  "notes": "算法优化（自愈）：输入步骤会自己找输入框→自动点击聚焦→再输入（重试3次），不再因「没焦点」失败；按文字点击也加入重试。本次需更新安装包",
   "official": false
 }
