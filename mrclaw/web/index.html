@@ -194,8 +194,8 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .tcode{white-space:pre-wrap;word-break:break-all;margin:2px 0 6px 0;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.22);color:#9ad0a0;font-size:11.5px;line-height:1.5;max-height:150px;overflow:auto;font-family:ui-monospace,Consolas,monospace}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
 .aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
-.fbtn{display:inline-block;padding:5px 9px;border-radius:8px;background:rgba(125,125,150,.18);color:#cfd6e2;font-size:12px;margin-left:6px;cursor:pointer}
-.fname{font-size:13px;color:#dfe5ee;margin-right:4px}
+.fbtn{display:inline-block;padding:5px 11px;border-radius:8px;background:#2f6bff;color:#ffffff;font-size:12.5px;font-weight:700;margin-left:6px;cursor:pointer}
+.fname{font-size:13.5px;font-weight:700;color:var(--fg);margin-right:6px;word-break:break-all}
 .qgrid{display:flex;flex-wrap:wrap;gap:8px;padding:8px 10px}
 .qbtn{display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(125,125,150,.16);color:#dfe5ee;font-size:13px;cursor:pointer}
 .qclose{text-align:center;padding:8px;color:#9aa4b2;cursor:pointer}
@@ -4500,10 +4500,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.100";
+const WEB_VERSION = "1.0.101";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 123;
+const WEB_CODE = 124;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
