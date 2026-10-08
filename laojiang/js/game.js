@@ -129,7 +129,7 @@
     state: "ready", lane: 1,
     jumpT: 0, jumpDur: 0.66, slideT: 0, slideDur: 0.62, inv: 0,
     dist: 0, elapsed: 0, speedZ: 0.36, phase: 0, roadPhase: 0,
-    obs: [], spawnT: 1.2, right: 0, events: [], zhangLunge: 0, zhangLaneX: 0
+    obs: [], spawnT: 1.2, right: 0, events: [], zhangLunge: 0, zhangLaneX: 0, reviveUsed: false
   };
   var qObj = null, lastTs = 0, overGradeTimer = null;
 
@@ -395,8 +395,16 @@
     $("#qFoot").style.visibility = "hidden";
     $("#qScreen").classList.add("on");
     qObj = { diff: qIdx, t0: null, tFirst: null, optChanges: 0, done: false, q: null, timeout: false };
+    var myQ = qObj;
+    var wd = setTimeout(function () {
+      if (S.state === "question" && qObj === myQ && !qObj.q) {
+        var fb = fallbackQ();
+        qObj.q = fb; asked.push(fb.q); renderQuestion(fb);
+      }
+    }, 9000);
     popQ().then(function (q) {
-      if (S.state !== "question") return;
+      if (S.state !== "question" || qObj !== myQ || qObj.q || qObj.done) return;
+      clearTimeout(wd);
       qObj.q = q; asked.push(q.q);
       renderQuestion(q);
     });
@@ -531,8 +539,10 @@
       "答对 <span>" + stats.correctCount + "</span> 题 ｜ 平均答题 <span>" + (stats.avgAnswerMs / 1000).toFixed(1) + " s</span> ｜ 平均犹豫 <span>" + (stats.avgHesitationMs / 1000).toFixed(1) + " s</span>";
     drawOverArt();
     $("#overScreen").classList.add("on");
+    var br = $("#btnAdRevive"); if (br) br.style.display = S.reviveUsed ? "none" : "";
     var saved = stats;
     function showScore(sc, comment, byAI) {
+      if (S.state !== "over") return;
       var el = $("#scoreVal"), t0 = nowMs();
       (function tick() {
         var p = clamp((nowMs() - t0) / 700, 0, 1);
@@ -605,13 +615,14 @@
     S.state = "ready"; S.lane = 1; S.jumpT = 0; S.slideT = 0; S.inv = 0;
     S.dist = 0; S.elapsed = 0; S.speedZ = 0.36; S.phase = 0; S.roadPhase = 0;
     S.obs = []; S.spawnT = 1.4; S.right = 0; S.events = []; S.zhangLunge = 0;
-    S.zhangLaneX = laneX(1, 1.0);
+    S.zhangLaneX = laneX(1, 1.0); S.reviveUsed = false;
     qObj = null; lastTs = 0;
     if (clearQ) { asked = []; pool = []; waiters = []; }
     hud();
   }
   function startGame() {
     reset(true);
+    if (AD.open) closeAd();
     $("#startScreen").classList.remove("on");
     $("#overScreen").classList.remove("on");
     S.state = "running";
@@ -680,7 +691,7 @@
     if (MUSIC.el.getAttribute("src") !== t.src) { MUSIC.el.setAttribute("src", t.src); try { MUSIC.el.load(); } catch (e) {} }
   }
   function tryPlay() {
-    if (!MUSIC.el || MUSIC.muted) return;
+    if (!MUSIC.el || MUSIC.muted || AD.open) return;
     MUSIC.started = true;
     var p = MUSIC.el.play();
     if (p && p.catch) p.catch(function () {});
@@ -704,6 +715,74 @@
     });
   }
 
+  /* ================= 广告复活 ================= */
+  var MRCLAW_URL = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
+  var ADVIDEO = "https://mrstudiogame.github.io/mrstudio/mrclaw/video/MRClaw-promo.mp4";
+  var ADPOSTER = "https://mrstudiogame.github.io/mrstudio/mrclaw/video/poster.jpg";
+  var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, videoErr: false };
+  function initAd() {
+    var v = $("#adVideo"), dl = $("#adDownload");
+    if (dl) dl.setAttribute("href", MRCLAW_URL);
+    if (!v) return;
+    v.setAttribute("poster", ADPOSTER);
+    v.addEventListener("playing", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); });
+    v.addEventListener("waiting", function () { var l = $("#adLoad"); if (l && !AD.ok) l.classList.remove("off"); });
+    v.addEventListener("error", function () { AD.videoErr = true; var l = $("#adLoad"); if (l) l.textContent = "广告加载较慢，仍在计时"; });
+    v.addEventListener("stalled", function () { AD.videoErr = true; });
+    var cls = $("#adClose"); if (cls) cls.addEventListener("click", closeAd);
+    var cl = $("#adClaim"); if (cl) cl.addEventListener("click", function () { if (AD.ok) revive(); });
+    var br = $("#btnAdRevive"); if (br) br.addEventListener("click", openAd);
+  }
+  function openAd() {
+    AD.open = true; AD.watched = 0; AD.ok = false; AD.videoErr = false;
+    var v = $("#adVideo");
+    if (v && !v.getAttribute("src")) { v.setAttribute("src", ADVIDEO); try { v.load(); } catch (e) {} }
+    var head = document.querySelector(".adHead");
+    if (head) head.innerHTML = '观看广告复活 · 还需 <span id="adTimer">15</span> 秒';
+    var l = $("#adLoad"); if (l) { l.textContent = "广告加载中…"; l.classList.remove("off"); }
+    var cl = $("#adClaim"); if (cl) { cl.disabled = true; cl.textContent = "领取复活"; }
+    $("#adScreen").classList.add("on");
+    if (MUSIC.el && !MUSIC.muted) MUSIC.el.pause();
+    if (v) { try { v.currentTime = 0; } catch (e) {} var p = v.play(); if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(function () {}); }); }
+    if (AD.timer) clearInterval(AD.timer);
+    AD.timer = setInterval(function () {
+      if (!AD.open) return;
+      var playing = v && !v.paused && !v.ended;
+      if (playing || AD.videoErr) AD.watched += 0.25;
+      updateAdUI();
+    }, 250);
+    updateAdUI();
+  }
+  function updateAdUI() {
+    var left = Math.max(0, AD.need - AD.watched);
+    var t = $("#adTimer"); if (t) t.textContent = Math.ceil(left);
+    if (AD.watched >= AD.need && !AD.ok) {
+      AD.ok = true;
+      var cl = $("#adClaim"); if (cl) { cl.disabled = false; cl.textContent = "领取复活"; }
+      var h = document.querySelector(".adHead"); if (h) h.textContent = "观看完成 · 点击领取复活";
+    }
+  }
+  function closeAd() {
+    AD.open = false;
+    if (AD.timer) { clearInterval(AD.timer); AD.timer = null; }
+    var v = $("#adVideo"); if (v) { try { v.pause(); } catch (e) {} }
+    var s = $("#adScreen"); if (s) s.classList.remove("on");
+    tryPlay();
+  }
+  function revive() {
+    if (!AD.ok) return;
+    closeAd();
+    $("#overScreen").classList.remove("on");
+    S.reviveUsed = true;
+    S.state = "running";
+    S.inv = 1.5; S.jumpT = 0; S.slideT = 0; S.zhangLunge = 0;
+    S.obs = S.obs.filter(function (o) { return o.z > 0.3; });
+    S.spawnT = rnd(1.0, 1.4);
+    qObj = null; lastTs = 0;
+    ensure();
+    tryPlay();
+  }
+
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     var dt = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
@@ -723,6 +802,7 @@
     $("#btnRetry").addEventListener("click", startGame);
     $("#btnShare").addEventListener("click", share);
     initMusic();
+    initAd();
     requestAnimationFrame(frame);
     if (AI && AI.hasKey) { ensure(); }
   }
