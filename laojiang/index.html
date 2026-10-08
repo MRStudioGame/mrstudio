@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0e1016">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>老蒋快跑</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root{ --gold:#e8c46a; --red:#b8322c; --ink:#0e1016; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; background:#0e1016;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC",system-ui,sans-serif;
+    color:#f5efe2; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+    touch-action:none; overscroll-behavior:none; }
+  #wrap{ position:fixed; inset:0; }
+  #c{ display:block; width:100%; height:100%; }
+
+  /* ---- HUD ---- */
+  #hud{ position:absolute; top:calc(env(safe-area-inset-top,0px) + 10px); left:14px; right:14px;
+    display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none;
+    font-variant-numeric:tabular-nums; text-shadow:0 2px 6px rgba(0,0,0,.6); }
+  .stat{ font-size:13px; line-height:1.35; opacity:.95; }
+  .stat b{ font-size:22px; color:var(--gold); font-weight:800; letter-spacing:.5px; }
+  .stat .lbl{ opacity:.7; font-size:11px; }
+  #aiBadge{ font-size:11px; padding:3px 8px; border:1px solid rgba(232,196,106,.55); border-radius:999px;
+    color:var(--gold); background:rgba(232,196,106,.08); white-space:nowrap; }
+  #aiBadge.off{ border-color:#8a7f6a; color:#b9ae97; background:rgba(120,110,90,.10); }
+  #aiBadge.busy{ border-color:#e8c46a; }
+  #aiBadge.busy::after{ content:""; display:inline-block; width:8px;height:8px; margin-left:6px; border-radius:50%;
+    border:2px solid rgba(232,196,106,.35); border-top-color:var(--gold); animation:spin .7s linear infinite; vertical-align:-1px;}
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+
+  /* ---- overlays ---- */
+  .ov{ position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    padding:24px; text-align:center; background:radial-gradient(120% 100% at 50% 0%, rgba(20,22,30,.72), rgba(6,7,10,.94)); }
+  .ov.on{ display:flex; }
+  .card{ width:min(560px,92vw); }
+
+  /* start */
+  #startScreen .title{ font-size:min(16vw,72px); font-weight:900; letter-spacing:.18em; margin:0 0 6px;
+    color:#f7ecd2; text-shadow:0 4px 0 rgba(0,0,0,.35), 0 0 26px rgba(232,196,106,.28); }
+  #startScreen .sub{ font-size:13px; letter-spacing:.5em; color:var(--gold); opacity:.85; margin-bottom:26px; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:15px 40px; font-size:20px; font-weight:800; letter-spacing:.12em; color:#1a0f0c;
+    background:linear-gradient(180deg,#f2d488,#d9a83f); border:none; border-radius:14px; cursor:pointer;
+    box-shadow:0 8px 22px rgba(217,168,63,.32), inset 0 -3px 0 rgba(120,80,10,.35); transition:transform .08s; }
+  .btn:active{ transform:translateY(2px) scale(.99); }
+  .btn.ghost{ background:transparent; color:#f5efe2; border:1px solid rgba(245,239,226,.35); box-shadow:none; font-size:16px; padding:11px 26px;}
+  .hint{ margin-top:22px; font-size:12px; line-height:2; color:#c9c0ad; opacity:.85; }
+  .hint kbd{ display:inline-block; min-width:22px; padding:1px 6px; margin:0 2px; border-radius:6px;
+    border:1px solid rgba(245,239,226,.3); background:rgba(255,255,255,.06); font-family:inherit; font-size:11px; }
+
+  /* question */
+  #qScreen .card{ background:linear-gradient(180deg, rgba(26,28,38,.97), rgba(16,17,24,.98));
+    border:1px solid rgba(232,196,106,.28); border-radius:20px; padding:20px 20px 18px; text-align:left;
+    box-shadow:0 24px 60px rgba(0,0,0,.6); }
+  #qHead{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--gold); opacity:.9; }
+  #qHead .lv{ color:#c9c0ad; opacity:.8; }
+  #qText{ font-size:clamp(17px,4.6vw,21px); font-weight:700; line-height:1.5; margin:12px 2px 14px; min-height:2.4em; }
+  #qOpts{ display:grid; gap:9px; }
+  .opt{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+    padding:13px 14px; border-radius:12px; font-size:15.5px; line-height:1.35; color:#f2ead8;
+    background:#20232f; border:1px solid #333850; transition:background .12s,border-color .12s,transform .06s; }
+  .opt:active{ transform:scale(.995); }
+  .opt .k{ flex:0 0 26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; color:#0e1016; background:#c9c0ad; }
+  .opt.hot{ background:#2b3042; border-color:var(--gold); }
+  .opt.right{ background:rgba(64,150,90,.28); border-color:#5fc07d; }
+  .opt.wrong{ background:rgba(184,50,44,.30); border-color:#e0746e; }
+  .opt.dim{ opacity:.5; }
+  #qFoot{ margin-top:14px; display:flex; align-items:center; gap:10px; }
+  #qBarWrap{ flex:1; height:8px; border-radius:6px; background:#000a; overflow:hidden; }
+  #qBar{ height:100%; width:100%; background:linear-gradient(90deg,#5fc07d,#e8c46a 55%,#e0746e); transition:width .08s linear; }
+  #qSec{ font-size:16px; font-weight:800; color:var(--gold); width:44px; text-align:right; font-variant-numeric:tabular-nums;}
+  #qLoading{ display:none; text-align:center; padding:26px 0 22px; color:var(--gold); font-size:14px; letter-spacing:.08em;}
+  #qLoading.on{ display:block; }
+  #qLoading .dot{ display:inline-block;width:9px;height:9px;margin:0 3px;border-radius:50%;background:var(--gold);animation:bl 1s infinite;}
+  #qLoading .dot:nth-child(2){animation-delay:.15s}#qLoading .dot:nth-child(3){animation-delay:.3s}
+  @keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+  /* over */
+  #overScreen .over-title{ font-size:34px; font-weight:900; letter-spacing:.12em; color:#f6e6c8; margin:0 0 4px;}
+  #overScreen .over-sub{ font-size:12px; color:#c9c0ad; opacity:.8; margin-bottom:16px; letter-spacing:.1em;}
+  #overArt{ width:min(320px,74vw); height:auto; margin:0 auto 6px; display:block; }
+  .scoreBox{ display:flex; flex-direction:column; align-items:center; margin:6px 0 4px; }
+  .scoreVal{ font-size:min(24vw,84px); font-weight:900; line-height:1; color:var(--gold);
+    text-shadow:0 0 30px rgba(232,196,106,.35); font-variant-numeric:tabular-nums; }
+  .scoreVal small{ font-size:.32em; color:#c9c0ad; font-weight:700; margin-left:4px; }
+  #scoreComment{ font-size:14px; color:#e7ddc7; margin:8px auto 2px; max-width:460px; line-height:1.5; min-height:1.4em;}
+  #overStats{ font-size:12.5px; color:#c9c0ad; margin:14px auto 20px; line-height:1.9; max-width:440px; }
+  #overStats span{ color:#f0e6cf; font-weight:700; }
+  .overBtns{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  #gradeLive{ font-size:12px; color:var(--gold); opacity:.85; min-height:1.2em; margin-top:8px; letter-spacing:.06em;}
+
+  .fadeIn{ animation:fade .28s ease both; }
+  @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+  .foot{ position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + 8px); left:0; right:0; text-align:center;
+    font-size:11px; color:#8f8776; letter-spacing:.14em; pointer-events:none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <div class="stat"><span class="lbl">距离</span><br><b id="hDist">0</b><span style="font-size:12px;opacity:.7"> m</span></div>
+    <div style="text-align:right">
+      <div id="aiBadge">AI · 智谱</div>
+      <div class="stat" style="margin-top:8px"><span class="lbl">已答对</span> <b id="hRight" style="font-size:18px">0</b></div>
+    </div>
+  </div>
+
+  <div class="ov on" id="startScreen">
+    <div class="card">
+      <h1 class="title">老蒋快跑</h1>
+      <div class="sub">追 兵 张 学 良</div>
+      <button class="btn" id="btnStart">开始逃跑</button>
+      <div class="hint">
+        <kbd>←</kbd><kbd>→</kbd> 变道 &nbsp;·&nbsp; <kbd>↑</kbd> 跳 &nbsp;·&nbsp; <kbd>↓</kbd> 滑<br>
+        手机：左右滑动变道，上滑跳，下滑滑铲
+      </div>
+    </div>
+  </div>
+
+  <div class="ov" id="qScreen">
+    <div class="card fadeIn">
+      <div id="qHead"><span id="qIndex">第 1 题</span><span class="lv" id="qLv">难度 1</span></div>
+      <div id="qText"></div>
+      <div id="qOpts"></div>
+      <div id="qLoading"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; AI 出题中</div>
+      <div id="qFoot">
+        <div id="qBarWrap"><div id="qBar"></div></div>
+        <div id="qSec">10</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov" id="overScreen">
+    <div class="card fadeIn">
+      <div class="over-title" id="overTitle">被 抓 住 了</div>
+      <div class="over-sub" id="overSub">张学良 追上了你</div>
+      <canvas id="overArt" width="320" height="180"></canvas>
+      <div class="scoreBox">
+        <div class="scoreVal" id="scoreVal">--<small>/ 5</small></div>
+      </div>
+      <div id="gradeLive">AI 评分中…</div>
+      <div id="scoreComment"></div>
+      <div id="overStats"></div>
+      <div class="overBtns">
+        <button class="btn" id="btnRetry">再来一局</button>
+        <button class="btn ghost" id="btnShare">分享成绩</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">MR工作室制作</div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
