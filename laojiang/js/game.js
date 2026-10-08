@@ -718,10 +718,11 @@
   /* ================= 广告复活 ================= */
   var MRCLAW_URL = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
   var ADSOURCES = [
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/laojiang/ad/mrclaw.mp4",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/laojiang/ad/mrclaw.mp4",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/laojiang/ad/mrclaw.mp4",
     "https://mrstudiogame.github.io/mrstudio/laojiang/ad/mrclaw.mp4"
   ];
-  var ADPOSTER = "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/video/poster.jpg";
+  var ADPOSTER = "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/video/poster.jpg";
   var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, videoErr: false, watchdog: null, srcTries: 0 };
   function initAd() {
     var v = $("#adVideo"), dl = $("#adDownload");
