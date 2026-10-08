@@ -1133,8 +1133,13 @@ const SpeakAuto = {
   toggle(){
     const v = !this.on();
     try{ LS.set(this.KEY, v); }catch(e){}
+    if(!v){ this.stop(); }
     this.paint();
-    Native.toast(v ? (LANG === "en" ? "Auto-read on" : "已开启自动朗读") : (LANG === "en" ? "Auto-read off" : "已关闭自动朗读"));
+    Native.toast(v ? (LANG === "en" ? "Auto-read on" : "已开启自动朗读") : (LANG === "en" ? "Auto-read off" : "已关闭自动朗读（已停止朗读）"));
+  },
+  stop(){
+    try{ if(native && native.speakEdgeStop) native.speakEdgeStop(); }catch(e){}
+    try{ if(native && native.speakStop) native.speakStop(); }catch(e){}
   },
   paint(){ try{ const b = el("speak-btn"); if(b) b.textContent = this.on() ? "🔊" : "🔇"; }catch(e){} },
   say(txt){
@@ -4321,10 +4326,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.82";
+const WEB_VERSION = "1.0.83";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 105;
+const WEB_CODE = 106;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
