@@ -1,13 +1,13 @@
 {
-  "versionCode": 72,
-  "versionName": "1.1.4",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.4",
+  "versionCode": 73,
+  "versionName": "1.1.5",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.5",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.4",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.4",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.4"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.5",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.5",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.5"
   ],
-  "size": 193450,
-  "notes": "修复朗读没反应：Edge 语音连不上时会自动回落系统语音（保证一定有声音）；本次需更新安装包",
+  "size": 197546,
+  "notes": "修复「打开App说找不到」：新增常见应用别名表（豆包/微信/抖音/快手等）+ 模糊匹配 + 全量应用扫描，中英文名都能找到；本次需更新安装包",
   "official": false
 }
