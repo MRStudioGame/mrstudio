@@ -1,13 +1,13 @@
 {
-  "versionCode": 73,
-  "versionName": "1.1.5",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.5",
+  "versionCode": 74,
+  "versionName": "1.1.6",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.1.6",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.5",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.5",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.5"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.6",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.1.6",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.1.6"
   ],
   "size": 197546,
-  "notes": "修复「打开App说找不到」：新增常见应用别名表（豆包/微信/抖音/快手等）+ 模糊匹配 + 全量应用扫描，中英文名都能找到；本次需更新安装包",
+  "notes": "打开应用更聪明：找不到时会返回最相似的已安装应用列表，让 AI 自己挑（如「快手」没装就试「快手极速版」）再重试；本次需更新安装包",
   "official": false
 }
