@@ -2048,6 +2048,17 @@ const Chat = {
     bubble._think = [];
     bubble._t0 = Date.now(); bubble._tools = 0;
     Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
+    // 完成前二次确认：先复核结果，确认无误才宣布完成
+    const verifyThen = function(){
+      if(bubble._checked) return false;
+      bubble._checked = true;
+      try{ msgs.push({ role: "system", content: (LANG === "en"
+        ? "Before declaring success, double-check: call screen (or look) to confirm the result is really achieved. If not, fix it and continue. Only announce completion after you confirm it."
+        : "宣布完成前必须【二次确认】：调用 screen（或 look）核对结果是否真的达成；如未达成或有问题，先修正并继续。确认无误后才能回答完成。") }); }catch(e){}
+      guard++;
+      tick();
+      return true;
+    };
     const finish = function(txt, state){
       bubble._running = false; bubble._state = state || "done";
       bubble._t1 = Date.now();
@@ -2129,6 +2140,7 @@ const Chat = {
                 const _verified = /waitText|ifText|scrollFind/.test(_st);
                 // 一步完成：脚本一次成功 + 有验证步骤 + 模型标记 done -> 直接结束（否则继续，绝不谎报完成）
                 if(fn.name === "run_script" && fa.done === true && i >= m.tool_calls.length && sres.indexOf("✗") < 0 && _verified){
+                  if(verifyThen()) return;
                   try{ ScriptMem.remember(Chat._taskText || "", fa.steps, fa.note); }catch(e){}
                   const say = (m.content && String(m.content).trim()) ? String(m.content).trim()
                              : (LANG === "en" ? "Done." : "已完成。");
@@ -2150,6 +2162,7 @@ const Chat = {
               finish(LANG === "en" ? "The model returned nothing." : "模型没有返回内容，请再试一次。", "err");
               return;
             }
+            if(verifyThen()) return;
             finish(txt, "done");
           }
         }, function(e){ finish(t("exec_fail") + e, "err"); });
@@ -4325,10 +4338,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.86";
+const WEB_VERSION = "1.0.87";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 109;
+const WEB_CODE = 110;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
