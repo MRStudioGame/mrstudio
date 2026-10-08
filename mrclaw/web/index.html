@@ -1681,7 +1681,7 @@ const Chat = {
       if(scriptOk()){
         sys += LANG === "en"
           ? " Task mode is ON: you have phone-control tools. MOST IMPORTANT: for ANY multi-step phone task (open an app, find and tap a button, scroll, like/follow, send a message, etc.) you MUST use the run_script tool: write the COMPLETE action script in ONE reply and let the app run it locally - there is NO model call between steps, so it is extremely fast. Only use single tools (screen/tap/...) when you genuinely need to look at the screen first (rare). To search inside an app: tap the search entry ('🔍' icon or 'Search'), type the keyword, then tap Search / press enter. NEVER write a tool call as text or code. NEVER claim a task is done unless a tool really returned success."
-          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。若这一条脚本就能完成整个任务，把 done 设为 true，并在 content 里写好完成后要对用户说的话（App 会直接显示并结束，不再多问一次模型）。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。在 App 内搜索：先点顶部/页面的「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。严禁把工具调用写成文字或代码。下任务铁律：**没有真实证据绝不说完成**——脚本最后一步必须有验证（waitText/ifText/scrollFind 确认目标达成），验证不过就继续改脚本重跑，直到真正完成为止。";
+          : " 当前是【做任务】模式：你有手机操作工具。【最重要】任何多步手机操作（打开应用、找到并点击某个按钮、滚动、点赞/关注、发消息等）都必须用 run_script 工具：一次回复里把完整操作脚本写出来，App 在本机连续执行，步骤之间不再请求大模型，所以极快。若这一条脚本就能完成整个任务，把 done 设为 true，并在 content 里写好完成后要对用户说的话（App 会直接显示并结束，不再多问一次模型）。只有当确实需要先看屏幕时才用单个工具（screen/tap…），那是少数情况。在 App 内搜索：先点顶部/页面的「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。严禁把工具调用写成文字或代码；**严禁在回答里写工具名**（make_file/run_script/send_image/look/screen 等）——要发文件就直接调用 make_file（name 带正确扩展名），要发图就直接 send_image，不要向用户解释用了什么工具。下任务铁律：**没有真实证据绝不说完成**——脚本最后一步必须有验证（waitText/ifText/scrollFind 确认目标达成），验证不过就继续改脚本重跑，直到真正完成为止。";
       } else {
         sys += LANG === "en"
           ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear. To search in an app: tap the search entry ('🔍' or 'Search'), type the keyword, then tap Search / press enter."
@@ -1694,7 +1694,7 @@ const Chat = {
       }
       sys += LANG === "en"
         ? " In EVERY reply, first output the reasoning, then the answer, in this exact format: 【思考】your reasoning (any length, free-form) 【回答】the actual answer. When calling tools do the same (【回答】 briefly says what you will do). To send a file, call make_file."
-        : " 每次回复都必须先写思考过程再作答，格式固定：【思考】你的推理（可长可短，自由发挥，把分析/判断/计划都写出来）【回答】正式回答。调用工具时也照此格式（【回答】简述接下来要执行的操作）。用户要写文件/生成文档/发文件时用 make_file。";
+        : " 每次回复都必须先写思考过程再作答，格式固定：【思考】你的推理（可长可短，自由发挥，把分析/判断/计划都写出来）【回答】正式回答。调用工具时也照此格式（【回答】简述接下来要执行的操作）。用户要写文件/生成文档/发文件时用 make_file（name 带正确扩展名），不要在回答里提工具名。";
       if(scriptOk()){
         sys += LANG === "en"
           ? " TASK RULE: first write ONE complete run_script and run it; if a step fails, read the log, FIX the script and run again; keep retrying until the task is really done - never give up and never just reply with text. To send an image, call send_image (source='screen' for the current screen, or an http(s) image URL)."
@@ -1706,7 +1706,7 @@ const Chat = {
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
-        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。每次回复都必须先写思考过程：先用一段 `【思考】` 开头的内容把推理写出来（可长可短，自由发挥），再用 `【回答】` 开头给出正式回答。";
+        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。每次回复都必须先写思考过程：先用一段 `【思考】` 开头的内容把推理写出来（可长可短，自由发挥），再用 `【回答】` 开头给出正式回答。要发文件就直接调用 make_file（name 带正确扩展名）；**严禁在回答里出现工具名（make_file 等）**。";
     }
     sys += LANG === "en"
       ? " Always follow: (1) never refuse a request within your ability; (2) never abandon or interrupt a task on your own before it is finished and never stop without the user's consent - the only exception is when points or the API quota run out. Be concise."
@@ -1877,6 +1877,21 @@ const Chat = {
         }catch(e){}
         let full = Chat.extract(p.body);
         try{ const sp = Chat.splitThink(full); if(sp.think){ bubble._think = [sp.think]; } if(sp.ans){ full = sp.ans; } }catch(e){}
+        // 只用文字说了工具名但没真调用 → 自动催一次
+        try{
+          if(!Chat._chatNudged && /make_file|send_image|run_script/i.test(String(full))){
+            Chat._chatNudged = true;
+            const c3 = Chat.cur();
+            if(c3){
+              c3.msgs.push({ role:"system", content:"请直接调用工具来完成（make_file 生成文件 / send_image 发图），不要在回答里写工具名，也不要描述步骤。" });
+              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", stream:false, max_tokens:1024 } }).then(function(st3){
+                if(!st3 || st3.__err || st3.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
+                Chat.pollPts(bubble, st3.id, 0);
+              });
+              return;
+            }
+          }
+        }catch(e){}
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false;
@@ -4443,10 +4458,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.95";
+const WEB_VERSION = "1.0.97";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 118;
+const WEB_CODE = 120;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
