@@ -1725,6 +1725,7 @@ const Chat = {
     if(!text) return;
     this.sending = true;
     this._pcancel = false;
+    this._chatTools = 0; this._chatNudged = false;
     const self = this;
     const keep = function(){ self.sending = false; };
     if(Acc.banned()){ keep(); Show.ban(); return; }
@@ -1895,7 +1896,7 @@ const Chat = {
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false;
-        Chat.reveal(bubble, full, function(){ bubble._running = false; saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
+        Chat.reveal(bubble, full, function(){ bubble._running = false; bubble._state = "done"; saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
       });
     }, 150);
   },
@@ -2087,8 +2088,17 @@ const Chat = {
   callTool(name, argsJson, cb){
     if(name === "run_script"){
       try{
-        const o = JSON.parse(argsJson || "{}");
-        if(o && o.steps){ o.steps = Chat.normSteps(o.steps); argsJson = JSON.stringify(o); }
+        let o = JSON.parse(argsJson || "{}");
+        if(typeof o === "string"){ try{ o = JSON.parse(o); }catch(e0){} }
+        if(o){
+          if(typeof o.steps === "string"){ try{ o.steps = JSON.parse(o.steps); }catch(e1){} }
+          if(!o.steps){
+            const alt = o.script || o.code || o.actions || o["步骤"] || o["操作"] || o["脚本"];
+            if(alt){ if(typeof alt === "string"){ try{ alt = JSON.parse(alt); }catch(e2){} } o.steps = alt; }
+          }
+          if(Array.isArray(o.steps)) o.steps = Chat.normSteps(o.steps);
+          argsJson = JSON.stringify(o);
+        }
       }catch(e){}
     }
     let a = {};
@@ -4275,7 +4285,7 @@ const WebTools = {
   makeFile(name, content, cb){
     try{
       let nm = String(name || "MRClaw-文件.txt").replace(/[\\/:*?"<>|]/g, "_").trim() || "MRClaw-文件.txt";
-      let body = String(content == null ? "" : content);
+      let body = (content && typeof content === "object") ? JSON.stringify(content, null, 2) : String(content == null ? "" : content);
       if(!body){ cb(LANG === "en" ? "Empty content." : "内容为空，没东西可写。"); return; }
       if(body.length > 200000){ cb(LANG === "en" ? "File too large for chat." : "文件太大（超 20 万字符），请改用 write_file 存到手机里。"); return; }
       if(!/\.[a-z0-9]{1,5}$/i.test(nm)){
@@ -4458,10 +4468,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.97";
+const WEB_VERSION = "1.0.98";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 120;
+const WEB_CODE = 121;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
