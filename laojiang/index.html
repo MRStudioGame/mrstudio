@@ -80,6 +80,10 @@
   .adLoad{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#c9c0ad;
     font-size:13px; background:rgba(0,0,0,.55); text-align:center; padding:0 12px; }
   .adLoad.off{ display:none; }
+  .adPlay{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:76px; height:76px;
+    border-radius:50%; border:none; cursor:pointer; font-size:28px; color:#0e1016; background:rgba(232,196,106,.94);
+    display:none; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(0,0,0,.5); padding-left:6px; }
+  .adPlay.on{ display:flex; }
   .adDl{ display:flex; width:100%; margin:14px 0 10px; padding:13px; font-size:17px; }
   .adRow{ display:flex; gap:10px; }
   .adRow .btn{ flex:1; }
@@ -199,7 +203,8 @@
     <div class="card adCard">
       <div class="adHead">观看广告复活 · 还需 <span id="adTimer">15</span> 秒</div>
       <div class="adVWrap">
-        <video id="adVideo" playsinline loop preload="auto"></video>
+        <video id="adVideo" playsinline webkit-playsinline controls loop preload="auto"></video>
+        <button class="adPlay" id="adPlay" aria-label="播放广告">▶</button>
         <div class="adLoad" id="adLoad">广告加载中…</div>
       </div>
       <a class="btn adDl" id="adDownload" href="https://mrstudiogame.github.io/mrstudio/mrclaw/" target="_blank" rel="noopener">下载 MRClaw</a>
