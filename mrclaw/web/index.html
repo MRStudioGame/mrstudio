@@ -1834,7 +1834,7 @@ const Chat = {
     const msgs = this.apiMsgs(c, bubble, atts);
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
-      p_body: { model:"deepseek-chat", messages: msgs, stream:false, max_tokens: 1024 }
+      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: "auto", stream:false, max_tokens: 1024 }
     }).then(function(st){
       if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
@@ -1849,6 +1849,26 @@ const Chat = {
     setTimeout(function(){
       rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
         if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
+        // 仅聊天模式也能执行工具（生成文件 / 发图片 / 查时间天气）
+        try{
+          const o0 = JSON.parse(p.body || "{}");
+          const msg0 = o0.choices && o0.choices[0] && o0.choices[0].message;
+          if(msg0 && msg0.tool_calls && msg0.tool_calls.length){
+            const tc = msg0.tool_calls[0]; const fn = tc.function || {};
+            Chat._chatTools = (Chat._chatTools || 0) + 1;
+            if(Chat._chatTools <= 3){
+              Chat.callTool(fn.name, fn.arguments, function(res){
+                const c2 = Chat.cur();
+                if(c2){ c2.msgs.push(msg0); c2.msgs.push({ role:"tool", tool_call_id: tc.id || "c1", content: String(res).slice(0, 2000) }); }
+                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", stream:false, max_tokens: 1024 } }).then(function(st2){
+                  if(!st2 || st2.__err || st2.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
+                  Chat.pollPts(bubble, st2.id, 0);
+                });
+              });
+              return;
+            }
+          }
+        }catch(e){}
         let full = Chat.extract(p.body);
         try{ const sp = Chat.splitThink(full); if(sp.think){ bubble._think = [sp.think]; } if(sp.ans){ full = sp.ans; } }catch(e){}
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
@@ -4116,6 +4136,13 @@ const TOOL_SEND_IMAGE = { type:"function", function:{ name:"send_image",
     description:"给用户发送一张图片（聊天里直接显示）。用户可以要求「把屏幕截图发我」「把这张图发我」。source 填图片网址(http(s)://) 或填 screen（发送当前手机屏幕截图）；caption 可选，是图片配文。",
     parameters:{ type:"object", properties:{ source:{type:"string"}, caption:{type:"string"} }, required:["source"] } } };
 function visionOk(){ try{ return !!(native && native.screenshot); }catch(e){ return false; } }
+/* 仅聊天模式也能用的工具（生成文件/发图片/查时间天气网页） */
+function chatTools(){
+  try{
+    const base = TOOLS_JS.filter(function(t){ return ["get_time", "weather", "fetch_url"].indexOf(t.function.name) >= 0; });
+    return base.concat([TOOL_MAKE_FILE, TOOL_SEND_IMAGE]);
+  }catch(e){ return []; }
+}
 function toolsForNative(){
   try{
     let t = TOOLS_JS.slice();
@@ -4400,10 +4427,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.91";
+const WEB_VERSION = "1.0.92";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 114;
+const WEB_CODE = 115;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
