@@ -717,33 +717,44 @@
 
   /* ================= 广告复活 ================= */
   var MRCLAW_URL = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
-  var ADVIDEO = "https://mrstudiogame.github.io/mrstudio/mrclaw/video/MRClaw-promo.mp4";
-  var ADPOSTER = "https://mrstudiogame.github.io/mrstudio/mrclaw/video/poster.jpg";
-  var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, videoErr: false };
+  var ADSOURCES = [
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/laojiang/ad/mrclaw.mp4",
+    "https://mrstudiogame.github.io/mrstudio/laojiang/ad/mrclaw.mp4"
+  ];
+  var ADPOSTER = "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/video/poster.jpg";
+  var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, videoErr: false, watchdog: null, srcTries: 0 };
   function initAd() {
     var v = $("#adVideo"), dl = $("#adDownload");
     if (dl) dl.setAttribute("href", MRCLAW_URL);
     if (!v) return;
     v.setAttribute("poster", ADPOSTER);
-    v.addEventListener("playing", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); });
+    v.addEventListener("playing", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); var pb = $("#adPlay"); if (pb) pb.classList.remove("on"); });
     v.addEventListener("waiting", function () { var l = $("#adLoad"); if (l && !AD.ok) l.classList.remove("off"); });
-    v.addEventListener("error", function () { AD.videoErr = true; var l = $("#adLoad"); if (l) l.textContent = "广告加载较慢，仍在计时"; });
-    v.addEventListener("stalled", function () { AD.videoErr = true; });
+    v.addEventListener("error", function () {
+      if (AD.srcTries < ADSOURCES.length - 1) { AD.srcTries++; v.setAttribute("src", ADSOURCES[AD.srcTries]); try { v.load(); } catch (e) {} playAdVideo(false); return; }
+      AD.videoErr = true; var l = $("#adLoad"); if (l) l.textContent = "广告加载失败，仍在计时";
+    });
     var cls = $("#adClose"); if (cls) cls.addEventListener("click", closeAd);
     var cl = $("#adClaim"); if (cl) cl.addEventListener("click", function () { if (AD.ok) revive(); });
     var br = $("#btnAdRevive"); if (br) br.addEventListener("click", openAd);
+    var pb = $("#adPlay"); if (pb) pb.addEventListener("click", function () { playAdVideo(true); });
   }
   function openAd() {
-    AD.open = true; AD.watched = 0; AD.ok = false; AD.videoErr = false;
+    AD.open = true; AD.watched = 0; AD.ok = false; AD.videoErr = false; AD.srcTries = 0;
     var v = $("#adVideo");
-    if (v && !v.getAttribute("src")) { v.setAttribute("src", ADVIDEO); try { v.load(); } catch (e) {} }
+    if (v) { v.setAttribute("src", ADSOURCES[0]); try { v.load(); } catch (e) {} v.setAttribute("poster", ADPOSTER); }
     var head = document.querySelector(".adHead");
     if (head) head.innerHTML = '观看广告复活 · 还需 <span id="adTimer">15</span> 秒';
     var l = $("#adLoad"); if (l) { l.textContent = "广告加载中…"; l.classList.remove("off"); }
+    var pb0 = $("#adPlay"); if (pb0) pb0.classList.remove("on");
     var cl = $("#adClaim"); if (cl) { cl.disabled = true; cl.textContent = "领取复活"; }
     $("#adScreen").classList.add("on");
     if (MUSIC.el && !MUSIC.muted) MUSIC.el.pause();
-    if (v) { try { v.currentTime = 0; } catch (e) {} var p = v.play(); if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(function () {}); }); }
+    playAdVideo(false);
+    if (AD.watchdog) clearTimeout(AD.watchdog);
+    AD.watchdog = setTimeout(function () {
+      if (AD.open && v && v.paused && !AD.ok) { var pb2 = $("#adPlay"); if (pb2) pb2.classList.add("on"); var l2 = $("#adLoad"); if (l2) l2.textContent = "点此播放广告"; }
+    }, 1600);
     if (AD.timer) clearInterval(AD.timer);
     AD.timer = setInterval(function () {
       if (!AD.open) return;
@@ -765,9 +776,17 @@
   function closeAd() {
     AD.open = false;
     if (AD.timer) { clearInterval(AD.timer); AD.timer = null; }
+    if (AD.watchdog) { clearTimeout(AD.watchdog); AD.watchdog = null; }
+    var pb = $("#adPlay"); if (pb) pb.classList.remove("on");
     var v = $("#adVideo"); if (v) { try { v.pause(); } catch (e) {} }
     var s = $("#adScreen"); if (s) s.classList.remove("on");
     tryPlay();
+  }
+  function playAdVideo(fromGesture) {
+    var v = $("#adVideo"); if (!v) return;
+    if (fromGesture) v.muted = false;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(function () {}); });
   }
   function revive() {
     if (!AD.ok) return;
