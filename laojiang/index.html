@@ -53,6 +53,21 @@
   .hint{ margin-top:22px; font-size:12px; line-height:2; color:#c9c0ad; opacity:.85; }
   .hint kbd{ display:inline-block; min-width:22px; padding:1px 6px; margin:0 2px; border-radius:6px;
     border:1px solid rgba(245,239,226,.3); background:rgba(255,255,255,.06); font-family:inherit; font-size:11px; }
+  .setRow{ margin-top:14px; }
+  #setPanel{ display:none; margin:16px auto 0; width:min(430px,88vw); background:rgba(20,22,30,.94);
+    border:1px solid rgba(232,196,106,.30); border-radius:14px; padding:14px 16px; text-align:left;
+    box-shadow:0 18px 44px rgba(0,0,0,.5); }
+  #setPanel.on{ display:block; animation:fade .22s ease both; }
+  .setTitle{ font-size:12px; letter-spacing:.22em; color:#e8c46a; opacity:.9; margin-bottom:10px; }
+  .song{ display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:10px; border:1px solid #333850;
+    background:#20232f; color:#f2ead8; cursor:pointer; margin-bottom:8px; font-size:14.5px; transition:background .12s,border-color .12s; }
+  .song:active{ transform:scale(.995); }
+  .song.sel{ border-color:#e8c46a; background:#2b3042; }
+  .song .dot2{ flex:0 0 14px; width:14px; height:14px; border-radius:50%; border:2px solid #8a937a; }
+  .song.sel .dot2{ border-color:#e8c46a; background:#e8c46a; box-shadow:0 0 9px rgba(232,196,106,.9); }
+  .song .sub{ opacity:.6; font-size:12px; margin-left:auto; }
+  .muteRow{ display:flex; align-items:center; gap:8px; font-size:13px; color:#c9c0ad; margin-top:6px; cursor:pointer; }
+  .muteRow input{ width:16px; height:16px; accent-color:#e8c46a; }
 
   /* question */
   #qScreen .card{ background:linear-gradient(180deg, rgba(26,28,38,.97), rgba(16,17,24,.98));
@@ -122,6 +137,12 @@
       <div class="hint">
         <kbd>←</kbd><kbd>→</kbd> 变道 &nbsp;·&nbsp; <kbd>↑</kbd> 跳 &nbsp;·&nbsp; <kbd>↓</kbd> 滑<br>
         手机：左右滑动变道，上滑跳，下滑滑铲
+      </div>
+      <div class="setRow"><button class="btn ghost" id="btnSettings">设置</button></div>
+      <div id="setPanel">
+        <div class="setTitle">背景音乐</div>
+        <div id="musicList"></div>
+        <label class="muteRow"><input type="checkbox" id="muteChk"> 静音</label>
       </div>
     </div>
   </div>
