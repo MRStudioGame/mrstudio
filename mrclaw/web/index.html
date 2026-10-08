@@ -1595,8 +1595,36 @@ const Chat = {
     return { think: think, ans: ans };
   },
   addThink(b, k, txt, raw){
-    try{ if(!b._think) b._think = []; b._think.push({ k: k, t: String(txt || ""), r: (raw == null ? "" : String(raw)) }); }catch(e){}
+    try{
+      if(!b._think) b._think = [];
+      const full = String(txt || "");
+      const rr = (raw == null ? "" : String(raw));
+      const e = { k: k, t: "", full: full, r: rr, n: (rr ? rr.split(" ")[0] : "") };
+      b._think.push(e);
+      Chat.thinkDrain(b, e);
+    }catch(e2){}
   },
+  thinkDrain(b, e){
+    try{
+      const step = Math.max(1, Math.ceil(e.full.length / 45));
+      const timer = setInterval(function(){
+        try{
+          if(!b._think || b._think.indexOf(e) < 0){ clearInterval(timer); return; }
+          e.t = e.full.slice(0, e.t.length + step);
+          Chat.paint(b);
+          if(e.t.length >= e.full.length) clearInterval(timer);
+        }catch(err){ clearInterval(timer); }
+      }, 40);
+    }catch(e3){}
+  },
+  startTick(b){
+    Chat.stopTick();
+    Chat._tickB = b;
+    Chat._tick = setInterval(function(){
+      try{ if(Chat._tickB && Chat._tickB._running) Chat.paint(Chat._tickB); else Chat.stopTick(); }catch(e){ Chat.stopTick(); }
+    }, 1000);
+  },
+  stopTick(){ try{ if(Chat._tick) clearInterval(Chat._tick); }catch(e){} Chat._tick = null; Chat._tickB = null; },
   thinkHead(x){
     const secs = x._t0 ? Math.max(1, Math.round((((x._t1 || Date.now()) - x._t0) / 1000))) : 0;
     const n = (x._think || []).filter(function(e){ return e && e.k === "tool"; }).length;
@@ -1836,7 +1864,8 @@ const Chat = {
     const last = c.msgs[c.msgs.length - 1];
     const atts = (last && last.attach) ? last.attach : [];
     if(atts.some(function(a){ return Attach.isImg(a); })) Native.toast(t("no_vision"));
-    const bubble = { role:"assistant", content: t("thinking"), _pts:true, _think: [], _running:true };
+    const bubble = { role:"assistant", content: t("thinking"), _pts:true, _think: [], _running:true, _t0: Date.now() };
+    Chat.startTick(bubble);
     c.msgs.push(bubble); this.render();
     const msgs = this.apiMsgs(c, bubble, atts);
     rpc("mrclaw_ai_start", {
@@ -1896,7 +1925,7 @@ const Chat = {
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false;
-        Chat.reveal(bubble, full, function(){ bubble._running = false; bubble._state = "done"; saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
+        Chat.reveal(bubble, full, function(){ bubble._running = false; bubble._state = "done"; Chat.stopTick(); saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
       });
     }, 150);
   },
@@ -2160,6 +2189,7 @@ const Chat = {
     const steps = bubble._steps;
     bubble._think = [];
     bubble._t0 = Date.now(); bubble._tools = 0;
+    Chat.startTick(bubble);
     Chat._taskActive = true; try{ Macro.startRun(); }catch(e){}
     // 完成前二次确认：先复核结果，确认无误才宣布完成
     const verifyThen = function(){
@@ -2175,6 +2205,7 @@ const Chat = {
     const finish = function(txt, state){
       bubble._running = false; bubble._state = state || "done";
       bubble._t1 = Date.now();
+      Chat.stopTick();
       const _sp = Chat.splitThink(txt || "");
       if(_sp.think){ bubble._think = (bubble._think || []).concat([_sp.think]); }
       const _ans = _sp.think ? _sp.ans : (txt || "");
@@ -4468,10 +4499,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.98";
+const WEB_VERSION = "1.0.99";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 121;
+const WEB_CODE = 122;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
