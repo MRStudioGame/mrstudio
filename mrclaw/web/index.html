@@ -417,6 +417,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       </div>
       <div class="barline">
         <textarea id="ta" rows="1" placeholder=""></textarea>
+        <button id="stopchat" class="btn mini danger hide" onclick="Chat.stopChat()">■</button>
         <button id="send" onclick="Chat.send()">↑</button>
       </div>
     </div>
@@ -1689,7 +1690,9 @@ const Chat = {
   },
   syncSendBtn(){
     const v = el("ta").value.trim();
-    el("send").className = (v && !Chat.busy && !Chat.sending) ? "" : "off";
+    const busy = !!(Chat.busy || Chat.sending);
+    const sc = el("stopchat"); if(sc) sc.className = "btn mini danger" + (busy ? "" : " hide");
+    el("send").className = (v && !busy) ? "" : "off";
   },
   openLoginGate(){
     Native.toast(t("need_login"));
@@ -1889,8 +1892,9 @@ const Chat = {
     });
   },
   pollPts(bubble, id, n){
-    if(n > 100){ this.ptsFail(bubble, "timeout"); return; }
+    if(n > 900){ this.ptsFail(bubble, "timeout"); return; }
     setTimeout(function(){
+      if(Chat._pcancel){ Chat._pcancel = false; Chat.busy = false; try{ Chat.stopTick(); }catch(e){} Chat.syncSendBtn(); return; }
       rpc("mrclaw_ai_poll", { p_user: S.user.name, p_id: id }).then(function(p){
         if(!p || p.__err || !p.done){ Chat.pollPts(bubble, id, n + 1); return; }
         // 仅聊天模式也能执行工具（生成文件 / 发图片 / 查时间天气）
@@ -1932,7 +1936,7 @@ const Chat = {
         }catch(e){}
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
-        Chat.busy = false;
+        Chat.busy = false; Chat.syncSendBtn();
         Chat.reveal(bubble, full, function(){ bubble._running = false; bubble._state = "done"; Chat.stopTick(); saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
       });
     }, 150);
@@ -2405,6 +2409,23 @@ const Chat = {
       Native.toast(t("stop_req"));
       Overlay.on(t("stopping"), "warn", false);
     }
+  },
+  stopChat(){
+    Chat._pcancel = true;
+    try{ Chat.stopTick(); }catch(e){}
+    const c = Chat.cur();
+    if(c){
+      const b = c.msgs[c.msgs.length - 1];
+      if(b && b.role === "assistant" && (b._running || b._pts || b._stream)){
+        b._running = false; b._state = "done";
+        if(!b.content || b.content === t("thinking")) b.content = t("stop_t");
+        try{ Chat.paint(b); }catch(e){}
+      }
+    }
+    Chat.busy = false; Chat.sending = false;
+    try{ saveConvs(); }catch(e){}
+    Chat.syncSendBtn();
+    Native.toast(t("stop_t"));
   },
   paint(b){
     const box = el("msgs"); if(!box) return;
@@ -4510,7 +4531,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.101";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 126;
+const WEB_CODE = 127;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
