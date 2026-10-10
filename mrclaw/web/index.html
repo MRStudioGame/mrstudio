@@ -2993,7 +2993,7 @@ const Upd = {
           if(j && j.apkUrl) Upd._apkUrl = j.apkUrl;
           // 只有发布端明确标记「必须换安装包」时才提示重装
           if(j && j.minApk && native.versionCode && native.versionCode() < j.minApk){
-            Upd.needApk(t("need_new_apk"));
+            Upd.apkPrompt(t("need_new_apk"));
           }
           // 安装包缺少本网页层需要的原生能力时，才提示重装；否则一律静默热更新
           if(!capOk()){
@@ -3036,6 +3036,20 @@ const Upd = {
     b.classList.remove("hide");
     b.innerHTML = "<span id='upd-txt'>" + esc(msg || t("need_new_apk")) + "</span>" +
       "<button class='btn mini' onclick='Upd.installApk()'>" + t("install_now") + "</button>";
+  },
+  apkPrompt(msg){
+    if(Upd._apkPrompted) return;
+    Upd._apkPrompted = true;
+    const text = LANG === "en"
+      ? "New version available (fixes sign-up & network issues). Tap below to download and install it now."
+      : "发现新版本（修复了注册失败、联网与回复卡顿）。点下方按钮立即下载并安装最新版。";
+    uiSheet(text, [
+      { label: t("upgrade_now"), value: "up" },
+      { label: t("later"), value: "later" }
+    ]).then(function(v){
+      if(v === "up") Upd.installApk();
+      else Upd.needApk(msg || t("need_new_apk"));
+    });
   },
   noBridge(){
     if(Upd._nbShown) return;
@@ -4531,7 +4545,7 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 const WEB_VERSION = "1.0.101";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 127;
+const WEB_CODE = 128;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
