@@ -1,13 +1,13 @@
 {
-  "versionCode": 79,
-  "versionName": "1.2.1",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.1",
+  "versionCode": 80,
+  "versionName": "1.2.2",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.2",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.1",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.1",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.1"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.2",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.2",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.2"
   ],
-  "size": 197546,
-  "notes": "算法升级：任务改用更会规划多步操作的模型（聊天仍用快的）；脚本每一步失败都会自动重试（最多3次，带等待），不再一步失败就放弃。本次需更新安装包",
+  "size": 201642,
+  "notes": "修复外地/弱网下注册失败：网络请求新增 DoH 抗污染解析 + 自动重试 + 强制 IPv4",
   "official": false
 }
