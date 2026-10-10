@@ -720,7 +720,7 @@
   var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, loadTo: null };
   function initAd() {
     var f = $("#siteFrame"), dl = $("#adDownload");
-    if (f) { f.setAttribute("src", MRCLAW_URL); f.addEventListener("load", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); }); }
+    if (f) { f.addEventListener("load", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); }); }
     if (dl) dl.setAttribute("href", MRCLAW_URL);
     var cls = $("#adClose"); if (cls) cls.addEventListener("click", closeAd);
     var cl = $("#adClaim"); if (cl) cl.addEventListener("click", function () { if (AD.ok) revive(); });
@@ -728,6 +728,7 @@
   }
   function openAd() {
     AD.open = true; AD.watched = 0; AD.ok = false;
+    var f = $("#siteFrame"); if (f) { try { f.setAttribute("src", MRCLAW_URL); } catch (e) {} }
     var head = document.querySelector(".adHead");
     if (head) head.innerHTML = '浏览官网复活 · 还需 <span id="adTimer">15</span> 秒';
     var l = $("#adLoad"); if (l) { l.textContent = "官网加载中…"; l.classList.remove("off"); }
@@ -757,6 +758,7 @@
     AD.open = false;
     if (AD.timer) { clearInterval(AD.timer); AD.timer = null; }
     if (AD.loadTo) { clearTimeout(AD.loadTo); AD.loadTo = null; }
+    var f = $("#siteFrame"); if (f) { try { f.setAttribute("src", "about:blank"); } catch (e) {} }
     var s = $("#adScreen"); if (s) s.classList.remove("on");
     tryPlay();
   }
