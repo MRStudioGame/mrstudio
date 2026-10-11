@@ -8,5 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/web/index.html?v=1.2.4"
   ],
   "size": 269522,
-  "apkUrl": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.4"
+  "apkUrl": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.4",
+  "minApk": 80
 }
