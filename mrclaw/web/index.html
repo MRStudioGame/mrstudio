@@ -1634,7 +1634,6 @@ const Chat = {
   },
   stopTick(){ try{ if(Chat._tick) clearInterval(Chat._tick); }catch(e){} Chat._tick = null; Chat._tickB = null; },
   thinkHead(x){
-    if(x._running && !(x._think && x._think.length)) return "⏳ " + Chat.busyStatus(x);
     const secs = x._t0 ? Math.max(1, Math.round((((x._t1 || Date.now()) - x._t0) / 1000))) : 0;
     const n = (x._think || []).filter(function(e){ return e && e.k === "tool"; }).length;
     const tk = (x._cost && Number(x._cost) > 0) ? (" · " + (LANG === "en" ? "total " : "总计 ") + Number(x._cost).toLocaleString() + " Tokens") : "";
@@ -1644,19 +1643,45 @@ const Chat = {
   busyStatus(x){
     const secs = x._t0 ? ((Date.now() - x._t0) / 1000) : 0;
     const en = LANG === "en";
+    const th = (x._think || []);
+    let lastTool = "";
+    for(let i = th.length - 1; i >= 0; i--){ if(th[i] && th[i].k === "tool" && th[i].n){ lastTool = String(th[i].n); break; } }
+    const M = {
+      run_script: ["正在按计划执行操作…", "Running the plan…"],
+      screen: ["正在查看当前屏幕…", "Reading the screen…"],
+      look: ["正在截图识别界面…", "Capturing the screen…"],
+      tap: ["正在点击目标位置…", "Tapping the target…"],
+      input_text: ["正在输入内容…", "Typing…"],
+      open_app: ["正在打开应用…", "Opening the app…"],
+      key: ["正在切换页面…", "Pressing a key…"],
+      swipe: ["正在滑动屏幕…", "Swiping…"],
+      wait: ["正在等待界面响应…", "Waiting for the UI…"],
+      make_file: ["正在整理文件内容…", "Preparing the file…"],
+      send_image: ["正在发送图片…", "Sending the image…"],
+      weather: ["正在查询天气…", "Checking the weather…"],
+      fetch_url: ["正在联网获取资料…", "Fetching data…"],
+      get_time: ["正在获取时间…", "Getting the time…"],
+      read_file: ["正在读取文件…", "Reading the file…"],
+      write_file: ["正在写入文件…", "Writing the file…"],
+      shell: ["正在执行命令…", "Running a command…"],
+      remember: ["正在记忆…", "Saving to memory…"]
+    };
+    if(lastTool && M[lastTool]) return en ? M[lastTool][1] : M[lastTool][0];
     if(!x._got){
-      if(secs < 2) return en ? "Connecting to server…" : "正在连接服务器…";
-      if(x._searched === true) return en ? "Searching the web for info…" : "正在联网查找相关资料…";
+      if(secs < 2) return en ? "Connecting to the server…" : "正在连接服务器…";
+      if(x._searched === true) return en ? "Searching the web…" : "正在联网查找相关资料…";
       return en ? "Waiting for the server…" : "正在等待服务器响应…";
     }
-    if(secs < 3) return en ? "Reading and digesting…" : "正在阅读并学习当前内容…";
-    if(secs < 7) return en ? "Summarizing the key points…" : "正在总结要点…";
+    if(secs < 3) return en ? "Reading and understanding…" : "正在阅读并理解你的需求…";
+    if(secs < 7) return en ? "Organizing the plan…" : "正在组织思路与计划…";
+    if(secs < 14) return en ? "Working out the details…" : "正在推敲细节…";
     return en ? "Writing the reply…" : "正在生成回答…";
   },
   aHeadBody(x){
     const tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
     const th = ((x._think && x._think.length) || x._running)
       ? "<details class='think'" + (x._running ? " open" : "") + "><summary>" + esc(Chat.thinkHead(x)) + "</summary><div class='tk'>" +
+        ((x._running ? ("<div class='tstep'><b>" + (LANG === "en" ? "Status" : "状态") + "</b><span>" + esc(Chat.busyStatus(x)) + "</span></div>") : "") +
         ((x._think && x._think.length)
           ? x._think.map(function(e){
               const isTool = (e && typeof e === "object" && e.k === "tool");
@@ -1666,7 +1691,7 @@ const Chat = {
               if(e && e.r){ one += "<pre class='tcode'>" + esc(String(e.r).slice(0, 400)) + "</pre>"; }
               return one;
             }).join("")
-          : ("<div class='tstep'><b>" + (LANG === "en" ? "Status" : "状态") + "</b><span>" + esc(Chat.busyStatus(x)) + "</span></div>")) +
+          : "")) +
         "</div></details>" : "";
     const fid = x._file ? esc(x._file.id || "") : "";
     const fl = x._file
@@ -4568,10 +4593,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.101";
+const WEB_VERSION = "1.0.102";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 133;
+const WEB_CODE = 134;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
