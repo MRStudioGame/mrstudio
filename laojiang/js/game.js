@@ -715,33 +715,51 @@
     });
   }
 
-  /* ================= 浏览官网复活 ================= */
+  /* ================= 广告复活（视频） ================= */
   var MRCLAW_URL = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
-  var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, loadTo: null };
+  var ADSOURCES = [
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/laojiang/ad/ad.mp4",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/laojiang/ad/ad.mp4",
+    "https://mrstudiogame.github.io/mrstudio/laojiang/ad/ad.mp4"
+  ];
+  var AD = { need: 15, watched: 0, ok: false, open: false, timer: null, watchdog: null, srcTries: 0, videoErr: false };
   function initAd() {
-    var f = $("#siteFrame"), dl = $("#adDownload");
-    if (f) { f.addEventListener("load", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); }); }
+    var v = $("#adVideo"), dl = $("#adDownload");
     if (dl) dl.setAttribute("href", MRCLAW_URL);
+    if (!v) return;
+    v.addEventListener("playing", function () { var l = $("#adLoad"); if (l) l.classList.add("off"); var pb = $("#adPlay"); if (pb) pb.classList.remove("on"); });
+    v.addEventListener("waiting", function () { var l = $("#adLoad"); if (l && !AD.ok) l.classList.remove("off"); });
+    v.addEventListener("error", function () {
+      if (AD.srcTries < ADSOURCES.length - 1) { AD.srcTries++; v.setAttribute("src", ADSOURCES[AD.srcTries]); try { v.load(); } catch (e) {} playAdVideo(false); return; }
+      AD.videoErr = true; var l = $("#adLoad"); if (l) l.textContent = "广告加载失败，仍在计时";
+    });
     var cls = $("#adClose"); if (cls) cls.addEventListener("click", closeAd);
     var cl = $("#adClaim"); if (cl) cl.addEventListener("click", function () { if (AD.ok) revive(); });
     var br = $("#btnAdRevive"); if (br) br.addEventListener("click", openAd);
+    var pb = $("#adPlay"); if (pb) pb.addEventListener("click", function () { playAdVideo(true); });
   }
   function openAd() {
-    AD.open = true; AD.watched = 0; AD.ok = false;
-    var f = $("#siteFrame"); if (f) { try { f.setAttribute("src", MRCLAW_URL); } catch (e) {} }
+    AD.open = true; AD.watched = 0; AD.ok = false; AD.videoErr = false; AD.srcTries = 0;
+    var v = $("#adVideo");
+    if (v) { v.setAttribute("src", ADSOURCES[0]); try { v.load(); } catch (e) {} }
     var head = document.querySelector(".adHead");
-    if (head) head.innerHTML = '浏览官网复活 · 还需 <span id="adTimer">15</span> 秒';
-    var l = $("#adLoad"); if (l) { l.textContent = "官网加载中…"; l.classList.remove("off"); }
+    if (head) head.innerHTML = '观看广告复活 · 还需 <span id="adTimer">15</span> 秒';
+    var l = $("#adLoad"); if (l) { l.textContent = "广告加载中…"; l.classList.remove("off"); }
+    var pb0 = $("#adPlay"); if (pb0) pb0.classList.remove("on");
     var cl = $("#adClaim"); if (cl) { cl.disabled = true; cl.textContent = "领取复活"; }
     $("#adScreen").classList.add("on");
     if (MUSIC.el && !MUSIC.muted) MUSIC.el.pause();
-    if (AD.loadTo) clearTimeout(AD.loadTo);
-    AD.loadTo = setTimeout(function () { var l2 = $("#adLoad"); if (l2) l2.classList.add("off"); }, 2500);
+    playAdVideo(false);
+    if (AD.watchdog) clearTimeout(AD.watchdog);
+    AD.watchdog = setTimeout(function () {
+      if (AD.open && v && v.paused && !AD.ok) { var pb2 = $("#adPlay"); if (pb2) pb2.classList.add("on"); var l2 = $("#adLoad"); if (l2) l2.textContent = "点此播放广告"; }
+    }, 1600);
     if (AD.timer) clearInterval(AD.timer);
     AD.timer = setInterval(function () {
       if (!AD.open) return;
-      if (document.visibilityState === "hidden") return;
-      AD.watched += 0.25; updateAdUI();
+      var playing = v && !v.paused && !v.ended;
+      if (playing || AD.videoErr) AD.watched += 0.25;
+      updateAdUI();
     }, 250);
     updateAdUI();
   }
@@ -751,16 +769,23 @@
     if (AD.watched >= AD.need && !AD.ok) {
       AD.ok = true;
       var cl = $("#adClaim"); if (cl) { cl.disabled = false; cl.textContent = "领取复活"; }
-      var h = document.querySelector(".adHead"); if (h) h.textContent = "浏览完成 · 点击领取复活";
+      var h = document.querySelector(".adHead"); if (h) h.textContent = "观看完成 · 点击领取复活";
     }
   }
   function closeAd() {
     AD.open = false;
     if (AD.timer) { clearInterval(AD.timer); AD.timer = null; }
-    if (AD.loadTo) { clearTimeout(AD.loadTo); AD.loadTo = null; }
-    var f = $("#siteFrame"); if (f) { try { f.setAttribute("src", "about:blank"); } catch (e) {} }
+    if (AD.watchdog) { clearTimeout(AD.watchdog); AD.watchdog = null; }
+    var pb = $("#adPlay"); if (pb) pb.classList.remove("on");
+    var v = $("#adVideo"); if (v) { try { v.pause(); } catch (e) {} try { v.removeAttribute("src"); v.load(); } catch (e) {} }
     var s = $("#adScreen"); if (s) s.classList.remove("on");
     tryPlay();
+  }
+  function playAdVideo(fromGesture) {
+    var v = $("#adVideo"); if (!v) return;
+    if (fromGesture) v.muted = false;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(function () {}); });
   }
   function revive() {
     if (!AD.ok) return;
