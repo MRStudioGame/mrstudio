@@ -1982,6 +1982,19 @@ const Chat = {
             }
           }
         }catch(e){}
+        // 上游报错（如过载/限流）：自动重试一次
+        try{
+          const ob = JSON.parse(p.body || "{}");
+          if(ob && ob.error && !bubble._retried){
+            bubble._retried = true;
+            const cc = Chat.cur();
+            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc ? cc.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st4){
+              if(!st4 || st4.__err || st4.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
+              Chat.pollPts(bubble, st4.id, 0);
+            });
+            return;
+          }
+        }catch(e){}
         let full = Chat.extract(p.body);
         try{ const sp = Chat.splitThink(full); if(sp.think){ bubble._think = [sp.think]; } if(sp.ans){ full = sp.ans; } }catch(e){}
         // 只用文字说了工具名但没真调用 → 自动催一次
@@ -2383,6 +2396,13 @@ const Chat = {
           } else {
             const txt = (m && m.content) ? m.content : "";
             if(!txt && !steps.length){
+              // 模型没返回内容：先自动重试一次，再报错（不违反任何已有规则）
+              if(!bubble._retried){
+                bubble._retried = true;
+                try{ msgs.push({ role:"system", content: (LANG === "en" ? "The previous call failed. Please redo that step." : "上一次调用出错了，请重新执行刚才这一步。") }); }catch(e){}
+                guard++; tick();
+                return;
+              }
               finish(LANG === "en" ? "The model returned nothing." : "模型没有返回内容，请再试一次。", "err");
               return;
             }
@@ -4632,10 +4652,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.1.4";
+const WEB_VERSION = "1.1.5";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 142;
+const WEB_CODE = 143;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
