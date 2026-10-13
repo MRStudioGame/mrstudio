@@ -582,6 +582,7 @@ zh:{
   think_simple_sub:"日常使用·免费", think_deep_sub:"更聪明·消耗钻石",
   redeem_none:"未识别到有效卡密", redeem_found:"识别到 {0} 个卡密，是否全部兑换？",
   redeem_ok:"兑换成功，+{0} 钻石，当前余额 {1}",
+  cost_free_now:"本次不消耗钻石 · 余额 {0}",
   redeem_part:"成功 {0} 个，失败 {1} 个", redeem_fail:"兑换失败，请稍后再试",
   support:"咨询客服", support_ph:"输入消息…", send_btn:"发送", support_empty:"有问题直接说吧",
   pts_empty:"您的钻石已经消耗完 💎", recharge:"充值钻石 💎", set_key:"填写key", contact:"咨询客服",
@@ -747,6 +748,7 @@ en:{
   think_simple_sub:"Daily·free", think_deep_sub:"Smarter·costs diamonds",
   redeem_none:"No valid code found", redeem_found:"Found {0} code(s). Redeem all?",
   redeem_ok:"Redeemed +{0} points, balance {1}",
+  cost_free_now:"No diamonds used this time · balance {0}",
   redeem_part:"{0} ok, {1} failed", redeem_fail:"Redeem failed, try again later",
   support:"Support", support_ph:"Type a message…", send_btn:"Send",
   support_empty:"Tell us what you need",
@@ -1730,7 +1732,8 @@ const Chat = {
         const _tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
         h += "<div class='mline a'><div class='av a'>MR</div><div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.aHeadBody(x) + "</div></div>";
         if(x.content && !x._file) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
-        if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
+        if(x._free) h += "<div class='cost'>✨ " + t("cost_free_now", Number(x._bal || 0).toLocaleString()) + "</div>";
+        else if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
     });
     h += "</div>";
@@ -1997,6 +2000,7 @@ const Chat = {
           }
         }catch(e){}
         if(typeof p.used === "number"){ bubble._cost = p.used; bubble._bal = p.points; }
+        if(p.free){ bubble._free = true; }
         if(typeof p.points === "number"){ Acc.data.points = p.points; Acc.paint(); }
         Chat.busy = false; Chat.syncSendBtn();
         Chat.reveal(bubble, full, function(){ bubble._running = false; bubble._state = "done"; bubble._t1 = Date.now(); try{ bubble._statusLast = Chat.busyStatus(bubble) || bubble._statusLast; }catch(e){} Chat.stopTick(); saveConvs(); Chat.render(); Chat.afterReply(); try{ SpeakAuto.say(full); }catch(e){} if(Acc.data.points <= 0) Show.out(); });
@@ -2332,6 +2336,7 @@ const Chat = {
           }catch(e){}
           if(typeof pp.points === "number"){ Acc.data.points = pp.points; Acc.paint(); }
           if(pp.used){ bubble._cost = (bubble._cost || 0) + pp.used; bubble._bal = pp.points; }
+          if(pp.free){ bubble._free = true; }
           if(m && m.tool_calls && m.tool_calls.length){
             msgs.push(m);
             let i = 0;
@@ -4627,10 +4632,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.1.2";
+const WEB_VERSION = "1.1.3";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 140;
+const WEB_CODE = 141;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
