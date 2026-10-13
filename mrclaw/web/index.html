@@ -410,6 +410,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       <div id="toolrow">
         <span id="pts-chip"></span>
         <div style="display:flex;gap:8px">
+          <button id="think-btn" class="btn ghost mini" onclick="ThinkMode.pick()">🧠 简单</button>
           <button id="speak-btn" class="btn ghost mini" onclick="SpeakAuto.toggle()">🔇</button>
           <button id="task-btn" class="btn ghost mini" onclick="Mode.task()"></button>
           <button id="mode-btn" class="btn mini" onclick="Acc.mode()"></button>
@@ -573,11 +574,13 @@ zh:{
   mode_to_pts:"已切换为钻石模式", mode_to_key:"已切换为我的 Key", need_key_first:"请先填写 API Key",
   redeem:"兑换码兑换", redeem_title:"兑换码兑换",
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
-  redeem_tiers:"在淘宝下单后，把收到的卡密粘到这里兑换。档位：1元=30万钻石 / 2元=80万 / 5元=300万 / 15元=1000万",
-  welfare_title:"全平台公益免费中",
-  welfare_sub:"钻石少于两万时可以向客服「续杯」 (๑•̀ㅂ•́)و✧",
-  welfare_until:"活动时间：10 月 7 日 — 10 月 20 日",
-  welfare_svc:"找客服续杯 ❤️", welfare_redeem:"输入兑换码", welfare_ok:"知道啦",
+  redeem_tiers:"在淘宝下单后，把收到的卡密粘到这里兑换。（日常用免费，无需购买）",
+  welfare_title:"日常用免费",
+  welfare_sub:"简单思考日常免费开放，随时可用",
+  welfare_until:"",
+  welfare_svc:"咨询客服", welfare_redeem:"输入兑换码", welfare_ok:"知道啦",
+  think_simple:"简单思考", think_deep:"深度思考", think_title:"选择思考模式",
+  think_simple_sub:"日常使用·免费", think_deep_sub:"更聪明·消耗钻石",
   redeem_none:"未识别到有效卡密", redeem_found:"识别到 {0} 个卡密，是否全部兑换？",
   redeem_ok:"兑换成功，+{0} 钻石，当前余额 {1}",
   redeem_part:"成功 {0} 个，失败 {1} 个", redeem_fail:"兑换失败，请稍后再试",
@@ -736,11 +739,13 @@ en:{
   need_key_first:"Please enter your API Key first",
   redeem:"Redeem code", redeem_title:"Redeem code",
   redeem_ph:"Paste codes, multiple allowed", redeem_scan:"Scan",
-  redeem_tiers:"After ordering on Taobao, paste the code(s) here to redeem. Tiers: ¥1=300k / ¥2=800k / ¥5=3M / ¥15=10M",
-  welfare_title:"Everything is free (public welfare)",
-  welfare_sub:"Ask support for a refill when diamonds < 20,000  (｡･ω･｡)",
-  welfare_until:"Event period: Oct 7 – Oct 20",
-  welfare_svc:"Ask for a refill ❤️", welfare_redeem:"Enter a code", welfare_ok:"Got it",
+  redeem_tiers:"After ordering on Taobao, paste the code(s) here. (Daily use is free)",
+  welfare_title:"Free for daily use",
+  welfare_sub:"Simple thinking is free, available anytime",
+  welfare_until:"",
+  welfare_svc:"Contact support", welfare_redeem:"Enter a code", welfare_ok:"Got it",
+  think_simple:"Simple thinking", think_deep:"Deep thinking", think_title:"Thinking mode",
+  think_simple_sub:"Daily·free", think_deep_sub:"Smarter·costs diamonds",
   redeem_none:"No valid code found", redeem_found:"Found {0} code(s). Redeem all?",
   redeem_ok:"Redeemed +{0} points, balance {1}",
   redeem_part:"{0} ok, {1} failed", redeem_fail:"Redeem failed, try again later",
@@ -1930,7 +1935,7 @@ const Chat = {
     }catch(e){}
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
-      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", stream:false, max_tokens: 1024 }
+      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 }
     }).then(function(st){
       if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
@@ -1966,7 +1971,7 @@ const Chat = {
               Chat.callTool(fn.name, fn.arguments, function(res){
                 const c2 = Chat.cur();
                 if(c2){ c2.msgs.push(msg0); c2.msgs.push({ role:"tool", tool_call_id: tc.id || "c1", content: String(res).slice(0, 2000) }); }
-                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", stream:false, max_tokens: 1024 } }).then(function(st2){
+                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st2){
                   if(!st2 || st2.__err || st2.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                   Chat.pollPts(bubble, st2.id, 0);
                 });
@@ -1984,7 +1989,7 @@ const Chat = {
             const c3 = Chat.cur();
             if(c3){
               c3.msgs.push({ role:"system", content:"请直接调用工具来完成（make_file 生成文件 / send_image 发图），不要在回答里写工具名，也不要描述步骤。" });
-              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", stream:false, max_tokens:1024 } }).then(function(st3){
+              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens:1024 } }).then(function(st3){
                 if(!st3 || st3.__err || st3.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                 Chat.pollPts(bubble, st3.id, 0);
               });
@@ -2306,7 +2311,7 @@ const Chat = {
       }
       if(step === 1) msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
-        model: "deepseek-chat", messages: msgs, tools: toolsForNative(),
+        model: "deepseek-chat", messages: msgs, tools: toolsForNative(), think: ThinkMode.get(),
         tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
         if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
@@ -4307,6 +4312,28 @@ function chatTools(){
     return base.concat([TOOL_MAKE_FILE, TOOL_SEND_IMAGE]);
   }catch(e){ return []; }
 }
+/* 思考模式：简单（智谱·免费）/ 深度（DeepSeek·消耗钻石） */
+const ThinkMode = {
+  KEY: "mrclaw_think_v1",
+  get(){ try{ return LS.get(this.KEY) === "deep" ? "deep" : "simple"; }catch(e){ return "simple"; } },
+  set(v){ try{ LS.set(this.KEY, v === "deep" ? "deep" : "simple"); }catch(e){} },
+  label(){ return this.get() === "deep" ? t("think_deep") : t("think_simple"); },
+  short(){ return this.get() === "deep" ? (LANG === "en" ? "Deep" : "深度") : (LANG === "en" ? "Simple" : "简单"); },
+  pick(){
+    const self = this;
+    const cur = this.get();
+    uiSheet(t("think_title"), [
+      { label: (cur === "simple" ? "✅ " : "") + t("think_simple") + " · " + t("think_simple_sub"), value: "simple" },
+      { label: (cur === "deep" ? "✅ " : "") + t("think_deep") + " · " + t("think_deep_sub"), value: "deep" }
+    ]).then(function(v){
+      if(v === null || v === undefined) return;
+      self.set(v); self.paint();
+      Native.toast(self.label());
+      try{ Chat.render(); }catch(e){}
+    });
+  },
+  paint(){ try{ const b = el("think-btn"); if(b) b.textContent = "🧠 " + this.short(); }catch(e){} }
+};
 function toolsForNative(){
   try{
     let t = TOOLS_JS.slice();
@@ -4601,10 +4628,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.0.105";
+const WEB_VERSION = "1.1.0";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 137;
+const WEB_CODE = 138;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -4700,8 +4727,7 @@ const Show = {
       "<div class='rw' style='text-align:center'>" +
       "<div style='font-size:46px;line-height:1.15;margin:26px 0 8px'>❤️</div>" +
       "<div style='font-size:26px;font-weight:800;line-height:1.35;margin:0 auto 16px;max-width:92%'>" + esc(t("welfare_title")) + "</div>" +
-      "<div style='font-size:13px;color:var(--muted2);line-height:1.75;margin:0 auto 8px;max-width:92%'>" + esc(t("welfare_sub")) + "</div>" +
-      "<div style='font-size:12px;color:var(--muted2);margin:0 auto 24px;max-width:92%'>" + esc(t("welfare_until")) + "</div>" +
+      "<div style='font-size:13px;color:var(--muted2);line-height:1.75;margin:0 auto 26px;max-width:92%'>" + esc(t("welfare_sub")) + "</div>" +
       "<button class='btn' onclick='Show.welfareClose();Show.service()'>" + esc(t("welfare_svc")) + "</button>" +
       "<div style='height:10px'></div>" +
       "<button class='btn ghost' onclick='Show.welfareClose()'>" + esc(t("welfare_ok")) + "</button>" +
@@ -4889,7 +4915,7 @@ function paintStatic(){
   el("stop-btn").textContent = t("stop_btn");
   el("att-btn").textContent = "＋";
   el("att-btn").title = t("attach");
-  try{ SpeakAuto.paint(); }catch(e){}
+  try{ SpeakAuto.paint(); }catch(e){}; try{ ThinkMode.paint(); }catch(e){}
   el("bc-in").textContent = "";
   try{ Mode.paint(); }catch(e){}
   el("rd-btn").textContent = t("redeem");
