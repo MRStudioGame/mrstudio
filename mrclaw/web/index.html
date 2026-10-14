@@ -221,7 +221,14 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 #bar{padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--panel2)}
 .barline{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
-#pts-chip{font-size:12px;color:var(--muted2);padding:4px 9px;border-radius:9px;background:rgba(125,125,150,.13);white-space:nowrap}
+#splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(600px 400px at 50% 40%,rgba(47,107,255,.22),transparent 65%),#0b0f16;transition:opacity .55s ease}
+#splash.off{opacity:0;pointer-events:none}
+#splash .sp-logo{font-size:54px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 26px rgba(47,107,255,.85);animation:spIn .9s cubic-bezier(.2,1.2,.3,1) both}
+#splash .sp-name{margin-top:10px;font-size:17px;letter-spacing:6px;color:#9fc0ff;animation:spIn 1.1s .15s both}
+#splash .sp-sub{margin-top:8px;font-size:12px;letter-spacing:3px;color:#5b6b85;animation:spIn 1.2s .3s both}
+#splash .sp-ring{position:absolute;width:150px;height:150px;margin-top:-96px;border-radius:50%;border:2px solid rgba(47,107,255,.18);border-top-color:#2f6bff;animation:spSpin 1.1s linear infinite}
+@keyframes spIn{from{opacity:0;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes spSpin{to{transform:rotate(360deg)}}
 .tb2{font-size:12px;padding:7px 10px}
 #chips,.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .chip{display:flex;align-items:center;gap:6px;background:var(--chip);
@@ -367,6 +374,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 </style>
 </head>
 <body>
+<div id="splash"><div class="sp-ring"></div><div class="sp-logo">MR</div><div class="sp-name">MRClaw</div><div class="sp-sub">MR\u5de5\u4f5c\u5ba4</div></div>
 <div id="root">
 
   <div id="auth">
@@ -1700,12 +1708,21 @@ const Chat = {
             }).join("")
           : "")) +
         "</div></details>" : "";
-    const fid = x._file ? esc(x._file.id || "") : "";
-    const fl = x._file
-      ? "<div class='afile'><span class='fname'>📄 " + esc(x._file.name) + "</span><span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + (LANG === "en" ? "Open" : "打开") + "</span><span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></div>" : "";
-    const im = x._img
-      ? "<div class='aimg'><img src='" + x._img.url + "' alt='image'>" + (x.content ? "<div>" + linkify(esc(x.content)) + "</div>" : "") + "</div>" : "";
-    const body = fl ? fl : (im ? im : (tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content))));
+    const _farr = (x._files && x._files.length) ? x._files : (x._file ? [x._file] : []);
+    const fl = _farr.length
+      ? ("<div class='afile'>" + _farr.map(function(f){
+          const fid = esc(f.id || "");
+          return "<span class='fitem'><span class='fname'>📄 " + esc(f.name) + "</span>" +
+            "<span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + (LANG === "en" ? "Open" : "打开") + "</span>" +
+            "<span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></span>";
+        }).join("") + "</div>") : "";
+    const _iarr = (x._imgs && x._imgs.length) ? x._imgs : (x._img ? [x._img] : []);
+    const im = _iarr.length
+      ? ("<div class='aimg'>" + _iarr.map(function(g){ return "<img src='" + g.url + "' alt='image'>"; }).join("") + "</div>")
+      : "";
+    const body = (fl || im)
+      ? (fl + im + (x.content ? linkify(esc(x.content)) : ""))
+      : (tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content)));
     const _stSecs = x._t0 ? Math.max(1, Math.round((((x._t1 || Date.now()) - x._t0) / 1000))) : 0;
     const stLine = x._running
       ? ("<div class='statline'>⏳ " + esc(Chat.busyStatus(x)) + "</div>")
@@ -1792,7 +1809,7 @@ const Chat = {
       }
       sys += LANG === "en"
         ? " App know-how (use it, do not guess): WeChat bottom = 微信/通讯录/发现/我, search = the magnifier at the TOP; Kuaishou top = 关注/发现/同城, on a video the right side has ♥ like / 💬 comment / ↗ share, double-tap the video = like; Douyin bottom = 首页/朋友/消息/我, double-tap = like, swipe up = next video; Xiaohongshu/Taobao/Alipay/Pinduoduo/JD: search is the magnifier in the TOP bar; Bilibili bottom = 首页/动态/我的; Android Settings: use the search box at the top. If you cannot find something, open the app's TOP search first, or call look to see the screen."
-        : " 常见 App 位置（直接用，别瞎猜）：微信 底部【微信/通讯录/发现/我】，搜索是顶部🔍；快手 顶部【关注/发现/同城】，视频右侧 ♥点赞/💬评论/↗分享，**双击视频=点赞**；抖音 底部【首页/朋友/消息/我】，**双击=点赞**、上滑=下一个；小红书/淘宝/支付宝/拼多多/京东 搜索都在顶部🔍；B站 底部【首页/动态/我的】；系统设置 用顶部搜索框搜设置项。找不到就先点顶部🔍搜索，或调用 look 看屏幕确认。打开 App 时若返回「相近的已安装应用有：…」，请自己从里面挑一个最合适的（如“快手”没装就试“快手极速版”），再调用 open_app，不要直接说找不到。生成文件时**必须带上正确的扩展名**：表格用 .csv、图文文档用 .md、网页/报告用 .html、图标或简单图形用 .svg、数据用 .json，纯文本才用 .txt；不要把非文本内容也写成 .txt。";
+        : " 常见 App 位置（直接用，别瞎猜）：微信 底部【微信/通讯录/发现/我】，搜索是顶部🔍；快手 顶部【关注/发现/同城】，视频右侧 ♥点赞/💬评论/↗分享，**双击视频=点赞**；抖音 底部【首页/朋友/消息/我】，**双击=点赞**、上滑=下一个；小红书/淘宝/支付宝/拼多多/京东 搜索都在顶部🔍；B站 底部【首页/动态/我的】；系统设置 用顶部搜索框搜设置项。找不到就先点顶部🔍搜索，或调用 look 看屏幕确认。打开 App 时若返回「相近的已安装应用有：…」，请自己从里面挑一个最合适的（如“快手”没装就试“快手极速版”），再调用 open_app，不要直接说找不到。生成文件时**必须带上正确的扩展名**：表格用 .csv、图文文档用 .md、网页/报告用 .html、图标或简单图形用 .svg、数据用 .json，纯文本才用 .txt；不要把非文本内容也写成 .txt。需要外部/最新资料时用 web_research 联网查证后再回答。";
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
@@ -2245,6 +2262,7 @@ const Chat = {
     if(name === "fetch_url"){ WebTools.fetchUrl(a.url || a.link || "", a.max, cb); return; }
     if(name === "make_file"){ WebTools.makeFile(a.name || a.filename, a.content != null ? a.content : a.text, cb); return; }
     if(name === "send_image"){ WebTools.sendImage(a.source || a.url || a.src, a.caption || a.text, cb); return; }
+    if(name === "web_research"){ WebTools.research(a.query || a.q || a.words || a.text, cb); return; }
     if(name === "look"){ Chat.look(cb); return; }
     if(native && native.a11yDetail){
       let st = "off";
@@ -4330,10 +4348,13 @@ const TOOL_SEND_IMAGE = { type:"function", function:{ name:"send_image",
     parameters:{ type:"object", properties:{ source:{type:"string"}, caption:{type:"string"} }, required:["source"] } } };
 function visionOk(){ try{ return !!(native && native.screenshot); }catch(e){ return false; } }
 /* 仅聊天模式也能用的工具（生成文件/发图片/查时间天气网页） */
+const TOOL_RESEARCH = { type:"function", function:{ name:"web_research",
+    description:"联网查资料（爬虫）：需要最新/外部信息、或不确定的事实时调用；它会搜索并抓取网页正文，返回可参考的资料文本。query 填要查的问题或关键词。",
+    parameters:{ type:"object", properties:{ query:{type:"string"} }, required:["query"] } } };
 function chatTools(){
   try{
     const base = TOOLS_JS.filter(function(t){ return ["get_time", "weather", "fetch_url"].indexOf(t.function.name) >= 0; });
-    return base.concat([TOOL_MAKE_FILE, TOOL_SEND_IMAGE]);
+    return base.concat([TOOL_MAKE_FILE, TOOL_SEND_IMAGE, TOOL_RESEARCH]);
   }catch(e){ return []; }
 }
 /* 思考模式：简单（智谱·免费）/ 深度（DeepSeek·消耗钻石） */
@@ -4363,6 +4384,7 @@ function toolsForNative(){
     let t = TOOLS_JS.slice();
     t.push(TOOL_MAKE_FILE);
     t.push(TOOL_SEND_IMAGE);
+    t.push(TOOL_RESEARCH);
     if(scriptOk()) t.push(TOOL_RUN_SCRIPT);
     if(visionOk()) t.push(TOOL_LOOK);
     return t;
@@ -4442,6 +4464,36 @@ const WebTools = {
       .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"")
       .replace(/[ \t\r]+/g, " ").replace(/\n{2,}/g, "\n").trim();
   },
+  /* 联网爬虫：搜索 + 抓取网页正文，给 AI 当资料 */
+  research(q, cb){
+    const query = String(q || "").trim();
+    if(!query){ cb(LANG === "en" ? "Missing query" : "缺少查询词"); return; }
+    const u = "https://cn.bing.com/search?q=" + encodeURIComponent(query) + "&ensearch=0";
+    WebTools.get(u, function(err, raw){
+      if(err){ cb((LANG === "en" ? "Search failed: " : "搜索失败：") + err); return; }
+      const links = [];
+      const re = /<h2[^>]*>\s*<a[^>]+href="(https?:\/\/[^"]+)"/g;
+      let m;
+      while((m = re.exec(raw)) && links.length < 3){
+        const x = m[1];
+        if(!/bing\.com|microsoft\.com|msn\.com/i.test(x)) links.push(x);
+      }
+      if(!links.length){ cb(LANG === "en" ? "No results found" : "没搜到相关网页"); return; }
+      let i = 0; const out = [];
+      const next = function(){
+        if(i >= links.length){
+          cb((LANG === "en" ? "[Web research]\n" : "【联网资料】\n") + out.join("\n\n"));
+          return;
+        }
+        const link = links[i++];
+        WebTools.get(link, function(e2, raw2){
+          if(!e2){ const txt = WebTools.strip(raw2); if(txt && txt.length > 80) out.push((LANG === "en" ? "Source: " : "来源：") + link + "\n" + txt.slice(0, 1400)); }
+          setTimeout(next, 120);
+        });
+      };
+      next();
+    });
+  },
   fetchUrl(url, max, cb){
     const u = String(url || "").trim();
     if(!/^https?:\/\//i.test(u)){ cb("网址必须以 http:// 或 https:// 开头"); return; }
@@ -4486,7 +4538,13 @@ const WebTools = {
       if(/\.csv$/i.test(nm) && body.charCodeAt(0) !== 0xFEFF) body = "\uFEFF" + body;
       const url = "data:" + WebTools.mimeOf(nm) + ";base64," + btoa(unescape(encodeURIComponent(body)));
       const c = Chat.cur();
-      c.msgs.push({ role:"assistant", content:"", _file:{ id:"f" + Date.now() + Math.floor(Math.random()*1000), name:nm, url:url, size:body.length } });
+      const _f = { id:"f" + Date.now() + Math.floor(Math.random()*1000), name:nm, url:url, size:body.length };
+      const _last = c.msgs[c.msgs.length - 1];
+      if(_last && _last.role === "assistant"){
+        _last._files = _last._files || []; _last._files.push(_f);
+      } else {
+        c.msgs.push({ role:"assistant", content:"", _file:_f });
+      }
       saveConvs(); Chat.render();
       cb((LANG === "en" ? "File ready: " : "文件已生成：") + nm + (LANG === "en" ? " (tap the button to download)" : "（点消息里的按钮下载）"));
     }catch(e){ cb((LANG === "en" ? "Failed: " : "生成文件失败：") + e); }
@@ -4503,7 +4561,13 @@ const WebTools = {
     }
     if(!/^(https?:\/\/|data:image\/)/i.test(url)){ cb(LANG === "en" ? "Image URL must start with http(s):// or data:image/" : "图片地址必须以 http(s):// 或 data:image/ 开头"); return; }
     const c = Chat.cur();
-    c.msgs.push({ role:"assistant", content:String(caption || ""), _img:{ url:url } });
+    const _last = c.msgs[c.msgs.length - 1];
+    if(_last && _last.role === "assistant" && _last._running){
+      _last._imgs = _last._imgs || []; _last._imgs.push({ url:url });
+      if(caption) _last.content = (_last.content ? _last.content + "\n" : "") + String(caption);
+    } else {
+      c.msgs.push({ role:"assistant", content:String(caption || ""), _img:{ url:url } });
+    }
     saveConvs(); Chat.render();
     cb((LANG === "en" ? "Image sent" : "图片已发送") + (caption ? ("：" + caption) : ""));
   },
@@ -4652,10 +4716,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.1.5";
+const WEB_VERSION = "1.2.0";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 143;
+const WEB_CODE = 144;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -4959,6 +5023,7 @@ el("ta").addEventListener("focus", function(){
   if(!S.user){ this.blur(); Chat.openLoginGate(); }
 });
 el("send").addEventListener("click", function(){ Chat.send(); });
+setTimeout(function(){ var sp = el("splash"); if(sp){ sp.classList.add("off"); setTimeout(function(){ try{ if(sp && sp.parentNode) sp.parentNode.removeChild(sp); }catch(e){} }, 650); } }, 1500);
 
 (function boot(){
   try{ applyTheme(); }catch(e){}
