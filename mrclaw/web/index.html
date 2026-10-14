@@ -223,10 +223,11 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 #toolrow{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
 #splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(600px 400px at 50% 40%,rgba(47,107,255,.22),transparent 65%),#0b0f16;transition:opacity .55s ease}
 #splash.off{opacity:0;pointer-events:none}
-#splash .sp-logo{font-size:54px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 26px rgba(47,107,255,.85);animation:spIn .9s cubic-bezier(.2,1.2,.3,1) both}
-#splash .sp-name{margin-top:10px;font-size:17px;letter-spacing:6px;color:#9fc0ff;animation:spIn 1.1s .15s both}
+#splash .sp-badge{position:relative;width:154px;height:154px;display:flex;align-items:center;justify-content:center;animation:spIn .9s cubic-bezier(.2,1.2,.3,1) both}
+#splash .sp-logo{position:relative;z-index:1;font-size:52px;font-weight:900;letter-spacing:2px;line-height:1;color:#fff;text-shadow:0 0 26px rgba(47,107,255,.85)}
+#splash .sp-name{margin-top:12px;font-size:17px;letter-spacing:6px;color:#9fc0ff;animation:spIn 1.1s .15s both}
 #splash .sp-sub{margin-top:8px;font-size:12px;letter-spacing:3px;color:#5b6b85;animation:spIn 1.2s .3s both}
-#splash .sp-ring{position:absolute;width:150px;height:150px;margin-top:-96px;border-radius:50%;border:2px solid rgba(47,107,255,.18);border-top-color:#2f6bff;animation:spSpin 1.1s linear infinite}
+#splash .sp-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(47,107,255,.18);border-top-color:#2f6bff;animation:spSpin 1.1s linear infinite}
 @keyframes spIn{from{opacity:0;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
 @keyframes spSpin{to{transform:rotate(360deg)}}
 .tb2{font-size:12px;padding:7px 10px}
@@ -374,7 +375,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 </style>
 </head>
 <body>
-<div id="splash"><div class="sp-ring"></div><div class="sp-logo">MR</div><div class="sp-name">MRClaw</div><div class="sp-sub">MR\u5de5\u4f5c\u5ba4</div></div>
+<div id="splash"><div class="sp-badge"><div class="sp-ring"></div><div class="sp-logo">MR</div></div><div class="sp-name">MRClaw</div><div class="sp-sub">MR\u5de5\u4f5c\u5ba4</div></div>
 <div id="root">
 
   <div id="auth">
@@ -4716,10 +4717,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.0";
+const WEB_VERSION = "1.2.1";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 144;
+const WEB_CODE = 145;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
