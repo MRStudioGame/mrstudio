@@ -1,13 +1,13 @@
 {
-  "versionCode": 81,
-  "versionName": "1.2.3",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.3",
+  "versionCode": 82,
+  "versionName": "1.2.4",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.4",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.3",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.3",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.3"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.4",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.4",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.4"
   ],
-  "size": 209834,
-  "notes": "点屏算法升级：读屏带编号、按编号精确点击、失败自动附屏、截断修复",
+  "size": 213930,
+  "notes": "修复文件卡片重复与打开/复制无效；回复正文不再显示工具名，只显示工具总数；新增系统剪贴板",
   "official": true
 }
