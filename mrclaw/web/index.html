@@ -194,6 +194,9 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
 .tcode{white-space:pre-wrap;word-break:break-all;margin:2px 0 6px 0;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.22);color:#9ad0a0;font-size:11.5px;line-height:1.5;max-height:150px;overflow:auto;font-family:ui-monospace,Consolas,monospace}
 .statline{display:inline-block;font-size:12.5px;color:var(--fg);opacity:.92;margin:2px 0 5px;padding:3px 9px;border-radius:8px;background:rgba(125,125,150,.16)}
 .afile a{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(90,160,255,.16);color:#7db2ff;text-decoration:none}
+.afile{display:flex;flex-direction:column;gap:8px;margin:2px 0 6px}
+.fitem{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:rgba(90,160,255,.10);border:1px solid rgba(90,160,255,.22)}
+.fitem .fbtn{margin-left:0}
 .aimg img{max-width:100%;border-radius:8px;display:block;margin:2px 0}
 .fbtn{display:inline-block;padding:5px 11px;border-radius:8px;background:#2f6bff;color:#ffffff;font-size:12.5px;font-weight:700;margin-left:6px;cursor:pointer}
 .fname{font-size:13.5px;font-weight:700;color:var(--fg);margin-right:6px;word-break:break-all}
@@ -1709,7 +1712,20 @@ const Chat = {
             }).join("")
           : "")) +
         "</div></details>" : "";
-    const _farr = (x._files && x._files.length) ? x._files : (x._file ? [x._file] : []);
+    // _files 与 _file 存的是同一批文件：合并去重后再渲染，避免同一文件出现两张卡片
+    let _farr = [];
+    if(x._files && x._files.length) _farr = _farr.concat(x._files);
+    if(x._file) _farr = _farr.concat([x._file]);
+    {
+      const seen = {};
+      _farr = _farr.filter(function(f){
+        if(!f || !f.name) return false;
+        const k = String(f.id || f.name).toLowerCase();
+        if(seen[k]) return false;
+        seen[k] = 1;
+        return true;
+      });
+    }
     const fl = _farr.length
       ? ("<div class='afile'>" + _farr.map(function(f){
           const fid = esc(f.id || "");
@@ -1805,7 +1821,7 @@ const Chat = {
       }
       sys += LANG === "en"
         ? " Reply briefly and DIRECTLY. For simple chat / greetings / short questions: do NOT write a 【思考】 block, just answer. Only for genuinely complex or multi-step tasks (or when planning tool calls) may you prefix a short 【思考】… then 【回答】. When calling tools do the same. To send a file, call make_file."
-        : " 回答要简洁直接：普通聊天/问候/简单问题直接回答，不要写【思考】；只有确实复杂的任务、或需要规划多步工具调用时，才可选用一段简短的【思考】再接【回答】。调用工具时同样简洁说明。用户要写文件/生成文档/发文件时用 make_file（name 带正确扩展名），不要在回答里提工具名。";
+        : " 回答要简洁直接：普通聊天/问候/简单问题直接回答，不要写【思考】；只有确实复杂的任务、或需要规划多步工具调用时，才可选用一段简短的【思考】再接【回答】。调用工具时同样简洁说明。**同一个文件只调用一次 make_file**：返回「文件已生成」就当作成功，严禁反复生成同名文件。用户要写文件/生成文档/发文件时用 make_file（name 带正确扩展名），不要在回答里提工具名，也**严禁把文件内容原样贴在回答里**（用户点按钮即可打开/复制），回答只说一句话说明文件是什么、怎么用。";
       if(scriptOk()){
         sys += LANG === "en"
           ? " TASK RULE: first write ONE complete run_script and run it; if a step fails, read the log, FIX the script and run again; keep retrying until the task is really done - never give up and never just reply with text. To send an image, call send_image (source='screen' for the current screen, or an http(s) image URL)."
@@ -1817,7 +1833,7 @@ const Chat = {
     } else {
       sys += LANG === "en"
         ? " Chat-only mode is ON: you have NO phone-control tools and cannot operate the phone. If the user asks you to perform a task on the phone, remind them to switch to Task mode (the button above the input box) and grant permissions."
-        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。回答要简洁直接，普通问题不要写【思考】；只有确实复杂的问题才可选用【思考】再接【回答】。要发文件就直接调用 make_file（name 带正确扩展名）；**严禁在回答里出现工具名（make_file 等）**。";
+        : " 当前是【仅聊天】模式：你没有手机操作工具，无法操作手机。如果用户要求你执行任务或操作手机，必须提醒他：点输入框上方的按钮切换到「做任务」模式并授权。回答要简洁直接，普通问题不要写【思考】；只有确实复杂的问题才可选用【思考】再接【回答】。要发文件就直接调用 make_file（name 带正确扩展名）；**严禁在回答里出现工具名（make_file 等）**；**同一个文件只调用一次，返回成功即止，严禁重复生成同名文件，也不要把文件内容原样贴在回答里**。";
     }
     sys += LANG === "en"
       ? " Always follow: (1) never refuse a request within your ability; (2) never abandon or interrupt a task on your own before it is finished and never stop without the user's consent - the only exception is when points or the API quota run out. Be concise."
@@ -2138,7 +2154,16 @@ const Chat = {
     if(name === "write_file") return (en ? "Write file: " : "写入文件：") + (a.path || "");
     if(name === "wait") return (en ? "Wait " : "等待 ") + (a.ms || 1000) + "ms";
     if(name === "run_script") return (en ? "▶ Script: " : "▶ 脚本：") + (a.note || (((a.steps && a.steps.length) || 0) + (en ? " steps" : " 步")));
-    return name;
+    // 其余网页层工具：统一给中文说明，绝不能把工具名本身显示给用户
+    if(name === "make_file") return (en ? "Generate file: " : "生成文件：") + (a.name || a.filename || "");
+    if(name === "send_image") return en ? "Send image" : "发送图片";
+    if(name === "web_research") return (en ? "Search: " : "联网查资料：") + (a.query || a.q || "");
+    if(name === "get_time") return en ? "Check the time" : "查询时间";
+    if(name === "weather") return (en ? "Weather: " : "查询天气：") + (a.city || a.name || "");
+    if(name === "fetch_url") return en ? "Fetch a web page" : "抓取网页资料";
+    if(name === "remember") return en ? "Remember" : "记入记忆";
+    if(name === "look") return en ? "Look at the screen" : "查看屏幕截图";
+    return (LANG === "en") ? "Working…" : "正在处理…";
   },
   look(cb){
     if(!native || !native.screenshot){
@@ -2483,7 +2508,8 @@ const Chat = {
       const _sp = Chat.splitThink(txt || "");
       if(_sp.think){ bubble._think = (bubble._think || []).concat([_sp.think]); }
       const _ans = _sp.think ? _sp.ans : (txt || "");
-      bubble.content = (steps.length ? steps.map(function(x){ return "· " + x; }).join("\n") + "\n\n" : "") + _ans;
+      // 工具调用过程不进正文（只保留总数，显示在思考折叠区）
+      bubble.content = _ans;
       self.busy = false; self.agentBar(false); saveConvs(); Chat.render();
       Chat._taskActive = false;
       if(state === "done") Overlay.flash(t("done_t"), "ok", 2600);
@@ -2544,7 +2570,8 @@ const Chat = {
               steps.push(desc);
               bubble._tools = (bubble._tools || 0) + 1;
               Chat.addThink(bubble, "tool", desc, fn.name + " " + String(fn.arguments || ""));
-              bubble.content = steps.map(function(x){ return "· " + x; }).join("\n");
+              // 正文里不再罗列步骤/工具名，只保留一个中性的进行中提示
+              bubble.content = (LANG === "en") ? "Working…" : "正在处理…";
               self.paint(bubble);
               Overlay.on(desc, "run", true);
               guard++;
@@ -4505,7 +4532,7 @@ const TOOL_LOOK = { type:"function", function:{ name:"look",
     description:"看当前手机屏幕的截图（视觉识别）。当你看不懂屏幕上的图标/符号，或在 screen 返回的控件里找不到要点的东西时，调用它；它会返回屏上的图标/按钮说明及位置。",
     parameters:{ type:"object", properties:{}, required:[] } } };
 const TOOL_MAKE_FILE = { type:"function", function:{ name:"make_file",
-    description:"生成一个文件发给用户（聊天里出现下载/存到手机按钮）。用户要求「写文件/生成文档/导出/发个文件给我」时用它。**支持各类文本文件**：.txt 纯文本、.md 文档、.csv 表格（Excel 可开）、.json、.html 网页/报告、.svg 矢量图、.xml、.js/.py 代码等。务必按内容选对扩展名：表格→.csv，图文文档→.md 或 .html，图表/报告→.html，图标或简单图形→.svg；不要什么都写成 .txt。name 为文件名（带扩展名），content 为完整文件内容。",
+    description:"生成一个文件发给用户（聊天里出现下载/存到手机按钮）。用户要求「写文件/生成文档/导出/发个文件给我」时用它。**支持各类文本文件**：.txt 纯文本、.md 文档、.csv 表格（Excel 可开）、.json、.html 网页/报告、.svg 矢量图、.xml、.js/.py 代码等。务必按内容选对扩展名：表格→.csv，图文文档→.md 或 .html，图表/报告→.html，图标或简单图形→.svg；不要什么都写成 .txt。name 为文件名（带扩展名），content 为完整文件内容。**铁律：同一个文件只调用本工具一次**，一次就把完整内容写全；工具返回「文件已生成：xxx」即代表成功，不要再重复生成同名文件，也不要把文件内容在回答里重复贴一遍（用户点按钮就能打开/复制）。",
     parameters:{ type:"object", properties:{ name:{type:"string"}, content:{type:"string"} }, required:["name","content"] } } };
 const TOOL_SEND_IMAGE = { type:"function", function:{ name:"send_image",
     description:"给用户发送一张图片（聊天里直接显示）。用户可以要求「把屏幕截图发我」「把这张图发我」。source 填图片网址(http(s)://) 或填 screen（发送当前手机屏幕截图）；caption 可选，是图片配文。",
@@ -4562,7 +4589,17 @@ const WMO = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"有雾",48:"雾凇"
 const Save = {
   find(id){
     let f = null;
-    try{ S.convs.some(function(c){ return (c.msgs || []).some(function(m){ if(m._file && m._file.id === id){ f = m._file; return true; } return false; }); }); }catch(e){}
+    if(!id) return null;
+    try{
+      S.convs.some(function(c){
+        return (c.msgs || []).some(function(m){
+          // 文件既可能在 _files 数组里（同一条消息多个文件），也可能在 _file 里（老数据）
+          if(m._files && m._files.some(function(x){ if(x && x.id === id){ f = x; return true; } return false; })) return true;
+          if(m._file && m._file.id === id){ f = m._file; return true; }
+          return false;
+        });
+      });
+    }catch(e){}
     return f;
   },
   bytes(id){
@@ -4571,38 +4608,62 @@ const Save = {
   },
   byId(id){
     const f = Save.find(id); if(!f) return;
-    if(native && native.saveFile){
-      let r = "";
-      try{ r = String(native.saveFile(f.name, Save.bytes(id))); }catch(e){ r = "ERR:" + e; }
-      if(r.indexOf("OK") === 0){ Native.toast((LANG === "en" ? "Saved to Downloads: " : "已存到手机「下载」目录：") + f.name); return; }
-    }
-    Save.copy(id);
+    Save.saveToDownloads(f) || Save.copy(id);
+  },
+  saveToDownloads(f){
+    if(!(native && native.saveFile)) return false;
+    let r = "";
+    try{ r = String(native.saveFile(f.name, Save.bytes(f.id))); }catch(e){ r = "ERR:" + e; }
+    if(r.indexOf("OK") !== 0){ Native.toast((LANG === "en" ? "Save failed: " : "保存失败：") + String(r).slice(0, 60)); return false; }
+    Native.toast((LANG === "en" ? "Saved to Downloads: " : "已存到手机「下载」目录：") + f.name);
+    return true;
   },
   open(id){
-    const f = Save.find(id); if(!f) return;
+    const f = Save.find(id);
+    if(!f){ Native.toast(LANG === "en" ? "File record not found" : "找不到这个文件，请重新生成一次"); return; }
     const mime = String(WebTools.mimeOf(f.name)).split(";")[0];
-    if(native && native.saveFile){
+    // 直接交给系统应用打开（不落盘也能开 data: / content:）
+    if(native && native.saveFile && native.openFile){
       let r = "";
-      try{ r = String(native.saveFile(f.name, Save.bytes(id))); }catch(e){ r = "ERR:" + e; }
+      try{ r = String(native.saveFile(f.name, Save.bytes(f.id))); }catch(e){ r = "ERR:" + e; }
       if(r.indexOf("OK:") === 0){
-        const uri = r.slice(3);
-        if(native.openFile){
-          try{ native.openFile(uri, mime); Native.toast(LANG === "en" ? "Opening… (saved to Downloads)" : "正在打开…（已存到「下载」）"); return; }catch(e){}
-        }
-        Native.toast(LANG === "en" ? "Saved to Downloads" : "已存到「下载」目录");
-        return;
+        try{
+          native.openFile(r.slice(3), mime);
+          Native.toast(LANG === "en" ? "Opening…" : "正在打开…");
+          return;
+        }catch(e){}
       }
+      Native.toast(LANG === "en" ? "No app to open it; saved to Downloads" : "没有能打开它的应用，已存到「下载」目录");
+      return;
     }
     Save.copy(id);
   },
   copy(id){
-    const b = Save.bytes(id); if(!b) return;
+    const f = Save.find(id);
+    if(!f){ Native.toast(LANG === "en" ? "File record not found" : "找不到这个文件，请重新生成一次"); return; }
+    const b = Save.bytes(id);
+    if(!b){ Native.toast(LANG === "en" ? "File has no content" : "这个文件没有内容可复制"); return; }
+    let txt = "";
+    try{ txt = decodeURIComponent(escape(atob(b))); }catch(e){ txt = ""; }
+    if(!txt){ Native.toast(LANG === "en" ? "Copy failed" : "复制失败：内容解码出错"); return; }
+    // 优先用原生剪贴板（WebView 里 execCommand 经常静默失败）
+    if(native && native.copyText){
+      try{
+        const ok = String(native.copyText(txt));
+        if(ok === "OK" || ok === "true" || ok === "1"){
+          Native.toast((LANG === "en" ? "Copied (" : "已复制（") + txt.length + (LANG === "en" ? " chars)" : " 字）"));
+          return;
+        }
+      }catch(e){}
+    }
     try{
-      const txt = decodeURIComponent(escape(atob(b)));
       const ta = document.createElement("textarea");
       ta.value = txt; ta.style.position = "fixed"; ta.style.left = "-9999px";
-      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
-      Native.toast(LANG === "en" ? "Copied to clipboard" : "已复制到剪贴板，可粘贴到任意地方");
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      Native.toast(ok ? ((LANG === "en" ? "Copied (" : "已复制（") + txt.length + (LANG === "en" ? " chars)" : " 字）"))
+                      : (LANG === "en" ? "Copy failed" : "复制失败"));
     }catch(e){ Native.toast(LANG === "en" ? "Copy failed" : "复制失败"); }
   }
 };
@@ -4704,8 +4765,25 @@ const WebTools = {
       const c = Chat.cur();
       const _f = { id:"f" + Date.now() + Math.floor(Math.random()*1000), name:nm, url:url, size:body.length };
       const _last = c.msgs[c.msgs.length - 1];
+      const _sameName = function(o){ return !!(o && String(o.name).toLowerCase() === nm.toLowerCase()); };
       if(_last && _last.role === "assistant"){
-        _last._files = _last._files || []; _last._files.push(_f);
+        _last._files = _last._files || [];
+        // 老数据把文件存在 _file 里：先搬进 _files，否则会和新的卡片重复
+        if(_last._file && !_last._files.some(function(o){ return o.id === _last._file.id; })){
+          _last._files.push(_last._file);
+          delete _last._file;
+        }
+        // 模型修修补补时常常重复生成同名文件：同名的直接替换，不要堆成一串卡片
+        let _replaced = false;
+        for(let i = 0; i < _last._files.length; i++){
+          if(_sameName(_last._files[i])){
+            _f.id = _last._files[i].id;      // 沿用旧 id，旧的“打开/复制”按钮依然可用
+            _last._files[i] = _f;
+            _replaced = true;
+            break;
+          }
+        }
+        if(!_replaced) _last._files.push(_f);
       } else {
         c.msgs.push({ role:"assistant", content:"", _file:_f });
       }
@@ -4880,10 +4958,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.3";
+const WEB_VERSION = "1.2.4";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 146;
+const WEB_CODE = 148;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
