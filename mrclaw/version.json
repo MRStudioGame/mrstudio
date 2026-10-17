@@ -1,13 +1,13 @@
 {
-  "versionCode": 80,
-  "versionName": "1.2.2",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.2",
+  "versionCode": 81,
+  "versionName": "1.2.3",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.3",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.2",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.2",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.2"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.3",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.3",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.3"
   ],
-  "size": 201642,
-  "notes": "修复外地/弱网注册与联网（DoH+重试+IPv4）",
-  "official": false
+  "size": 209834,
+  "notes": "点屏算法升级：读屏带编号、按编号精确点击、失败自动附屏、截断修复",
+  "official": true
 }
