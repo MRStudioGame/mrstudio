@@ -1795,6 +1795,9 @@ const Chat = {
           ? " Task mode is ON: you have phone-control tools (screen/tap/input_text/swipe/open_app/key/wait). When the user asks you to do something on the phone you MUST actually call these tools. NEVER write a tool call as text or code. NEVER say a task is done unless a tool really returned success. Be fast: call several tools in one reply and batch steps when possible; do NOT read the screen after every step, only call screen when the UI state is unclear. To search in an app: tap the search entry ('🔍' or 'Search'), type the keyword, then tap Search / press enter."
           : " 当前是【做任务】模式：你有手机操作工具（screen/tap/input_text/swipe/open_app/key/wait）。用户要求操作手机时必须真正调用工具；严禁把工具调用写成文字或代码；严禁在工具没真正返回成功前就说已完成。追求速度：一次回复里可以同时调用多个工具、能把多步合并就合并；不要每一步都读屏，只在不确定界面状态时才用 screen；界面状态可预期时直接继续下一步。在 App 内搜索：先点「🔍」或「搜索」入口，再输入关键词，最后点「搜索」或回车。";
       }
+      sys += LANG === "en"
+        ? " Screen reading returns a numbered control list (#1,#2,…). To tap something, prefer tap {text:\"#12\"} or its exact label; use x/y only when necessary. run_script steps may also use {act:'tap',text:'#3'}. If a step fails, the app automatically attaches the current screen — fix from it instead of retrying blindly."
+        : " 读屏返回带 #编号 的控件清单（如 #3 按钮「发送」@1020,1800）：点控件优先用 tap {text:\"#编号\"}，其次用精确文字，最后才用坐标；run_script 里也可写 {act:'tap',text:'#3'}。某一步失败时 App 会自动附上当前屏幕，直接据此修正，不要盲目重试。";
       if(visionOk()){
         sys += LANG === "en"
           ? " If you cannot tell what an icon or symbol is, call the look tool to see the current screen as an image."
@@ -2059,14 +2062,14 @@ const Chat = {
     requestAnimationFrame(step);
   },
   slimMsgs(msgs){
-    // 只保留最近 3 条工具结果原文，更早的长结果（如读屏）截断，避免上下文膨胀（又慢又费 token）
+    // 最近 4 条工具结果保留原文（读屏/脚本日志要够用），更早的截断，避免越做越慢、越做越贵
     let kept = 0;
     for(let i = msgs.length - 1; i >= 0; i--){
       const m = msgs[i];
       if(m.role !== "tool") continue;
       kept++;
-      if(kept > 3 && m.content && m.content.length > 220){
-        m.content = m.content.slice(0, 220) + "…（已省略）";
+      if(kept > 4 && m.content && m.content.length > 160){
+        m.content = m.content.slice(0, 160) + "…（已省略）";
       }
     }
   },
@@ -2167,30 +2170,164 @@ const Chat = {
       }, function(e){ cb(LANG === "en" ? "(vision failed)" : "（视觉识别失败）"); });
     });
   },
-  /* 把原生 JSON 屏幕结构翻译成人话，让 AI 一眼看出哪个是输入框 */
-  readableScreen(raw){
-    try{
-      const arr = JSON.parse(raw);
-      if(!Array.isArray(arr)) return String(raw);
-      const out = [];
-      for(let i = 0; i < arr.length && out.length < 90; i++){
-        const o = arr[i] || {};
-        const t = String(o.t || ""), d = String(o.d || "");
-        if(!t && !d) continue;
-        const label = (t || d).slice(0, 24);
-        const cls = String(o.cls || "");
-        const kind = (o.e || /EditText|AutoComplete|SearchView|EditText/i.test(cls)) ? "输入框"
-          : ((o.c || /Button/i.test(cls)) ? "按钮"
-            : ((o.s || /RecyclerView|ListView|ScrollView|WebView|ViewPager/i.test(cls)) ? "列表/可滚动" : "文字"));
-        let line = kind + "「" + label + "」@" + o.x + "," + o.y;
-        if(o.e) line += " 可输入";
-        else if(o.c) line += " 可点击";
-        if(o.s) line += " 可滚动";
-        if(t && d && t !== d) line += " (说明:" + d.slice(0, 12) + ")";
-        out.push(line);
+  /* ---------- 点屏算法：读屏 → 编号清单 → 精确点击 → 失败自动读屏 ---------- */
+  _screen: null,
+  /* 顶部状态栏噪声（时间/电量/运营商），不占模型上下文 */
+  screenNoise(t, y){
+    if(y >= 90) return false;
+    if(/^\d{1,2}:\d{2}$/.test(t)) return true;
+    if(/^\d{1,3}%$/.test(t)) return true;
+    return /^(中国移动|中国联通|中国电信|WLAN|Wi-Fi|5G|4G|HD|VoLTE|无服务|飞行模式|无 SIM 卡)$/.test(t);
+  },
+  /* 解析原生读屏 JSON → 去重去噪后的控件数组（容忍被截断的 JSON） */
+  parseScreen(raw){
+    let arr = null;
+    try{ arr = JSON.parse(String(raw == null ? "" : raw)); }catch(e){ arr = null; }
+    if(!Array.isArray(arr)){
+      // 老安装包可能把屏幕 JSON 截断成半截：用正则尽量还原仍完整的节点
+      arr = [];
+      const re = /\{[^{}]*\}/g;
+      const s = String(raw == null ? "" : raw);
+      let m;
+      while((m = re.exec(s)) !== null && arr.length < 300){
+        try{
+          const o = JSON.parse(m[0]);
+          if(o && (o.t || o.d || o.c || o.e || o.s)) arr.push(o);
+        }catch(e0){}
       }
-      return out.length ? out.join("\n") : "（屏幕上没有可识别文字）";
-    }catch(e){ return String(raw); }
+    }
+    const out = [], seen = {};
+    for(let i = 0; i < arr.length && out.length < 120; i++){
+      const o = arr[i] || {};
+      let t = String(o.t || "").trim();
+      let d = String(o.d || "").trim();
+      if(t.length > 60) t = t.slice(0, 60);
+      if(d.length > 60) d = d.slice(0, 60);
+      const clk = !!o.c, ed = !!o.e, scr = !!o.s;
+      if(!t && !d && !clk && !ed && !scr) continue;
+      const x = Number(o.x) || 0, y = Number(o.y) || 0;
+      if(this.screenNoise(t, y)) continue;
+      const label = t || d || (clk ? "图标" : "");
+      if(!label) continue;
+      if(label.length === 1 && !clk && !ed) continue;   // 单字残片基本都是噪音
+      const key = label + "|" + Math.round(x / 6) + "|" + Math.round(y / 6);
+      if(seen[key]) continue;
+      seen[key] = 1;
+      out.push({
+        idx: out.length + 1, label: label,
+        kind: ed ? "输入框" : (clk ? "按钮" : (scr ? "可滚动" : "文字")),
+        x: x, y: y, clk: clk, ed: ed, scr: scr, cls: String(o.cls || "")
+      });
+    }
+    return out;
+  },
+  screenText(items){
+    const lines = [];
+    for(let i = 0; i < items.length && lines.length < 90; i++){
+      const o = items[i];
+      let line = "#" + o.idx + " " + o.kind + "「" + o.label + "」@" + o.x + "," + o.y;
+      if(o.ed) line += " 可输入";
+      else if(o.clk) line += " 可点击";
+      if(o.scr) line += " 可滚动";
+      lines.push(line);
+    }
+    let out = "屏幕控件（共 " + items.length + " 项，从上到下；点它用 tap {text:\"#编号\"} 或精确文字）：\n" + lines.join("\n");
+    if(items.length > 90) out += "\n（还有 " + (items.length - 90) + " 项在屏幕外/未显示）";
+    return out;
+  },
+  readableScreen(raw){
+    const s = String(raw == null ? "" : raw).trim();
+    if(!s) return "（读屏为空：可能无障碍服务没连上，请退出重进 MRClaw）";
+    if(s.indexOf("屏幕内容与上次读取相同") >= 0 || s.indexOf("screen unchanged") >= 0) return s;
+    const items = this.parseScreen(s);
+    if(!items.length){
+      if(s.charAt(0) === "[" || s.charAt(0) === "{")
+        return "（屏幕上没有可识别的控件：界面可能是空的，或该应用不在无障碍可见范围内）";
+      return s.length > 600 ? (s.slice(0, 600) + "…") : s;
+    }
+    this._screen = { items: items, at: Date.now() };
+    return this.screenText(items);
+  },
+  /* 保证有一份较新的屏幕清单：动作前解析 #编号、失败后自动附带当前屏幕。
+     force=true 强制重新读屏。cb(items|null) */
+  ensureScreen(cb, force){
+    const sc = this._screen;
+    if(!force && sc && sc.items && Date.now() - sc.at < 5000){ cb(sc.items); return; }
+    if(!native || !native.toolAsync){ cb(sc ? sc.items : null); return; }
+    const id = "sc" + (++_toolSeq);
+    let fired = false;
+    _toolWait[id] = function(res){
+      if(fired) return; fired = true;
+      const items = Chat.parseScreen(res);
+      if(items.length) Chat._screen = { items: items, at: Date.now() };
+      cb(items.length ? items : (sc ? sc.items : null));
+    };
+    try{ native.toolAsync(id, "screen", "{}", true); }
+    catch(e){ cb(sc ? sc.items : null); }
+  },
+  labelScore(a, b){
+    a = String(a || "").replace(/\s+/g, "").toLowerCase();
+    b = String(b || "").replace(/\s+/g, "").toLowerCase();
+    if(!a || !b) return 0;
+    if(a === b) return 100;
+    if(b.indexOf(a) === 0) return 78;
+    if(b.indexOf(a) >= 0) return 60;
+    if(a.indexOf(b) >= 0 && b.length >= 2) return 52;
+    let hit = 0;
+    for(let i = 0; i < a.length; i++) if(b.indexOf(a.charAt(i)) >= 0) hit++;
+    const r = hit / a.length;
+    return r >= 0.6 ? 34 + Math.round(12 * r) : 0;
+  },
+  /* 在最新读屏里找控件：支持 "#12" / 12 / 文字 */
+  screenItem(q){
+    const sc = this._screen;
+    if(!sc || !sc.items || !sc.items.length) return null;
+    const s = String(q == null ? "" : q).trim();
+    const m = s.match(/^#?(\d{1,3})$/);
+    if(m){
+      const n = Number(m[1]);
+      for(let i = 0; i < sc.items.length; i++) if(sc.items[i].idx === n) return sc.items[i];
+      return null;
+    }
+    let best = null, bestScore = 0;
+    for(let i = 0; i < sc.items.length; i++){
+      const it = sc.items[i];
+      const v = this.labelScore(s, it.label) + (it.clk || it.ed ? 10 : 0);
+      if(v > bestScore){ bestScore = v; best = it; }
+    }
+    return bestScore >= 60 ? best : null;
+  },
+  /* run_script 里的 {act:'tap',text:'#3'} / {act:'tap',id:3} → 坐标 */
+  resolveSteps(steps){
+    if(!Array.isArray(steps)) return steps;
+    const self = this;
+    return steps.map(function(s){
+      if(!s || typeof s !== "object") return s;
+      const r = Object.assign({}, s);
+      if(Array.isArray(r.steps)) r.steps = self.resolveSteps(r.steps);
+      if(Array.isArray(r.then)) r.then = self.resolveSteps(r.then);
+      if(Array.isArray(r.else)) r.else = self.resolveSteps(r.else);
+      if(r.act === "tap" || r.act === "click"){
+        const q = (r.text != null) ? r.text : (r.id != null ? ("#" + r.id) : null);
+        if(q != null && /^#?\d+$/.test(String(q))){
+          const it = self.screenItem(q);
+          if(it){ r.act = "tap"; r.x = it.x; r.y = it.y; delete r.text; delete r.id; }
+        }
+      }
+      return r;
+    });
+  },
+  /* 某一步失败时自动附上当前屏幕，让模型一步修正而不是盲试 */
+  attachScreen(name, res, cb){
+    const s = String(res == null ? "" : res);
+    const bad = /✗|未找到|点击失败|失败|执行出错|not found|ERR:/.test(s);
+    if(!bad || name === "screen" || name === "look" || Chat._attaching){ cb(s); return; }
+    Chat._attaching = true;
+    Chat.ensureScreen(function(items){
+      Chat._attaching = false;
+      if(!items || !items.length){ cb(s); return; }
+      cb(s + "\n\n【当前屏幕（App 自动读取，据此修正）】\n" + Chat.screenText(items));
+    }, true);
   },
   /* 把中文写法（动作/字段）自动转成执行器认的英文 DSL */
   normSteps(steps){
@@ -2278,9 +2415,35 @@ const Chat = {
       cb(t("need_new_apk"));
       return;
     }
-    const id = "tl" + (++_toolSeq);
-    _toolWait[id] = (name === "screen") ? function(res){ cb(Chat.readableScreen(res)); } : cb;
-    native.toolAsync(id, name, argsJson || "{}", !!S.cfg.autonomy);
+    const dispatch = function(){
+      // tap 的 #编号 → 坐标（比按文字、坐标都稳）
+      if(name === "tap"){
+        const q = (a.text != null) ? a.text : (a.id != null ? ("#" + a.id) : null);
+        if(q != null && /^#?\d{1,3}$/.test(String(q))){
+          const it = Chat.screenItem(q);
+          if(it){ a = { x: it.x, y: it.y }; argsJson = JSON.stringify(a); }
+        }
+      }
+      if(name === "run_script" && a && Array.isArray(a.steps)){
+        a.steps = Chat.resolveSteps(a.steps);
+        argsJson = JSON.stringify(a);
+      }
+      const id = "tl" + (++_toolSeq);
+      _toolWait[id] = function(res){
+        if(name === "screen"){ cb(Chat.readableScreen(res)); return; }
+        if(name === "tap" || name === "swipe" || name === "input_text" || name === "key"
+           || name === "open_app" || name === "run_script"){
+          Chat._screen = null;      // 屏幕已变，旧编号作废
+        }
+        Chat.attachScreen(name, res, cb);
+      };
+      native.toolAsync(id, name, argsJson || "{}", !!S.cfg.autonomy);
+    };
+    // 用到 #编号 时先确保读屏缓存是新的
+    const _needsScreen = (name === "tap" && a && (/^#\d+$/.test(String(a.text || "")) || a.id != null))
+      || (name === "run_script" && a && Array.isArray(a.steps) && JSON.stringify(a.steps).indexOf('"#') >= 0);
+    if(_needsScreen){ Chat.ensureScreen(dispatch, false); return; }
+    dispatch();
   },
   pollAgent(id, ok, err, n){
     n = n || 0;
@@ -2388,7 +2551,7 @@ const Chat = {
               self.callTool(fn.name, fn.arguments, function(res){
                 const sres = String(res);
                 msgs.push({ role: "tool", tool_call_id: tc.id || ("c" + i),
-                            content: sres.slice(0, 2000) });
+                            content: sres.slice(0, 4500) });
                 Chat.slimMsgs(msgs);
                 let fa = {};
                 try{ fa = JSON.parse(fn.arguments || "{}") || {}; }catch(e){}
@@ -4292,7 +4455,7 @@ const TOOLS_JS = [
     parameters:{ type:"object", properties:{ text:{ type:"string" } }, required:["text"] } } },
   { type:"function", function:{ name:"key", description:"按下系统按键",
     parameters:{ type:"object", properties:{ action:{ type:"string", description:"back / home / recents" } }, required:["action"] } } },
-  { type:"function", function:{ name:"screen", description:"读取当前屏幕上的控件，返回可读列表：每行形如「输入框「输入消息」@540,1800 可输入」/「按钮「发送」@1020,1800 可点击」/「列表/可滚动「…」」/「文字「首页」」。**任何操作前都先调它看清界面**：要输入先 tap 那个【输入框】的坐标再 input；要滚动看【可滚动】那行。",
+  { type:"function", function:{ name:"screen", description:"读取当前屏幕，返回带编号的控件清单：每行形如「#3 按钮「发送」@1020,1800 可点击」/「#5 输入框「输入消息」@540,1800 可输入」/「#2 可滚动「聊天记录」@540,900」。**任何操作前都先调它看清界面**；点控件优先用 tap {text:\"#编号\"}（比坐标更准），要输入先点那个输入框再 input。",
     parameters:{ type:"object", properties:{}, required:[] } } },
   { type:"function", function:{ name:"wait", description:"等待一段时间再继续",
     parameters:{ type:"object", properties:{ ms:{ type:"number" } }, required:["ms"] } } },
@@ -4319,7 +4482,7 @@ const TOOLS_JS = [
 ];
 /* run_script 是【原生】能力：安装包 >= vc67 才支持。老包静默隐藏，不强制重装。 */
 const TOOL_RUN_SCRIPT = { type:"function", function:{ name:"run_script",
-    description:"【首选·最快】把一整套手机操作写成一个脚本，App 在本机连续执行（中间不再请求大模型），适合任何多步操作：打开应用、按文字查找并点击、滚动查找、连续点赞/滑动等。能用它就不要一步步调用 tap/swipe。steps 为步骤数组按序执行，每步是 {act:...}：{act:'open',name:'快手'} 打开应用；{act:'tap',text:'赞'} 按文字点击；{act:'tap',x:100,y:200} 按坐标；{act:'waitText',text:'首页',timeout:8000} 等待文字出现；{act:'scroll',dir:'down',times:3} 滚动；{act:'scrollFind',text:'赞',dir:'down',max:10} 滚动查找；{act:'input',text:'你好'} 输入；{act:'key',action:'back'} 按键；{act:'wait',ms:800} 等待；{act:'repeat',times:5,steps:[...]} 循环；{act:'ifText',text:'登录',then:[...],else:[...]} 条件分支。若这一条脚本就能完成整个任务，请设 done=true，并在 content 里写好完成话术。⚠ 脚本最后一步必须包含【验证】步骤（waitText / ifText / scrollFind 确认目标真的达成）；只有验证通过才允许设 done=true。",
+    description:"【首选·最快】把一整套手机操作写成一个脚本，App 在本机连续执行（中间不再请求大模型），适合任何多步操作：打开应用、按文字查找并点击、滚动查找、连续点赞/滑动等。能用它就不要一步步调用 tap/swipe。steps 为步骤数组按序执行，每步是 {act:...}：{act:'open',name:'快手'} 打开应用；{act:'tap',text:'赞'} 按文字点击；{act:'tap',x:100,y:200} 按坐标；{act:'waitText',text:'首页',timeout:8000} 等待文字出现；{act:'scroll',dir:'down',times:3} 滚动；{act:'scrollFind',text:'赞',dir:'down',max:10} 滚动查找；{act:'input',text:'你好'} 输入；{act:'key',action:'back'} 按键；{act:'wait',ms:800} 等待；{act:'repeat',times:5,steps:[...]} 循环；{act:'ifText',text:'登录',then:[...],else:[...]} 条件分支。若这一条脚本就能完成整个任务，请设 done=true，并在 content 里写好完成话术。⚠ 脚本最后一步必须包含【验证】步骤（waitText / ifText / scrollFind 确认目标真的达成）；只有验证通过才允许设 done=true。脚本里的 tap 可直接用屏幕编号：{act:'tap',text:'#3'}（编号来自 screen 的清单，比坐标稳）。",
     parameters:{ type:"object", properties:{
       note:{ type:"string", description:"一句话说明这段脚本做什么" },
       done:{ type:"boolean", description:"若这条脚本就能完成整个任务，设为 true（并在 content 写完成话术），App 会直接结束，不再多问一次模型" },
@@ -4717,10 +4880,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.1";
+const WEB_VERSION = "1.2.3";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 145;
+const WEB_CODE = 146;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
