@@ -158,6 +158,16 @@ label.f{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted)}
   display:flex;flex-direction:column;align-items:center;gap:3px}
 #nav button.act{color:var(--accent)}
 #nav b{font-size:19px;font-weight:400}
+#nav svg.ico{width:20px;height:20px}
+/* SVG 图标通用：随文字颜色、垂直对齐 */
+svg.ico{vertical-align:-0.18em;flex:0 0 auto}
+button .ico, .btn .ico{vertical-align:-0.22em}
+.mbtn .ico{vertical-align:middle}
+.sic-svg{display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.glike{display:inline-flex;align-items:center;gap:4px}
+.glike.on{color:#FF6A8A}
+.fitem .ico{vertical-align:-0.15em}
+.statline .ico,.cost .ico{vertical-align:-0.16em}
 #msgs{padding:10px 14px 6px}
 .msg{max-width:86%;padding:11px 14px;border-radius:16px;margin:7px 0;
   white-space:pre-wrap;word-break:break-word}
@@ -475,9 +485,9 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
     <div id="updbar" class="hide"></div>
     <div id="bc" class="hide"><div class="bcin" id="bc-in"></div></div>
     <div id="top">
-      <button class="mbtn" id="menu-btn" onclick="Conv.open()">☰</button>
+      <button class="mbtn" id="menu-btn" onclick="Conv.open()" aria-label="menu"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <b id="top-title"></b>
-      <button class="mbtn" id="notice-btn" onclick="Notice.open()">🔔<i class="reddot hide" id="notice-dot"></i></button>
+      <button class="mbtn" id="notice-btn" onclick="Notice.open()" aria-label="notice"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9a6 6 0 1 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9M10.3 20a2 2 0 0 0 3.4 0"/></svg><i class="reddot hide" id="notice-dot"></i></button>
       <button class="btn ghost mini tb2" id="ci-btn" onclick="CheckIn.open()">签到<i class="hide" id="ci-dot"></i></button>
       <button class="btn ghost mini tb2" id="rd-btn" onclick="Show.welfare()"></button>
       <button class="btn ghost mini tb2" id="top-btn" onclick="App.topAction()"></button>
@@ -492,7 +502,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       <div id="toolrow">
         <span id="pts-chip"></span>
         <div style="display:flex;gap:8px">
-          <button id="think-btn" class="btn ghost mini" onclick="ThinkMode.pick()">🧠 简单</button>
+          <button id="think-btn" class="btn ghost mini" onclick="ThinkMode.pick()"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4A3.5 3.5 0 0 0 6 7.5c-1.5.6-2.5 2-2.5 3.7 0 1.4.7 2.7 1.8 3.4-.2.5-.3 1-.3 1.6A3.8 3.8 0 0 0 8.8 20c1 0 2-.4 2.7-1V4.6A3.4 3.4 0 0 0 9.5 4zM14.5 4A3.5 3.5 0 0 1 18 7.5c1.5.6 2.5 2 2.5 3.7 0 1.4-.7 2.7-1.8 3.4.2.5.3 1 .3 1.6a3.8 3.8 0 0 1-3.8 3.8c-1 0-2-.4-2.7-1V4.6A3.4 3.4 0 0 1 14.5 4z"/></svg> <span id="think-txt"></span></button>
           <button id="task-btn" class="btn ghost mini" onclick="Mode.task()"></button>
           <button id="mode-btn" class="btn mini" onclick="Acc.mode()"></button>
           <button id="att-btn" class="btn ghost mini" onclick="Attach.openMenu(false)">＋</button>
@@ -505,13 +515,13 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
       </div>
     </div>
     <div id="nav">
-      <button data-tab="chat" class="act" onclick="App.tab('chat')"><b>💬</b><span id="nv-chat"></span></button>
-      <button data-tab="gc" onclick="App.tab('gc')"><b>🏛</b><span id="nv-gc"></span></button>
-      <button data-tab="task" onclick="App.tab('task')"><b>⏱</b><span id="nv-task"></span></button>
-      <button data-tab="skill" onclick="App.tab('skill')"><b>🧩</b><span id="nv-skill"></span></button>
-      <button data-tab="mem" onclick="App.tab('mem')"><b>🧠</b><span id="nv-mem"></span></button>
-      <button data-tab="me" onclick="App.tab('me')"><b>⚙️</b><span id="nv-me"></span></button>
-      <button data-tab="adm" id="nav-adm" class="hide" onclick="App.tab('adm')"><b>🛡</b><span id="nv-adm"></span></button>
+      <button data-tab="chat" class="act" onclick="App.tab('chat')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg><span id="nv-chat"></span></button>
+      <button data-tab="gc" onclick="App.tab('gc')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-5 4V7a2 2 0 0 1 2-2z"/></svg><span id="nv-gc"></span></button>
+      <button data-tab="task" onclick="App.tab('task')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg><span id="nv-task"></span></button>
+      <button data-tab="skill" onclick="App.tab('skill')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3a1.5 1.5 0 0 1 3 0h3v4a1.5 1.5 0 0 1 0 3v4h-4a1.5 1.5 0 0 0-3 0H8v-4a1.5 1.5 0 0 1 0-3V4h1z"/></svg><span id="nv-skill"></span></button>
+      <button data-tab="mem" onclick="App.tab('mem')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4A3.5 3.5 0 0 0 6 7.5c-1.5.6-2.5 2-2.5 3.7 0 1.4.7 2.7 1.8 3.4-.2.5-.3 1-.3 1.6A3.8 3.8 0 0 0 8.8 20c1 0 2-.4 2.7-1V4.6A3.4 3.4 0 0 0 9.5 4zM14.5 4A3.5 3.5 0 0 1 18 7.5c1.5.6 2.5 2 2.5 3.7 0 1.4-.7 2.7-1.8 3.4.2.5.3 1 .3 1.6a3.8 3.8 0 0 1-3.8 3.8c-1 0-2-.4-2.7-1V4.6A3.4 3.4 0 0 1 14.5 4z"/></svg><span id="nv-mem"></span></button>
+      <button data-tab="me" onclick="App.tab('me')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span id="nv-me"></span></button>
+      <button data-tab="adm" id="nav-adm" class="hide" onclick="App.tab('adm')"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span id="nv-adm"></span></button>
     </div>
   </div>
 
@@ -525,6 +535,54 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 </div>
 
 <script>
+/* ================= SVG 图标系统（替代 emoji） ================= */
+const ICONS = {
+  menu:   { d: "M4 7h16M4 12h16M4 17h16" },
+  bell:   { d: "M18 9a6 6 0 1 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9M10.3 20a2 2 0 0 0 3.4 0" },
+  chat:   { d: "M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z" },
+  forum:  { d: "M4 5h13a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-5 4V7a2 2 0 0 1 2-2z" },
+  clock:  { d: "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" },
+  puzzle: { d: "M9 4h3a1.5 1.5 0 0 1 3 0h3v4a1.5 1.5 0 0 1 0 3v4h-4a1.5 1.5 0 0 0-3 0H8v-4a1.5 1.5 0 0 1 0-3V4h1z" },
+  brain:  { d: "M9.5 4A3.5 3.5 0 0 0 6 7.5c-1.5.6-2.5 2-2.5 3.7 0 1.4.7 2.7 1.8 3.4-.2.5-.3 1-.3 1.6A3.8 3.8 0 0 0 8.8 20c1 0 2-.4 2.7-1V4.6A3.4 3.4 0 0 0 9.5 4zM14.5 4A3.5 3.5 0 0 1 18 7.5c1.5.6 2.5 2 2.5 3.7 0 1.4-.7 2.7-1.8 3.4.2.5.3 1 .3 1.6a3.8 3.8 0 0 1-3.8 3.8c-1 0-2-.4-2.7-1V4.6A3.4 3.4 0 0 1 14.5 4z" },
+  gear:   { d: "M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" },
+  shield: { d: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" },
+  gem:    { d: "M7 4h10l4 5-9 11L3 9l4-5z M3 9h18M9.5 4L7 9l5 11 5-11-2.5-5" },
+  key:    { d: "M15 9a6 6 0 1 0-5.7 6L11 17h2v2h2v2h4v-4l-4.6-4.6A6 6 0 0 0 15 9z" },
+  doc:    { d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z M14 3v5h5M9 13h6M9 17h4" },
+  img:    { d: "M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M8.5 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M21 15l-5-5-11 10" },
+  mic:    { d: "M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z M19 11a7 7 0 0 1-14 0M12 18v3" },
+  vol:    { d: "M11 5L6 9H3v6h3l5 4V5z M15.5 8.5a5 5 0 0 1 0 7M18.4 5.6a9 9 0 0 1 0 12.8" },
+  send:   { d: "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" },
+  up:     { d: "M12 19V5M5 12l7-7 7 7" },
+  close:  { d: "M18 6L6 18M6 6l12 12" },
+  check:  { d: "M20 6L9 17l-5-5" },
+  search: { d: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M21 21l-4.35-4.35" },
+  pin:    { d: "M12 17v5M5 9a7 7 0 0 1 14 0c0 5-7 8-7 8s-7-3-7-8z M12 9.5h.01" },
+  trash:  { d: "M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" },
+  edit:   { d: "M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" },
+  warn:   { d: "M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z M12 9v4M12 17h.01" },
+  heart:  { d: "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" },
+  refresh:{ d: "M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15" },
+  plus:   { d: "M12 5v14M5 12h14" },
+  eye:    { d: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" },
+  copy:   { d: "M9 9h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2z M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1" },
+  gift:   { d: "M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" },
+  dice:   { d: "M3 3h18v18H3zM8 8h.01M16 8h.01M8 16h.01M16 16h.01M12 12h.01" },
+  bulb:   { d: "M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z" },
+  play:   { d: "M5 3l14 9-14 9V3z" },
+  stop:   { d: "M6 6h12v12H6z" },
+  clockR: { d: "M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3" },
+  arrowR: { d: "M5 12h14M12 5l7 7-7 7" }
+};
+function Icon(name, size, cls){
+  const ic = ICONS[name];
+  if(!ic) return "";
+  const s = Number(size) || 16;
+  return "<svg class='ico" + (cls ? " " + cls : "") + "' width='" + s + "' height='" + s +
+         "' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' " +
+         "stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='" + ic.d + "'/></svg>";
+}
+
 /* ================= 语言 ================= */
 const I18N = {
 zh:{
@@ -587,8 +645,10 @@ zh:{
   upd_latest:"已是最新版本 v{0}", upd_checking:"正在检查更新…", upd_check_fail:"检查失败，请稍后再试",
   mobile_only:"仅手机端可用", need_install_perm:"请先允许安装未知应用",
   pts:"钻石", mode_pts:"💎 钻石", mode_key:"🔑 我的Key",
+  mode_pts_txt:"钻石", mode_key_txt:"我的Key",
   mode_tip:"点一下切换：用钻石 或 用自己的 Key",
-  task_mode_on:"🎮 做任务", task_mode_off:"💬 仅聊天",
+  task_mode_on:"做任务", task_mode_off:"仅聊天",
+  task_mode_on_txt:"做任务", task_mode_off_txt:"仅聊天",
   task_mode_tip:"点一下切换：仅聊天（不需权限）/ 做任务（需权限）",
   mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
   mode_chat_on:"已切到「仅聊天」，不需要任何权限",
@@ -751,8 +811,10 @@ en:{
   upd_checking:"Checking for updates…", upd_check_fail:"Check failed, please try again later",
   mobile_only:"Available on phone only", need_install_perm:"Please allow installing unknown apps first",
   pts:"Diamonds 💎", mode_pts:"💎 Diamonds", mode_key:"🔑 My key",
+  mode_pts_txt:"Diamonds", mode_key_txt:"My key",
   mode_tip:"Tap to switch: use points or your own key",
-  task_mode_on:"🎮 Task", task_mode_off:"💬 Chat",
+  task_mode_on:"Task", task_mode_off:"Chat",
+  task_mode_on_txt:"Task", task_mode_off_txt:"Chat",
   task_mode_tip:"Tap to switch: Chat only (no permissions) / Task (permissions needed)",
   mode_task_on:"Task mode on – permissions are required",
   mode_chat_on:"Chat-only mode on – no permissions needed",
@@ -1238,7 +1300,7 @@ const SpeakAuto = {
     try{ if(native && native.speakEdgeStop) native.speakEdgeStop(); }catch(e){}
     try{ if(native && native.speakStop) native.speakStop(); }catch(e){}
   },
-  paint(){ try{ const b = el("speak-btn"); if(b) b.textContent = this.on() ? "🔊" : "🔇"; }catch(e){} },
+  paint(){ try{ const b = el("speak-btn"); if(b) b.innerHTML = this.on() ? Icon("vol", 15) : Icon("mute", 15); }catch(e){} },
   say(txt){
     try{
       if(!this.on()) return;
@@ -1641,7 +1703,7 @@ const Macro = {
         " <span class='muted'>" + m.steps.length + "</span></div><div class='mp-ops'>" +
         "<button class='btn mini' onclick=\"Macro.run('" + m.id + "')\">▶</button>" +
         "<button class='btn ghost mini' onclick=\"Macro.doRename('" + m.id + "')\">✎</button>" +
-        "<button class='btn ghost mini danger' onclick=\"Macro.doDel('" + m.id + "')\">🗑</button>" +
+        "<button class='btn ghost mini danger' onclick=\"Macro.doDel('" + m.id + "')\">" + Icon("trash", 14) + "</button>" +
         "</div></div>";
     }).join("");
   },
@@ -1726,14 +1788,14 @@ const Chat = {
     const secs = x._t0 ? Math.max(1, Math.round((((x._t1 || Date.now()) - x._t0) / 1000))) : 0;
     const n = (x._think || []).filter(function(e){ return e && e.k === "tool"; }).length;
     const tk = (x._cost && Number(x._cost) > 0) ? (" · " + (LANG === "en" ? "total " : "总计 ") + Number(x._cost).toLocaleString() + " Tokens") : "";
-    if(LANG === "en") return "💭 Thought for " + secs + "s, used " + n + " tool(s)" + tk;
-    return "💭 思考了 " + secs + " 秒，调用 " + n + " 个工具" + tk;
+    if(LANG === "en") return Icon("clockR", 13) + " Thought for " + secs + "s, used " + n + " tool(s)" + tk;
+    return Icon("clockR", 13) + " 思考了 " + secs + " 秒，调用 " + n + " 个工具" + tk;
   },
   busyStatus(x){
     const secs = x._t0 ? ((Date.now() - x._t0) / 1000) : 0;
     const en = LANG === "en";
     // 自愈状态优先：已切换模型 / 正在重连
-    if(x && x._switched){ return en ? "⚠ Model issue, switched to DeepSeek" : "⚠ 模型出现问题，已切换模型至 deepseek"; }
+    if(x && x._switched){ return en ? Icon("warn",13) + " Model issue, switched to DeepSeek" : Icon("warn",13) + " 模型出现问题，已切换模型至 deepseek"; }
     if(x && x._reconnecting){ return en ? "⟳ No reply, reconnecting…" : "⟳ 模型未回复，正在重新连接"; }
     const th = (x._think || []);
     let lastTool = "";
@@ -1802,9 +1864,9 @@ const Chat = {
     const fl = _farr.length
       ? ("<div class='afile'>" + _farr.map(function(f){
           const fid = esc(f.id || "");
-          return "<span class='fitem'><span class='fname'>📄 " + esc(f.name) + "</span>" +
-            "<span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + (LANG === "en" ? "Open" : "打开") + "</span>" +
-            "<span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + (LANG === "en" ? "Copy" : "复制") + "</span></span>";
+          return "<span class='fitem'><span class='fname'>" + Icon("doc", 14) + " " + esc(f.name) + "</span>" +
+            "<span class='fbtn' onclick=\"Save.open('" + fid + "')\">" + Icon("play", 12) + " " + (LANG === "en" ? "Open" : "打开") + "</span>" +
+            "<span class='fbtn' onclick=\"Save.copy('" + fid + "')\">" + Icon("copy", 12) + " " + (LANG === "en" ? "Copy" : "复制") + "</span></span>";
         }).join("") + "</div>") : "";
     const _iarr = (x._imgs && x._imgs.length) ? x._imgs : (x._img ? [x._img] : []);
     const im = _iarr.length
@@ -1815,9 +1877,9 @@ const Chat = {
       : (tk ? "<span class='dots'><i></i><i></i><i></i></span>" : linkify(esc(x.content)));
     const _stSecs = x._t0 ? Math.max(1, Math.round((((x._t1 || Date.now()) - x._t0) / 1000))) : 0;
     const stLine = x._running
-      ? ("<div class='statline'>⏳ " + esc(Chat.busyStatus(x)) + "</div>")
+      ? ("<div class='statline'>" + Icon("clockR", 13) + " " + esc(Chat.busyStatus(x)) + "</div>")
       : ((x._statusLast || (x._think && x._think.length))
-          ? ("<div class='statline'>✅ " + (LANG === "en" ? ("Done · " + _stSecs + "s") : ("已完成 · 用时 " + _stSecs + " 秒")) + "</div>")
+          ? ("<div class='statline'>" + Icon("check", 13) + " " + (LANG === "en" ? ("Done · " + _stSecs + "s") : ("已完成 · 用时 " + _stSecs + " 秒")) + "</div>")
           : "");
     return Chat.headHtml(x) + stLine + th + body;
   },
@@ -1839,7 +1901,7 @@ const Chat = {
         const _tk = (x._pts || x._stream || x._running) && (x.content === t("thinking") || !x.content);
         h += "<div class='mline a'><div class='av a'>MR</div><div class='msg a" + (_tk ? " streaming" : "") + "'>" + Chat.aHeadBody(x) + "</div></div>";
         if(x.content && !x._file) h += "<div class='spk'><span onclick='Voice.speakMsg(" + i + ")'>" + t("speak") + "</span></div>";
-        if(x._free) h += "<div class='cost'>✨ " + t("cost_free_now", Number(x._bal || 0).toLocaleString()) + "</div>";
+        if(x._free) h += "<div class='cost'>" + Icon("check",12) + " " + esc(t("cost_free_now", Number(x._bal || 0).toLocaleString())) + "</div>";
         else if(x._cost !== undefined) h += "<div class='cost'>" + t("cost", x._cost, Number(x._bal || 0).toLocaleString()) + "</div>";
       }
     });
@@ -3048,6 +3110,14 @@ const Skill = {
     return a ? a[1] : (s.desc || "");
   },
   prompt(s){ return s.prompt || ""; },
+  /* 技能图标：id → SVG 图标名（界面不再用 emoji） */
+  iconName(id){
+    return ({ hot:"search", technews:"doc", weather:"eye", word:"doc", english:"chat",
+              explain:"bulb", note:"edit", todo:"check", stock:"arrowR", fx:"refresh",
+              music:"play", video:"play", ocr:"search", code:"doc", regex:"puzzle",
+              bug:"warn", express:"pin", food:"gift", translate:"forum", app:"play",
+              tap:"plus", battery:"bulb", files:"doc", fast:"play" })[id] || "puzzle";
+  },
   catName(id){
     const c = SKILL_CATS.filter(function(x){ return x.id === id; })[0];
     return c ? (LANG === "en" ? c.en : c.zh) : id;
@@ -3085,7 +3155,7 @@ const Skill = {
     box.innerHTML = a.map(function(s){
       const i = Skill.all().indexOf(s);
       return "<div class='scard' onclick='Skill.detail(" + i + ")'>" +
-        "<div class='sic'>" + esc(s.icon || "🧩") + "</div>" +
+        "<div class='sic sic-svg'>" + (Icon(Skill.iconName(s.id), 18) || Icon("puzzle", 18)) + "</div>" +
         "<div class='stx'><div class='sn'>" + esc(Skill.name(s)) +
           (s.builtin ? "" : "<span class='tagmini'>" + t("skill_custom") + "</span>") + "</div>" +
           "<div class='sd'>" + esc(Skill.desc(s)) + "</div></div>" +
@@ -3342,8 +3412,8 @@ const Me = {
       const apkOk = !a.versionCode || myVc >= Number(a.versionCode);
       const webOk = !b.webCode || WEB_CODE >= Number(b.webCode);
       box.innerHTML = t("ver_latest") +
-        (apkOk ? "" : "⚠️ ") + esc(String(a.versionName || "?")) + " (build " + esc(String(a.versionCode || "?")) + ") · " +
-        (webOk ? "" : "⚠️ ") + esc(String(b.web || "?")) + " (code " + esc(String(b.webCode || "?")) + ") — " +
+        (apkOk ? "" : Icon("warn", 13) + " ") + esc(String(a.versionName || "?")) + " (build " + esc(String(a.versionCode || "?")) + ") · " +
+        (webOk ? "" : Icon("warn", 13) + " ") + esc(String(b.web || "?")) + " (code " + esc(String(b.webCode || "?")) + ") — " +
         (apkOk && webOk ? "<span style='color:#3DD68C'>" + t("ver_ok") + "</span>"
                         : "<span style='color:#FFB63D'>" + t("ver_new") + "</span>");
     };
@@ -3563,8 +3633,8 @@ const Attach = {
     Attach._target = target || (forSupport ? "sup" : "chat");
     if(!native || !native.pickFile){ Attach.pickWeb(Attach._target === "gc" ? "any" : "any"); return; }
     uiSheet(t("attach_title"), [
-      { label: "🖼 " + t("attach_img"), value: "image" },
-      { label: "📄 " + t("attach_file"), value: "file" }
+      { label: Icon("img", 14) + " " + t("attach_img"), value: "image" },
+      { label: Icon("doc", 14) + " " + t("attach_file"), value: "file" }
     ]).then(function(v){
       if(v === "image") native.pickFile("image", true);
       else if(v === "file") native.pickFile("any", true);
@@ -3746,7 +3816,7 @@ const Attach = {
   },
   render(){
     function chipHtml(f, kind, i){
-      const thumb = Attach.isImg(f) && f.url ? "<img src='" + esc(f.url) + "'>" : "<span>📄</span>";
+      const thumb = Attach.isImg(f) && f.url ? "<img src='" + esc(f.url) + "'>" : "<span class='at-doc'>" + Icon("doc", 16) + "</span>";
       return "<div class='chip'>" + thumb + "<span>" + esc(f.name) +
         (f.up ? " · " + t("uploading") : (f.fail ? " · ✕" : "")) + "</span>" +
         "<i onclick='Attach.rm(\"" + kind + "\"," + i + ")'>✕</i></div>";
@@ -3776,7 +3846,7 @@ const Attach = {
       const isImg = String(a.mime || "").indexOf("image") === 0 || Attach.isImg(a);
       return isImg
         ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) + "'></a>"
-        : "<a href='" + esc(a.url) + "' target='_blank'>📄 " + esc(a.name || "file") + "</a>";
+        : "<a href='" + esc(a.url) + "' target='_blank'>" + Icon("doc", 13) + " " + esc(a.name || "file") + "</a>";
     }).join("") + "</div>";
   }
 };
@@ -4078,10 +4148,10 @@ const GC = {
   },
   card(x){
     const media = (x.media || []).filter(function(m){ return m && m.url; }).slice(0, 4).map(GC.media).join("");
-    const badges = (x.pinned ? "<span class='pinbadge'>📌 " + t("gc_pinned") + "</span>" : "") +
+    const badges = (x.pinned ? "<span class='pinbadge'>" + Icon("pin", 12) + " " + t("gc_pinned") + "</span>" : "") +
       ((x.status === "removed") ? "<span class='pinbadge' style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") +
       (x.board ? "<span class='pinbadge'>" + esc(x.board) + "</span>" : "") +
-      (x.place ? "<span class='pinbadge'>📍" + esc(x.place) + "</span>" : "");
+      (x.place ? "<span class='pinbadge'>" + Icon("pin", 12) + esc(x.place) + "</span>" : "");
     const lp = " ontouchstart='GC.ps(" + x.id + ")' ontouchend='GC.pe()' ontouchmove='GC.pe()'" +
                " onmousedown='GC.ps(" + x.id + ")' onmouseup='GC.pe()' onmouseleave='GC.pe()'";
     return "<div class='gcard" + (x.pinned ? " pin" : "") + "' onclick='GC.open(" + x.id + ")'" + lp + ">" +
@@ -4089,8 +4159,8 @@ const GC = {
       "<div class='gm'>" + nameBadge(x.username) + " · " + esc(fmtDT(x.created_at)) + "</div>" +
       "<p>" + linkify(esc(String(x.body || "").slice(0, 120))) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
-      "<div class='gbar'><span>" + (x.liked ? "❤️" : "🤍") + " " + (x.likes || 0) + "</span>" +
-      "<span>💬 " + (x.reply_n || x.replies || 0) + "</span></div></div>";
+      "<div class='gbar'><span class='glike" + (x.liked ? " on" : "") + "'>" + Icon("heart", 14) + " " + (x.likes || 0) + "</span>" +
+      "<span>" + Icon("chat", 13) + " " + (x.reply_n || x.replies || 0) + "</span></div></div>";
   },
   media(m){
     const u = m.url || "";
@@ -4098,7 +4168,7 @@ const GC = {
     const isVid = String(m.mime || "").indexOf("video") === 0 || /\.(mp4|mov|webm)$/i.test(u);
     if(isImg) return "<img src='" + esc(u) + "'>";
     if(isVid) return "<video src='" + esc(u) + "' controls></video>";
-    return "<a href='" + esc(u) + "' target='_blank'>📄 " + esc(m.name || "file") + "</a>";
+    return "<a href='" + esc(u) + "' target='_blank'>" + Icon("doc", 13) + " " + esc(m.name || "file") + "</a>";
   },
   back(){ Guide.close(); GC.cur = null; GC.render(); },
   open(id){
@@ -4118,20 +4188,20 @@ const GC = {
       "<h4>" + linkify(esc(post.title)) + "</h4>" +
       "<div class='gm'>" + nameBadge(post.username) + " · " + esc(fmtDT(post.created_at)) +
       (post.board ? " · " + esc(post.board) : "") +
-      (post.place ? " · 📍" + esc(post.place) : "") +
+      (post.place ? " · " + Icon("pin", 12) + esc(post.place) : "") +
       (post.declared ? " · " + t("gc_declared_tag") : "") +
       (post.edited_at ? " · " + t("gc_edited") : "") +
       (post.status === "removed" ? " · <span style='color:#FF8A9A'>" + t("gc_removed") + "</span>" : "") + "</div>" +
       "<p>" + linkify(esc(post.body || "")) + "</p>" +
       (media ? "<div class='gmedia'>" + media + "</div>" : "") +
       (post.share ? "<div class='gshare'>" + esc(GC.shareText(post.share)) + "</div>" : "") +
-      "<div class='gbar'><span onclick=\"GC.like(" + post.id + ")\">" +
-      (post.liked ? "❤️" : "🤍") + " " + (post.likes || 0) + "</span>" +
+      "<div class='gbar'><span class='glike" + (post.liked ? " on" : "") + "' onclick=\"GC.like(" + post.id + ")\">" +
+      Icon("heart", 14) + " " + (post.likes || 0) + "</span>" +
       "<span onclick=\"GC.report(" + post.id + ")\">" + t("gc_report") + "</span>" +
-      (Admin.on() ? "<span onclick=\"GC.menu(" + post.id + ")\">🛡 " + t("nav_adm") + "</span>" : "") +
+      (Admin.on() ? "<span onclick=\"GC.menu(" + post.id + ")\">" + Icon("shield", 13) + " " + t("nav_adm") + "</span>" : "") +
       (post.username === S.user.name
-        ? "<span onclick=\"GC.editPost(" + post.id + ")\">✏️ " + t("gc_edit") + "</span>" +
-          "<span onclick=\"GC.delPost(" + post.id + ")\">🗑 " + t("gc_del") + "</span>" : "") +
+        ? "<span onclick=\"GC.editPost(" + post.id + ")\">" + Icon("edit", 13) + " " + t("gc_edit") + "</span>" +
+          "<span onclick=\"GC.delPost(" + post.id + ")\">" + Icon("trash", 13) + " " + t("gc_del") + "</span>" : "") +
       "</div></div>";
     h += "<div class='hd'>" + t("gc_replies") + " (" + replies.length + ")</div>";
     const tree = GC.tree(replies);
@@ -4248,7 +4318,7 @@ const GC = {
     const acts = [];
     if(post.username === S.user.name){
       acts.push({ label: "✏️ " + t("gc_edit"), value: "edit" });
-      acts.push({ label: "🗑 " + t("gc_del"), value: "delete", danger: true });
+      acts.push({ label: Icon("trash", 14) + " " + t("gc_del"), value: "delete", danger: true });
     }
     if(Admin.on()){
       acts.push({ label: post.pinned ? t("gc_unpin") : t("gc_pin"), value: "pin" });
@@ -4334,9 +4404,9 @@ const GC = {
       "<textarea id='cm-body' class='cm-body' placeholder='" + esc(t("gc_body_ph")) + "'></textarea>" +
       "<div id='gc-chips' class='chips hide'></div>" +
       "<div class='cm-tools'>" +
-        "<button class='cm-tool' onclick=\"Attach.pick('image',false,'gc')\">🖼 " + t("gc_add_img") + "</button>" +
-        "<button class='cm-tool' onclick=\"Attach.pick('any',false,'gc')\">📄 " + t("gc_add_file") + "</button>" +
-        "<button class='cm-tool' id='cm-place' onclick='GC.pickPlace()'>📍 " + t("gc_place") + "</button>" +
+        "<button class='cm-tool' onclick=\"Attach.pick('image',false,'gc')\">" + Icon("img", 13) + " " + t("gc_add_img") + "</button>" +
+        "<button class='cm-tool' onclick=\"Attach.pick('any',false,'gc')\">" + Icon("doc", 13) + " " + t("gc_add_file") + "</button>" +
+        "<button class='cm-tool' id='cm-place' onclick='GC.pickPlace()'>" + Icon("pin", 13) + " " + t("gc_place") + "</button>" +
       "</div>" +
       "<div class='cm-sec'>" + t("gc_board") + "</div>" +
       "<div class='cats' id='cm-boards'>" + GC_BOARDS.map(function(b){
@@ -4360,7 +4430,7 @@ const GC = {
     const b = el("cm-place");
     if(b){
       b.className = GC.cplace ? "cm-tool on" : "cm-tool";
-      b.textContent = GC.cplace ? ("📍 " + GC.cplace) : ("📍 " + t("gc_place"));
+      b.innerHTML = GC.cplace ? (Icon("pin", 13) + " " + esc(GC.cplace)) : (Icon("pin", 13) + " " + t("gc_place"));
     }
     const d = el("cm-dec");
     if(d){
@@ -4395,7 +4465,7 @@ const GC = {
     const b = el("cm-place");
     if(b){
       b.className = GC.cplace ? "cm-tool on" : "cm-tool";
-      b.textContent = GC.cplace ? ("📍 " + GC.cplace) : ("📍 " + t("gc_place"));
+      b.innerHTML = GC.cplace ? (Icon("pin", 13) + " " + esc(GC.cplace)) : (Icon("pin", 13) + " " + t("gc_place"));
     }
   },
   toggleDeclare(){
@@ -4473,7 +4543,8 @@ const Mode = {
     const b = el("task-btn");
     if(!b) return;
     const on = this.on();
-    b.textContent = on ? t("task_mode_on") : t("task_mode_off");
+    b.innerHTML = on ? (Icon("play", 13) + " " + esc(t("task_mode_on_txt")))
+                     : (Icon("chat", 13) + " " + esc(t("task_mode_off_txt")));
     b.className = "btn mini " + (on ? "" : "ghost");
     b.title = t("task_mode_tip");
   }
@@ -4696,13 +4767,16 @@ const ThinkMode = {
     try{
       const b = el("think-btn");
       if(!b) return;
+      const txt = el("think-txt");
       if(this.get() === "deep"){
         const m = this.modelShort();
-        b.textContent = "🧠 " + (LANG === "en" ? "Deep" : "深度") + " · " + m;
+        const label = (LANG === "en" ? "Deep" : "深度") + " · " + m;
+        if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
         b.title = (LANG === "en" ? "Night 23:00-08:00 uses " : "夜间 23:00-08:00 使用 ") + this.NIGHT_MODEL
                 + (LANG === "en" ? "; daytime uses " : "；其他时间使用 ") + this.DAY_MODEL;
       } else {
-        b.textContent = "🧠 " + (LANG === "en" ? "Simple" : "简单");
+        const label = (LANG === "en" ? "Simple" : "简单");
+        if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
         b.title = t("think_title");
       }
     }catch(e){}
@@ -4788,13 +4862,13 @@ const CheckIn = {
     const doneSign = o.signed;
     const doneLot = o.lottery;
     const signBtn = doneSign
-      ? "<button class='ci-btn ci-done' disabled>✅ " + (LANG === "en" ? "Checked in today" : "今日已签到") + "</button>"
-      : "<button class='ci-btn ci-main' onclick='CheckIn.signAnim()'>🎁 " + (LANG === "en" ? "Check in · +50,000" : "签到领 5 万积分") + "</button>";
+      ? "<button class='ci-btn ci-done' disabled>" + Icon("check", 13) + " " + (LANG === "en" ? "Checked in today" : "今日已签到") + "</button>"
+      : "<button class='ci-btn ci-main' onclick='CheckIn.signAnim()'>" + Icon("gift", 14) + " " + (LANG === "en" ? "Check in · +50,000" : "签到领 5 万积分") + "</button>";
     const lotBtn = (!doneSign)
-      ? "<button class='ci-btn ci-lock' disabled>🔒 " + (LANG === "en" ? "Check in first" : "先签到再抽奖") + "</button>"
+      ? "<button class='ci-btn ci-lock' disabled>" + Icon("stop", 12) + " " + (LANG === "en" ? "Check in first" : "先签到再抽奖") + "</button>"
       : (doneLot
-        ? "<button class='ci-btn ci-done' disabled>✅ " + (LANG === "en" ? "Drawn today" : "今日已抽奖") + "</button>"
-        : "<button class='ci-btn ci-lot' onclick='CheckIn.lotteryAnim()'>🎰 " + (LANG === "en" ? "Lucky draw · +30k~150k" : "抽奖 · 3万~15万积分") + "</button>");
+        ? "<button class='ci-btn ci-done' disabled>" + Icon("check", 13) + " " + (LANG === "en" ? "Drawn today" : "今日已抽奖") + "</button>"
+        : "<button class='ci-btn ci-lot' onclick='CheckIn.lotteryAnim()'>" + Icon("dice", 14) + " " + (LANG === "en" ? "Lucky draw · +30k~150k" : "抽奖 · 3万~15万积分") + "</button>");
     const tip = (LANG === "en")
       ? "One draw per day · no make-up for missed days"
       : "每天一次抽奖机会 · 不支持补签";
@@ -4891,7 +4965,7 @@ const CheckIn = {
         }
         self._ripple();
         self._burst();
-        self._toast("🎰 " + (LANG === "en" ? "+" : "+") + Number(amount).toLocaleString() + (LANG === "en" ? " points!" : " 积分！"), "ok");
+        self._toast((LANG === "en" ? "+" : "+") + Number(amount).toLocaleString() + (LANG === "en" ? " points!" : " 积分！"), "ok");
         setTimeout(function(){
           try{ el("redeem").innerHTML = self._html(self.state()); }catch(e){}
         }, 1600);
@@ -5344,10 +5418,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.5";
+const WEB_VERSION = "1.2.6";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 149;
+const WEB_CODE = 150;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -5383,12 +5457,13 @@ const Acc = {
   },
   paint(){
     const c = el("pts-chip");
-    if(c) c.textContent = "💎 " + (Acc.data.ready
+    if(c) c.innerHTML = Icon("gem", 13) + " " + esc(Acc.data.ready
       ? Number(Acc.data.points || 0).toLocaleString() : t("loading"));
     const b = el("mode-btn");
     if(b){
       const own = Acc.data.mode === "own";
-      b.textContent = own ? t("mode_key") : t("mode_pts");
+      b.innerHTML = own ? (Icon("key", 13) + " " + esc(t("mode_key_txt")))
+                        : (Icon("gem", 13) + " " + esc(t("mode_pts_txt")));
       b.title = t("mode_tip");
     }
     try{ Mode.paint(); }catch(e){}
