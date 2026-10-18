@@ -1376,6 +1376,7 @@ const Auth = {
   enter(u){
     S.user = { name: u, t: nowMs() };
     LS.set("mrclaw_user", S.user);
+    try{ if(native && native.notifyUser) native.notifyUser(u); }catch(e){}  // 同步原生后台轮询账号
     loadUserData();
     rpc("mrclaw_touch", { p_user: u });
     Cloud.pull(u);
@@ -1387,6 +1388,7 @@ const Auth = {
   },
   logout(){
     S.user = null; LS.del("mrclaw_user");
+    try{ if(native && native.notifyUser) native.notifyUser(""); }catch(e){}  // 同步清掉原生后台轮询
     loadUserData();
     el("app").classList.add("hide");
     el("auth").classList.remove("hide");
@@ -5785,6 +5787,7 @@ setTimeout(function(){ var sp = el("splash"); if(sp){ sp.classList.add("off"); s
     el("app").classList.remove("hide");
     Cloud.pull(S.user.name);
     Acc.refresh();
+    try{ if(native && native.notifyUser) native.notifyUser(S.user.name); }catch(e){}  // 恢复登录：同步后台轮询
     App.tab("chat");
   } else {
     Auth.tab("reg");
