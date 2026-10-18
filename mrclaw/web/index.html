@@ -674,6 +674,8 @@ zh:{
   gc_shared:"分享了内容", gc_shared_chat:"分享了与AI的对话", gc_shared_mem:"分享了记忆",
   gc_shared_skill:"分享了技能",
   notice_title:"通知", notice_empty:"暂时没有新消息",
+  sysn_activity:"互动提醒", sysn_activity_body:"你有新的互动消息", sysn_dm:"新私信",
+  sysn_dm_body:"你有新的私信，点开查看",
   adm_review:"帖子审核", adm_bc:"广播",
   adm_bc_text:"广播内容（显示在软件顶部滚动）",
   adm_bc_speed:"滚动速度（60 = 正常，越大越快）",
@@ -842,6 +844,8 @@ en:{
   gc_shared:"Shared", gc_shared_chat:"Shared an AI chat", gc_shared_mem:"Shared a memory",
   gc_shared_skill:"Shared a skill",
   notice_title:"Notifications", notice_empty:"Nothing new",
+  sysn_activity:"New activity", sysn_activity_body:"You have new activity", sysn_dm:"New message",
+  sysn_dm_body:"You have a new message, tap to view",
   adm_review:"Post review", adm_bc:"Broadcast",
   adm_bc_text:"Broadcast text (scrolls at the top of the app)",
   adm_bc_speed:"Scroll speed (60 = normal, higher = faster)",
@@ -4082,14 +4086,37 @@ const Admin = {
 };
 
 /* ================= 通知 ================= */
+/* 系统通知栏推送：仅新原生包支持（MR.notify），老包静默降级为应用内红点 */
+const SysNotify = {
+  ok(){
+    try{ return !!(native && typeof native.notify === "function"); }catch(e){ return false; }
+  },
+  /** 仅在 App 退到后台时弹，前台不打扰 */
+  canShow(){
+    try{ return this.ok() && document.hidden; }catch(e){ return false; }
+  },
+  push(title, body){
+    if(!this.canShow()) return;
+    try{ native.notify(String(title || ""), String(body || "")); }catch(e){}
+  }
+};
 const Notice = {
-  list: [], n: 0,
+  list: [], n: 0, seenIds: null,
   load(){
     if(!S.user) return;
     rpc("mrclaw_notices_list", { p_user: S.user.name }).then(function(a){
       if(!Array.isArray(a)) return;
+      const prevN = Notice.n;
       Notice.list = a;
       Notice.n = a.filter(function(x){ return !x.seen; }).length;
+      /* 新增互动通知 → 系统通知栏提示（后台时） */
+      if(Notice.n > prevN && prevN >= 0 && Notice.seenIds){
+        const fresh = a.filter(function(x){ return !x.seen; }).slice(0, Notice.n - prevN);
+        fresh.forEach(function(x){
+          SysNotify.push(T("sysn_activity"), x.text || T("sysn_activity_body"));
+        });
+      }
+      Notice.seenIds = a.filter(function(x){ return !x.seen; }).map(function(x){ return x.id; }).join(",");
       Notice.paint();
     });
   },
@@ -5357,9 +5384,29 @@ const SupUnread = {
   load(){
     if(!S.user) return;
     rpc("mrclaw_support_unseen", { p_user: S.user.name }).then(function(r){
+      const prev = SupUnread.n;
       SupUnread.n = (r && !r.__err && typeof r.n === "number") ? r.n : 0;
+      /* 新私信到达 → 系统通知栏提示（后台时；首页轮询 30s 一次） */
+      if(SupUnread.n > prev && prev >= 0 && SysNotify.canShow()){
+        SupUnread.latest(function(who, text){
+          SysNotify.push(T("sysn_dm"), who ? (who + "：" + text) : T("sysn_dm_body"));
+        });
+      }
       SupUnread.paint();
     });
+  },
+  /** 取最近一条客服/私信消息的发送者与摘要 */
+  latest(cb){
+    rpc("mrclaw_support_list", { p_user: S.user.name }).then(function(a){
+      if(Array.isArray(a) && a.length){
+        /* 从后往前找最近一条对方发来的消息（排除自己发的） */
+        for(let i = a.length - 1; i >= 0; i--){
+          const m = a[i];
+          if(m && m.sender !== "user"){ cb(m.sender || "admin", m.body || ""); return; }
+        }
+        cb("", "");
+      } else cb("", "");
+    }).catch(function(){ cb("", ""); });
   },
   seen(){
     if(!S.user) return;
