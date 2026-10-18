@@ -1,13 +1,13 @@
 {
-  "versionCode": 82,
-  "versionName": "1.2.4",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.4",
+  "versionCode": 83,
+  "versionName": "1.2.9",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.9",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.4",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.4",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.4"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.9",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9"
   ],
-  "size": 213930,
-  "notes": "修复文件卡片重复与打开/复制无效；回复正文不再显示工具名，只显示工具总数；新增系统剪贴板",
-  "official": true
+  "size": 222122,
+  "notes": "新增系统通知栏提醒：收到新私信或互动消息时（App 在后台），手机通知栏直接弹出提示，点击可回到应用；老版本仍用应用内红点提醒",
+  "official": false
 }
