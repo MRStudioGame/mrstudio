@@ -8,6 +8,6 @@
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9"
   ],
   "size": 226218,
-  "notes": "修复系统通知不弹出：App 退后台后网页轮询被系统冻结，改为原生后台轮询（45 秒一次，不经 WebView），后台收到新私信/互动直接弹系统通知",
+  "notes": "通知机制升级：1) 每小时一条高点击率推送文案（服务端 AI 缓存生成）2) 新版本发布时自动弹通知提醒更新（每版本只提醒一次）3) 私信/互动通知改原生后台轮询，后台必达",
   "official": false
 }
