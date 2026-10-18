@@ -39,6 +39,51 @@ svg.ic{width:22px;height:22px;stroke:var(--accent2);fill:none;stroke-width:1.7;
   .rv{opacity:1;transform:none}
 }
 
+/* ===== 入场动画：科技改变生活 ===== */
+#intro{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;
+  align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+#intro.bye{opacity:0;visibility:hidden;transition:opacity .7s ease,visibility 0s .7s}
+#intro .i-grid{position:absolute;inset:-40px;opacity:.5;
+  background-image:linear-gradient(rgba(111,160,255,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(111,160,255,.07) 1px,transparent 1px);
+  background-size:44px 44px;
+  animation:igrid 2.6s ease-out forwards}
+@keyframes igrid{from{transform:scale(1.25);opacity:0}30%{opacity:.5}to{transform:scale(1);opacity:.32}}
+#intro .i-glow{position:absolute;left:50%;top:50%;width:820px;height:520px;max-width:130vw;
+  transform:translate(-50%,-50%);pointer-events:none;
+  background:radial-gradient(460px 260px at 50% 50%,rgba(77,128,240,.24),transparent 70%);
+  animation:iglow 2.8s ease-out forwards}
+@keyframes iglow{from{opacity:0}35%{opacity:1}to{opacity:.7}}
+#intro .i-word{position:relative;display:flex;gap:.14em;z-index:2}
+#intro .i-c{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:.08em;
+  color:var(--fg);opacity:0;transform:translateY(26px) scale(.92);filter:blur(6px);
+  animation:ichar .62s cubic-bezier(.2,.8,.25,1) forwards}
+#intro .i-c.hi{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes ichar{to{opacity:1;transform:none;filter:blur(0)}}
+/* 字下光线：从中心向两侧展开 */
+#intro .i-line{position:relative;height:2px;margin-top:26px;width:min(420px,70vw);z-index:2;
+  background:var(--grad);border-radius:2px;transform:scaleX(0);opacity:0;
+  animation:iline .9s cubic-bezier(.7,0,.2,1) forwards;box-shadow:0 0 18px rgba(111,160,255,.55)}
+@keyframes iline{0%{transform:scaleX(0);opacity:0}40%{opacity:1}to{transform:scaleX(1);opacity:1}}
+#intro .i-sub{margin-top:16px;font-size:13px;letter-spacing:6px;color:var(--muted2);z-index:2;
+  opacity:0;animation:ifade .7s ease 1.5s forwards}
+@keyframes ifade{to{opacity:1}}
+/* 扫光：一条亮带横向掠过文字 */
+#intro .i-sweep{position:absolute;top:0;bottom:0;width:34%;z-index:3;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(233,237,244,.10) 45%,rgba(111,160,255,.22) 50%,rgba(233,237,244,.10) 55%,transparent);
+  transform:translateX(-160%) skewX(-14deg);
+  animation:isweep 1.15s cubic-bezier(.6,0,.3,1) 1.05s forwards}
+@keyframes isweep{to{transform:translateX(460%) skewX(-14deg)}}
+/* 退出时整体上浮虚化 */
+#intro.bye .i-stagewrap{transform:translateY(-26px);filter:blur(5px);opacity:0;
+  transition:transform .65s cubic-bezier(.6,0,.3,1),filter .65s,opacity .6s}
+#intro .i-stagewrap{display:flex;flex-direction:column;align-items:center;z-index:2}
+#intro .i-skip{position:absolute;right:20px;bottom:16px;font-size:12px;color:var(--muted2);
+  letter-spacing:1px;z-index:4;opacity:0;animation:ifade .6s ease 1.2s forwards}
+@media (prefers-reduced-motion:reduce){
+  #intro{display:none}
+}
+
 /* 顶部导航 */
 header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 82%,transparent);
   backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--bd)}
@@ -296,6 +341,18 @@ footer{border-top:1px solid var(--bd);padding:38px 0 48px;color:var(--muted2);fo
 </style>
 </head>
 <body>
+
+<div id="intro">
+  <div class="i-grid"></div>
+  <div class="i-glow"></div>
+  <div class="i-sweep"></div>
+  <div class="i-stagewrap">
+    <div class="i-word" aria-label="科技改变生活"></div>
+    <div class="i-line"></div>
+    <div class="i-sub">MRCLAW · AI FOR EVERYONE</div>
+  </div>
+  <div class="i-skip">点击任意处跳过</div>
+</div>
 
 <header>
   <div class="wrap nav">
@@ -1040,6 +1097,53 @@ function attachHtml(list){
       : "<a href='" + esc(a.url) + "' target='_blank' style='color:#8FB4FF'>" + esc(a.name) + "</a>"
   ).join("") + "</div>";
 }
+
+/* ===== 入场动画：科技改变生活 ===== */
+(function(){
+  const intro = document.getElementById("intro");
+  if(!intro) return;
+  let gone = false;
+  const end = function(){
+    if(gone) return; gone = true;
+    intro.classList.add("bye");
+    document.body.style.overflow = "";
+    setTimeout(function(){ if(intro.parentNode) intro.parentNode.removeChild(intro); }, 800);
+    try{ localStorage.setItem("mrclaw_intro_seen", String(Date.now())); }catch(e){}
+  };
+  /* 每次会话只播一次（sessionStorage；localStorage 兜底当天去重） */
+  let seen = false;
+  try{ seen = sessionStorage.getItem("mrclaw_intro_seen") === "1"; }catch(e){}
+  if(!seen){
+    try{
+      const d = localStorage.getItem("mrclaw_intro_seen");
+      seen = !!d && (Date.now() - Number(d) < 6 * 3600 * 1000);
+    }catch(e){}
+  }
+  if(seen){ intro.parentNode && intro.parentNode.removeChild(intro); return; }
+  try{ sessionStorage.setItem("mrclaw_intro_seen", "1"); }catch(e){}
+  /* 逐字注入：「科技改变生活」，第 2、4 字高亮渐变 */
+  const word = intro.querySelector(".i-word");
+  const TXT = "科技改变生活";
+  const HI = [1, 3]; /* 「改」「生」 */
+  TXT.split("").forEach(function(ch, i){
+    const s = document.createElement("span");
+    s.className = "i-c" + (HI.indexOf(i) >= 0 ? " hi" : "");
+    s.textContent = ch;
+    s.style.animationDelay = (0.18 + i * 0.14) + "s";
+    word.appendChild(s);
+  });
+  /* 灯光带跟随文字结束亮起 */
+  const line = intro.querySelector(".i-line");
+  line.style.animationDelay = (0.18 + TXT.length * 0.14 + 0.25) + "s";
+  /* 跳过：点击 / Esc */
+  intro.addEventListener("click", end);
+  document.addEventListener("keydown", function esckey(e){
+    if(e.key === "Escape"){ end(); document.removeEventListener("keydown", esckey); }
+  });
+  /* 页面就绪后锁定滚动，动画总长约 2.6s 自动退出 */
+  document.body.style.overflow = "hidden";
+  setTimeout(end, 2600);
+})();
 
 /* 区块入场：fade-up 一次 */
 (function(){
