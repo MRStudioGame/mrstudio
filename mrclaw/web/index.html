@@ -2111,7 +2111,7 @@ const Chat = {
     }catch(e){}
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
-      p_body: { model:(ThinkMode.activeModel() || "deepseek-chat"), messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 }
+      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 }
     }).then(function(st){
       if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
@@ -2179,7 +2179,7 @@ const Chat = {
               Chat.callTool(fn.name, fn.arguments, function(res){
                 const c2 = Chat.cur();
                 if(c2){ c2.msgs.push(msg0); c2.msgs.push({ role:"tool", tool_call_id: tc.id || "c1", content: String(res).slice(0, 2000) }); }
-                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:(ThinkMode.activeModel() || "deepseek-chat"), messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st2){
+                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st2){
                   if(!st2 || st2.__err || st2.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                   Chat.pollPts(bubble, st2.id, 0);
                 });
@@ -2194,7 +2194,7 @@ const Chat = {
           if(ob && ob.error && !bubble._retried){
             bubble._retried = true;
             const cc = Chat.cur();
-            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:(ThinkMode.activeModel() || "deepseek-chat"), messages: cc ? cc.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st4){
+            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc ? cc.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st4){
               if(!st4 || st4.__err || st4.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
               Chat.pollPts(bubble, st4.id, 0);
             });
@@ -2210,7 +2210,7 @@ const Chat = {
             const c3 = Chat.cur();
             if(c3){
               c3.msgs.push({ role:"system", content:"请直接调用工具来完成（make_file 生成文件 / send_image 发图），不要在回答里写工具名，也不要描述步骤。" });
-              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:(ThinkMode.activeModel() || "deepseek-chat"), messages: c3.msgs, tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens:1024 } }).then(function(st3){
+              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens:1024 } }).then(function(st3){
                 if(!st3 || st3.__err || st3.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                 Chat.pollPts(bubble, st3.id, 0);
               });
@@ -2704,7 +2704,7 @@ const Chat = {
       }
       if(step === 1) msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
-        model: (ThinkMode.activeModel() || "deepseek-chat"), messages: msgs, tools: toolsForNative(), think: ThinkMode.get(),
+        model: "deepseek-chat", messages: msgs, tools: toolsForNative(), think: ThinkMode.get(),
         tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
         if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
@@ -4735,26 +4735,15 @@ function chatTools(){
 /* 思考模式：简单（智谱·免费）/ 深度（DeepSeek·消耗钻石） */
 const ThinkMode = {
   KEY: "mrclaw_think_v1",
-  // 夜间（23:00-08:00）走 workbuddy hy4-preview，白天走 step-5-preview 独家限免
-  NIGHT_MODEL: "workbuddy/hy4-preview",
-  DAY_MODEL:   "workbuddy/step-5-preview",
+  /* 深度思考的实际模型由服务端决定（mrclaw_secrets.deep_model，默认 deepseek-v4-flash）。
+     客户端只负责展示与扣费提示；此处与服务端默认值保持一致，改服务端配置后同步改这里。 */
+  DEEP_MODEL_LABEL: "DeepSeek V4 Flash",
   get(){ try{ return LS.get(this.KEY) === "deep" ? "deep" : "simple"; }catch(e){ return "simple"; } },
   set(v){ try{ LS.set(this.KEY, v === "deep" ? "deep" : "simple"); }catch(e){} },
-  /* 当前小时是否处于夜间时段（23:00 - 次日 08:00） */
-  isNight(){
-    const h = new Date().getHours();
-    return (h >= 23 || h < 8);
-  },
-  /* 按时间段返回应使用的模型 id */
-  modelForTime(){ return this.isNight() ? this.NIGHT_MODEL : this.DAY_MODEL; },
-  /* 当前实际生效的模型（深度思考时按时段自动选） */
-  activeModel(){
-    return this.get() === "deep" ? this.modelForTime() : null;
-  },
-  /* 展示用短名 */
+  /* 展示用短名（与 mrclaw_secrets.deep_model 对应） */
   modelShort(){
     if(this.get() !== "deep") return null;
-    return this.isNight() ? "hy4 preview" : "step 5 preview";
+    return this.DEEP_MODEL_LABEL;
   },
   label(){ return this.get() === "deep" ? t("think_deep") : t("think_simple"); },
   short(){ return this.get() === "deep" ? (LANG === "en" ? "Deep" : "深度") : (LANG === "en" ? "Simple" : "简单"); },
@@ -4780,8 +4769,8 @@ const ThinkMode = {
         const m = this.modelShort();
         const label = (LANG === "en" ? "Deep" : "深度") + " · " + m;
         if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
-        b.title = (LANG === "en" ? "Night 23:00-08:00 uses " : "夜间 23:00-08:00 使用 ") + this.NIGHT_MODEL
-                + (LANG === "en" ? "; daytime uses " : "；其他时间使用 ") + this.DAY_MODEL;
+        b.title = (LANG === "en" ? "Deep thinking uses " : "深度思考使用 ") + this.DEEP_MODEL_LABEL
+                + (LANG === "en" ? " (costs diamonds)" : "（消耗钻石）");
       } else {
         const label = (LANG === "en" ? "Simple" : "简单");
         if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
@@ -5426,10 +5415,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.7";
+const WEB_VERSION = "1.2.8";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 151;
+const WEB_CODE = 152;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
