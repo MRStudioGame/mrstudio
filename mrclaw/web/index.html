@@ -3508,6 +3508,35 @@ const Upd = {
     // 普通更新只走热更新；仅当功能依赖新安装包时才提示升级
     if(manual) Native.toast(t("upd_latest", webVer()));
   },
+  /** 老版本进入自动更新：版本落后 → 自动下载 APK 并拉起安装（每版本只自动一次） */
+  autoApk(){
+    try{
+      if(!native || !native.update || !native.versionCode) return;
+      if(Upd._autoBusy || Upd._apkShown) return;      // 已在装 / 已有手动升级条
+      const myVc = Number(native.versionCode()) || 0;
+      if(myVc <= 0) return;
+      const flag = "mrclaw_apk_auto_" + myVc;
+      if(localStorage.getItem(flag)) return;          // 这个版本已经自动更新过了
+      httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/version.json", {}, "").then(function(r1){
+        if(!r1 || String(r1).indexOf("ERR:") === 0) return;
+        let j; try{ j = JSON.parse(r1); }catch(e){ return; }
+        if(!j || !j.versionCode) return;
+        if(myVc >= Number(j.versionCode)) return;     // 已是最新
+        const curName = (j.versionName || "");
+        const today = new Date().toISOString().slice(0, 10);
+        // 同一天同一目标版本只试一次，避免安装被拒后反复打扰
+        if(localStorage.getItem(flag) === today) return;
+        localStorage.setItem(flag, today);
+        Upd._autoBusy = true;
+        Upd._apkUrl = j.url || "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk";
+        Native.toast((LANG === "en" ? "Updating to " : "正在自动更新到 ") + curName);
+        const b = el("updbar");
+        if(b){ b.classList.remove("hide"); b.innerHTML = "<span id='upd-txt'>" + t("upd_downloading", 0) + "</span>"; }
+        native.update(Upd._apkUrl, "MRClaw-" + curName + ".apk");
+        setTimeout(function(){ Upd._autoBusy = false; }, 30000);  // 兜底解锁
+      });
+    }catch(e){}
+  },
   needApk(msg){
     if(Upd._apkShown) return;
     Upd._apkShown = true;
@@ -5794,6 +5823,7 @@ setTimeout(function(){ var sp = el("splash"); if(sp){ sp.classList.add("off"); s
   }
   }catch(e){}
   setTimeout(function(){ Upd.check(); }, 1200);
+  setTimeout(function(){ try{ Upd.autoApk(); }catch(e){} }, 2600);   // 老版本进入自动更新 APK
   setTimeout(function(){
     if(!capOk()){ try{ Upd.noBridge(); }catch(e){} }
   }, 3500);
