@@ -5729,6 +5729,8 @@ window.MR_onChunk = function(id, x){ Chat.onChunk(id, x); };
 window.MR_onDone  = function(id, x){ Chat.onDone(id, x); };
 window.MR_onError = function(id, x){ Chat.onError(id, x); };
 window.MR_agent   = function(s){ Chat.agentEvent(s); };
+/* 原生后台轮询取登录用户名的回调（经 Bridge.reportUser 回传） */
+window.MR_onUser = function(name){ try{ if(window.MR && MR.reportUser) MR.reportUser(name||""); }catch(e){} };
 window.MR_onBack = function(){
   if(!el("sup").classList.contains("hide")){ Support.close(); return true; }
   if(!el("redeem").classList.contains("hide")){ Redeem.close(); return true; }
