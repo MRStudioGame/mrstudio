@@ -1,13 +1,13 @@
 {
-  "versionCode": 83,
-  "versionName": "1.2.9",
-  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.2.9",
+  "versionCode": 84,
+  "versionName": "1.3.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/mrclaw/MRClaw.apk?v=1.3.0",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.9",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.3.0",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.3.0",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.3.0"
   ],
   "size": 226218,
-  "notes": "修复客服收不到通知：新增管理员视角客服消息通知（任何用户在网站/App 给客服发消息，管理员手机后台都会弹出提醒，带用户名与消息摘要）",
+  "notes": "通知全面修复（v1.3.0）：修复后台轮询从未运行的三个致命问题（登录账号存储读取错误、互动通知 RPC 缺失、恢复登录不同步），私信/互动/客服/版本/钩子通知现在真正可达",
   "official": false
 }
