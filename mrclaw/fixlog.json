@@ -850,5 +850,9 @@
  {
   "n": 213,
   "t": "老版本进入自动更新（v1.2.9 webCode 153）：打开软件 2.6 秒后自动检查 version.json，发现安装包落后即自动后台下载 APK 并拉起系统安装（每目标版本每天只自动尝试一次，已有手动升级条时不重复触发；安卓机制限制，最后一步仍需用户点系统「安装」确认）"
+ },
+ {
+  "n": 214,
+  "t": "通知问题根治（v1.3.0 / vc84 / webCode 153）：① 后台轮询读不到登录用户——原生误从 SharedPreferences 读 localStorage 里的账号，改为 evaluateJavascript 异步读取 + 每轮重试 + Bridge.reportUser 回传通路 ② RPC mrclaw_notices_unseen 不存在（404）——已在数据库补建（按 mrclaw_notices.seen=false 统计）③ 恢复登录不同步——登录/登出/每轮轮询三路同步。BgPoller 现已真正可达：私信/互动/客服/新版本/每小时钩子五类通知全部生效"
  }
 ]
