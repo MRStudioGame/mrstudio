@@ -7,7 +7,7 @@
     "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/mrclaw/MRClaw.apk?v=1.2.9",
     "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/mrclaw/MRClaw.apk?v=1.2.9"
   ],
-  "size": 222122,
-  "notes": "新增系统通知栏提醒：收到新私信或互动消息时（App 在后台），手机通知栏直接弹出提示，点击可回到应用；老版本仍用应用内红点提醒",
+  "size": 226218,
+  "notes": "修复系统通知不弹出：App 退后台后网页轮询被系统冻结，改为原生后台轮询（45 秒一次，不经 WebView），后台收到新私信/互动直接弹系统通知",
   "official": false
 }
