@@ -7,76 +7,95 @@
 <meta name="description" content="MRClaw：装在手机里的 AI 助手。接你自己的大模型 Key，也能用钻石直接聊；授权后还能替你操作手机。">
 <link rel="icon" href="icon.png">
 <style>
+/* ===== MRClaw 官网 v2 · Linear 式冷静暗色 · 见 DESIGN.md ===== */
 :root{
-  --bg:#0A0C11; --bg2:#0D1017; --panel:#11151D; --panel2:#161B25;
-  --bd:#1E2530; --bd2:#2B3441; --fg:#E8ECF2; --muted:#8A94A6; --muted2:#697485;
-  --accent:#3B82F6; --accent2:#60A5FA; --ok:#3DD68C; --warn:#FFB63D;
-  --code:#070A0F; --shadow:0 20px 60px rgba(0,0,0,.5);
+  --bg:#0B0D12; --bg2:#0E1118; --panel:#12151D; --panel2:#171B25;
+  --bd:#1D2330; --bd2:#2A3342; --fg:#E9EDF4; --muted:#8B95A7; --muted2:#67728A;
+  --accent:#4D80F0; --accent2:#6FA0FF; --ok:#37C98B; --warn:#F5A83C;
+  --code:#070A0F; --grad:linear-gradient(92deg,#6FA0FF,#37C98B);
 }
 html[data-theme="light"]{
-  --bg:#FFFFFF; --bg2:#F6F8FB; --panel:#FFFFFF; --panel2:#F3F6FA;
-  --bd:#E6EBF2; --bd2:#D6DDE8; --fg:#0F1622; --muted:#5A6577; --muted2:#7A8598;
-  --code:#F4F7FB; --shadow:0 18px 44px rgba(15,22,34,.10);
+  --bg:#FBFCFE; --bg2:#F2F5FA; --panel:#FFFFFF; --panel2:#EFF3F9;
+  --bd:#E4E9F1; --bd2:#D3DAE6; --fg:#101623; --muted:#56627A; --muted2:#7B8698;
+  --accent:#2E66E5; --accent2:#4D82F5;
+  --code:#F4F7FB;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);
-  font:16px/1.72 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+svg.ic{width:22px;height:22px;stroke:var(--accent2);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+
+/* 入场动效 */
+.rv{opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .rv{opacity:1;transform:none}
+}
 
 /* 顶部导航 */
-header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 80%,transparent);
+header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 82%,transparent);
   backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--bd)}
 .nav{display:flex;align-items:center;gap:20px;height:60px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700}
 .brand img{width:26px;height:26px;border-radius:8px}
-.brand small{display:block;font-weight:400;font-size:10.5px;color:var(--muted);letter-spacing:2px}
+.brand small{display:block;font-weight:400;font-size:10px;color:var(--muted);letter-spacing:2.5px}
 .navlinks{display:flex;gap:18px;font-size:14px;color:var(--muted);margin-left:6px}
 .navlinks a:hover{color:var(--fg)}
 .navright{margin-left:auto;display:flex;align-items:center;gap:9px}
 .navtools{display:inline-flex;align-items:center;gap:9px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  border:1px solid transparent;border-radius:10px;padding:9px 15px;font-size:14px;
+  border:1px solid transparent;border-radius:10px;padding:9px 18px;font-size:14px;
   font-weight:600;cursor:pointer;background:var(--panel);color:var(--fg);transition:.16s;white-space:nowrap}
-.btn:hover{transform:translateY(-1px)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{border-color:var(--bd2);background:var(--panel2)}
 .btn.primary{background:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent2)}
+.btn.primary:hover{background:var(--accent2);border-color:transparent;
+  box-shadow:0 0 0 1px var(--accent2),0 4px 18px rgba(77,128,240,.28)}
 .btn.ghost{background:transparent;border-color:var(--bd2)}
 .btn.ghost:hover{background:var(--panel2)}
 .btn.sm{padding:7px 12px;font-size:13px}
-.wmod{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;
+.wmod{position:fixed;inset:0;background:rgba(4,6,10,.6);display:flex;align-items:center;
   justify-content:center;z-index:200;padding:20px}
 .wmod.hide{display:none}
-.wbox{background:var(--panel);border:1px solid var(--bd2);border-radius:18px;padding:18px;
-  max-width:min(360px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.wbox{background:var(--panel);border:1px solid var(--bd2);border-radius:16px;padding:18px;
+  max-width:min(360px,92vw);text-align:center}
 .wbox img{display:block;width:100%;max-width:300px;height:auto;border-radius:12px;margin:0 auto}
 .whint{margin:12px 0 10px;font-size:14px;color:var(--fg);line-height:1.6}
 .whint .tiny{color:var(--muted);font-size:12px}
 .linkbtn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:6px 4px}
 .linkbtn:hover{color:var(--fg)}
 
-/* Hero */
-.hero{position:relative;padding:74px 0 30px;text-align:center;overflow:hidden}
-.hero:before{content:"";position:absolute;left:50%;top:-180px;width:900px;height:520px;
-  transform:translateX(-50%);background:radial-gradient(560px 300px at 50% 50%,rgba(59,130,246,.26),transparent 70%);
+/* Hero：噪点 + 单光斑 */
+.hero{position:relative;padding:84px 0 30px;text-align:center;overflow:hidden}
+.hero:before{content:"";position:absolute;left:50%;top:-190px;width:920px;height:540px;
+  transform:translateX(-50%);
+  background:radial-gradient(560px 300px at 50% 50%,rgba(77,128,240,.22),transparent 70%);
   pointer-events:none}
+.hero:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
 .pill{position:relative;display:inline-flex;align-items:center;gap:9px;border:1px solid var(--bd2);
-  background:var(--panel);border-radius:999px;padding:6px 15px;font-size:12.5px;color:var(--muted);margin-bottom:20px}
+  background:var(--panel);border-radius:999px;padding:6px 15px;font-size:12.5px;color:var(--muted);margin-bottom:22px}
 .pill b{color:var(--fg)}
-.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(61,214,140,.15)}
-h1{position:relative;font-size:60px;line-height:1.08;letter-spacing:-1.6px;margin:0 0 18px;font-weight:800}
-h1 em{font-style:normal;background:linear-gradient(92deg,#60A5FA,#3DD68C);
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(55,201,139,.15)}
+h1{position:relative;font-size:clamp(40px,6.5vw,64px);line-height:1.06;letter-spacing:-1.5px;
+  margin:0 0 18px;font-weight:800}
+h1 em{font-style:normal;background:var(--grad);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{position:relative;font-size:18px;color:var(--muted);max-width:700px;margin:0 auto 8px}
-.sub2{position:relative;font-size:14px;color:var(--muted2);max-width:680px;margin:0 auto 26px}
+.sub2{position:relative;font-size:14px;color:var(--muted2);max-width:680px;margin:0 auto 28px}
 .cta{position:relative;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
 /* 一行安装 */
-.install{position:relative;max-width:720px;margin:34px auto 0;background:var(--panel);
-  border:1px solid var(--bd);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.install{position:relative;max-width:720px;margin:36px auto 0;background:var(--panel);
+  border:1px solid var(--bd);border-radius:14px;padding:18px}
 .plats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
 .plat{border:1px solid var(--bd2);background:var(--panel2);color:var(--muted);border-radius:9px;
   padding:6px 13px;font-size:13px;cursor:pointer}
@@ -90,12 +109,15 @@ h1 em{font-style:normal;background:linear-gradient(92deg,#60A5FA,#3DD68C);
 .mirrors{margin-top:10px;font-size:12.5px;color:var(--muted2)}
 .mirrors a{color:var(--accent);margin:0 6px}
 
-/* 区块 */
-section{padding:64px 0}
+/* 区块：eyebrow 编号 + 标题 */
+section{padding:68px 0}
+.eyebrow{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:12px;
+  font-size:12px;letter-spacing:2.5px;color:var(--muted2);font-variant-numeric:tabular-nums}
+.eyebrow:after{content:"";width:34px;height:1px;background:var(--bd2)}
 h2.t{font-size:30px;letter-spacing:-.5px;margin:0 0 10px;text-align:center;font-weight:800}
-p.tsub{text-align:center;color:var(--muted);margin:0 auto 36px;max-width:640px;font-size:15px}
-.vwrap{position:relative;width:100%;max-width:920px;margin:0 auto;border-radius:16px;overflow:hidden;
-  background:#000;border:1px solid var(--bd2);box-shadow:var(--shadow)}
+p.tsub{text-align:center;color:var(--muted);margin:0 auto 38px;max-width:640px;font-size:15px}
+.vwrap{position:relative;width:100%;max-width:920px;margin:0 auto;border-radius:14px;overflow:hidden;
+  background:#000;border:1px solid var(--bd2)}
 .pv{display:block;width:100%;height:auto;aspect-ratio:16 / 9;background:#000}
 .vdur{position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,.62);color:#fff;font-size:12px;
   padding:3px 9px;border-radius:8px;font-variant-numeric:tabular-nums;letter-spacing:.3px;
@@ -107,29 +129,48 @@ p.tsub{text-align:center;color:var(--muted);margin:0 auto 36px;max-width:640px;f
   .vwrap{border-radius:12px}
   .vdur{right:8px;bottom:8px;font-size:11px;padding:2px 7px}
 }
-.grid{display:grid;gap:16px}
+.grid{display:grid;gap:14px}
 .g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.card{background:var(--panel);border:1px solid var(--bd);border-radius:16px;padding:22px;transition:.18s}
-.card:hover{border-color:var(--bd2);transform:translateY(-3px);box-shadow:var(--shadow)}
-.card .ico{font-size:22px;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:22px;transition:.18s}
+.card:hover{border-color:var(--bd2);background:var(--panel2)}
+.card .ico{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;
+  border:1px solid var(--bd2);border-radius:10px;background:var(--panel2);margin-bottom:14px}
 .card h3{margin:0 0 8px;font-size:17px;font-weight:700}
 .card p{margin:0;color:var(--muted);font-size:14.5px}
 
+/* 公益横幅 / 最新更新 */
+.welfare{text-align:center;padding:30px 16px}
+.welfare .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;
+  border-radius:16px;background:var(--panel2);border:1px solid var(--bd2);margin-bottom:14px}
+.welfare .big svg{width:28px;height:28px;stroke:var(--accent2);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.news{max-width:820px;margin:0 auto;background:var(--panel);border:1px solid var(--bd);
+  border-radius:14px;padding:8px 24px}
+.news .ni{display:flex;gap:12px;align-items:baseline;padding:13px 0;
+  border-bottom:1px solid var(--bd);font-size:15px;line-height:1.7}
+.news .ni:last-child{border-bottom:none}
+.news .ni:before{content:"";flex:0 0 6px;width:6px;height:6px;border-radius:50%;
+  background:var(--accent2);position:relative;top:-2px}
+.news .ni p{margin:0}
+.news .ni b{color:var(--fg)}
+
 /* FAQ */
 .faq{max-width:780px;margin:0 auto}
-.faq details{background:var(--panel);border:1px solid var(--bd);border-radius:13px;
+.faq details{background:var(--panel);border:1px solid var(--bd);border-radius:12px;
   padding:15px 18px;margin-bottom:10px}
 .faq summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary:after{content:"＋";float:right;color:var(--muted2)}
-.faq details[open] summary:after{content:"－"}
+.faq summary:after{content:"";float:right;width:9px;height:9px;margin-top:5px;
+  border-right:1.6px solid var(--muted2);border-bottom:1.6px solid var(--muted2);
+  transform:rotate(45deg);transition:.16s}
+.faq details[open] summary:after{transform:rotate(225deg);margin-top:9px}
 .faq p{margin:12px 0 0;color:var(--muted);font-size:14.5px}
 
-/* 更新日志 */
+/* 更新日志 / 好评墙 */
 .rs{position:relative;display:inline-block;font-size:14.5px;letter-spacing:1.5px;line-height:1}
 .rs-bg{color:var(--bd2)}
-.rs-fill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:#FFC46D}
+.rs-fill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:#F5A83C}
 .wall{overflow:hidden;position:relative;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
@@ -138,34 +179,33 @@ p.tsub{text-align:center;color:var(--muted);margin:0 auto 36px;max-width:640px;f
 .wallrow.rev{animation-direction:reverse;animation-duration:56s}
 .wall:hover .wallrow{animation-play-state:paused}
 @keyframes wallmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.rvcard{width:330px;flex:0 0 330px;background:var(--panel);border:1px solid var(--bd);border-radius:16px;padding:18px}
+.rvcard{width:320px;flex:0 0 320px;background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:18px}
 .rvcard .who{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .rvcard .nm{font-weight:600;font-size:14.5px}
 .offbadge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
   margin-left:5px;border-radius:50%;vertical-align:-2px;flex:0 0 15px;
-  background:linear-gradient(140deg,#4F8BFF 0%,#2F6BFF 45%,#12C2E9 100%);
-  box-shadow:0 1px 4px rgba(47,107,255,.45),inset 0 1px 0 rgba(255,255,255,.45)}
+  background:linear-gradient(140deg,#4F8BFF 0%,#2F6BFF 45%,#12C2E9 100%)}
 .offbadge svg{width:10px;height:10px;display:block}
 .offbadge svg path{fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
 .rvcard .cm{color:var(--muted);font-size:14.5px;margin:0}
-.log{background:var(--panel);border:1px solid var(--bd);border-radius:16px;padding:6px 22px;max-width:820px;margin:0 auto}
+.log{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:6px 22px;max-width:820px;margin:0 auto}
 .log .row{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--bd);font-size:14.5px}
 .log .row:last-child{border-bottom:none}
-.log .row .v{min-width:66px;color:var(--accent);font-weight:700}
+.log .row .v{min-width:66px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
 .log .row p{margin:0;color:var(--muted)}
 
 /* 订阅 */
 .subs{max-width:620px;margin:0 auto;text-align:center;background:var(--panel);
-  border:1px solid var(--bd);border-radius:18px;padding:30px}
+  border:1px solid var(--bd);border-radius:16px;padding:30px}
 .subs h3{margin:0 0 8px;font-size:21px}
 .subs p{margin:0 0 18px;color:var(--muted);font-size:14.5px}
 .subform{display:flex;gap:10px}
 input{font:inherit;color:var(--fg);background:var(--bg2);border:1px solid var(--bd2);
-  border-radius:11px;padding:12px 14px;outline:none;width:100%}
+  border-radius:10px;padding:12px 14px;outline:none;width:100%}
 input:focus{border-color:var(--accent)}
 
 /* 页脚 */
-footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);font-size:13.5px}
+footer{border-top:1px solid var(--bd);padding:38px 0 48px;color:var(--muted2);font-size:13.5px}
 .fcols{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:26px}
 .fcols b{display:block;color:var(--fg);font-size:14px;margin-bottom:10px}
 .fcols a{display:block;margin-bottom:7px;color:var(--muted)}
@@ -173,7 +213,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 .fbot{display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between;align-items:center}
 
 /* 客服抽屉 */
-#mask{position:fixed;inset:0;background:rgba(4,7,12,.55);z-index:60;display:none}
+#mask{position:fixed;inset:0;background:rgba(4,6,10,.55);z-index:60;display:none}
 #mask.on{display:block}
 #sup{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--bg2);
   border-left:1px solid var(--bd);z-index:61;display:flex;flex-direction:column;
@@ -191,30 +231,43 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 #sup .b{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--bd)}
 .hint{color:var(--muted2);font-size:12.5px;padding:0 18px 12px}
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);background:var(--panel2);
-  border:1px solid var(--bd2);padding:11px 18px;border-radius:12px;box-shadow:var(--shadow);
+  border:1px solid var(--bd2);padding:11px 18px;border-radius:12px;
   opacity:0;transition:.24s;pointer-events:none;z-index:80;font-size:14px}
 #toast.on{opacity:1;bottom:46px}
-#wxtip{position:fixed;inset:0;background:rgba(4,7,12,.72);z-index:90;display:none;
+#wxtip{position:fixed;inset:0;background:rgba(4,6,10,.72);z-index:90;display:none;
   align-items:flex-start;justify-content:center;padding:80px 20px 20px}
 #wxtip.on{display:flex}
-.wxbox{max-width:420px;background:var(--panel);border:1px solid var(--bd2);border-radius:18px;
-  padding:22px;box-shadow:var(--shadow);position:relative}
+.wxbox{max-width:420px;background:var(--panel);border:1px solid var(--bd2);border-radius:16px;
+  padding:22px;position:relative}
 .wxbox h3{margin:0 0 10px;font-size:17px}
 .wxbox p{margin:0 0 10px;color:var(--muted);font-size:14.5px}
 #bgm-hint{position:fixed;right:16px;bottom:70px;z-index:70;background:var(--panel);
   border:1px solid var(--bd2);color:var(--fg);border-radius:999px;padding:8px 14px;font-size:13px;
-  cursor:pointer;box-shadow:var(--shadow);animation:breathe 1.6s ease-in-out infinite}
+  cursor:pointer;animation:breathe 1.6s ease-in-out infinite}
+#bgm-hint.hide{display:none}
 @keyframes breathe{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.05);opacity:1}}
 #bgm-btn{position:fixed;right:16px;bottom:18px;z-index:70;height:42px;padding:0 16px;
   border-radius:999px;background:var(--panel);border:1px solid var(--bd2);color:var(--fg);
-  font-size:14px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);display:flex;
-  align-items:center;gap:6px;white-space:nowrap}
+  font-size:14px;font-weight:600;cursor:pointer;display:flex;
+  align-items:center;gap:7px;white-space:nowrap}
 #bgm-btn:hover{background:var(--panel2)}
-.wxbox .arrow{position:absolute;top:-46px;right:12px;font-size:32px;animation:updown 1.1s infinite}
+#bgm-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+#bgm-btn .eq{display:none;align-items:flex-end;gap:2px;height:13px}
+#bgm-btn.playing .eq{display:inline-flex}
+#bgm-btn.playing .spk{display:none}
+#bgm-btn .eq i{width:2.5px;background:var(--accent2);border-radius:1px;animation:eq 1s ease-in-out infinite}
+#bgm-btn .eq i:nth-child(2){animation-delay:.2s}
+#bgm-btn .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:4px}50%{height:12px}}
+.wxbox .arrow{position:absolute;top:-42px;right:12px;width:26px;height:26px;
+  animation:updown 1.1s infinite}
+.wxbox .arrow svg{width:26px;height:26px;stroke:var(--accent2);fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
 @keyframes updown{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @media (max-width:820px){
   h1{font-size:38px}
-  section{padding:46px 0}
+  section{padding:48px 0}
   .subform{flex-direction:column}
   /* 手机端顶部不吸附：往下滑自动收走，把屏幕留给内容 */
   header{position:static}
@@ -261,9 +314,9 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
     <div class="navright">
       <button class="btn ghost sm" onclick="wxOpen()">官方公众号</button>
       <button class="btn ghost sm" onclick="Support.open()">咨询客服</button>
-      <button class="btn primary sm" onclick="pay()">充值钻石 💎</button>
+      <button class="btn primary sm" onclick="pay()"><svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 3l3 6-3 12-3-12z"/></svg>充值钻石</button>
       <span class="navtools">
-        <button class="btn ghost sm" id="thm" onclick="theme()" title="切换主题">◐</button>
+        <button class="btn ghost sm" id="thm" onclick="theme()" title="切换主题"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 3.6v16.8A8.4 8.4 0 0 0 12 3.6z" fill="currentColor" stroke="none"/></svg></button>
         <button class="btn ghost sm" id="lng" onclick="toggleLang()" title="Switch to English">EN</button>
       </span>
     </div>
@@ -302,33 +355,36 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </div>
 
 <section id="welfare">
-  <div class="wrap" style="text-align:center;padding:26px 16px">
-    <div style="font-size:54px;line-height:1.1;margin:0 0 6px">❤️</div>
+  <div class="wrap welfare rv">
+    <div class="big"><svg viewBox="0 0 24 24"><path d="M12 20.3S4 15 4 9.6C4 6.9 6.1 5 8.6 5c1.5 0 2.7.7 3.4 1.8C12.7 5.7 13.9 5 15.4 5 17.9 5 20 6.9 20 9.6c0 5.4-8 10.7-8 10.7z"/></svg></div>
     <h2 class="t" style="font-size:30px;margin:0 0 10px">全平台公益免费中</h2>
-    <p style="font-size:15px;color:var(--fg);margin:0 0 6px">钻石少于两万时，可以找客服「续杯」 (๑•̀ㅂ•́)و✧</p>
+    <p style="font-size:15px;color:var(--fg);margin:0 0 6px">钻石少于两万时，可以找客服「续杯」</p>
     <p style="font-size:13px;color:var(--muted2);margin:0">活动时间：10 月 7 日 — 10 月 20 日</p>
   </div>
 </section>
 
 <section id="newfeat">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">WHATSNEW</div>
     <h2 class="t">最新更新</h2>
-    <div style="font-size:15px;line-height:2.1;color:var(--fg);margin:10px 0 6px">
-      <div>🎁 <b>注册送 20 万钻石 💎</b>：新用户赠送钻石翻倍（10 万 → 20 万），无需自备 Key 直接用。</div>
-      <div>⚡ <b>脚本化执行、秒级完成</b>：一句话任务，AI 一次写好脚本、手机本地连续执行；同样的任务第二次几乎零等待。</div>
-      <div>👁 <b>会“看屏幕”</b>：遇到不认识的图标/符号，自动截屏识别，不再瞎点。</div>
-      <div>💭 <b>思考过程可见</b>：先思考再回答，思路实时展示，可展开可收起。</div>
-      <div>📄 <b>写文件全能</b>：txt / md / csv / json / html / svg 都能写，点一下直接打开。</div>
-      <div>🖼 <b>会发文件、发图片</b>：让它写文档、发截图，聊天里直接给你。</div>
-      <div>🔊 <b>自动朗读</b>：一键开启，AI 每次回复自动念出来。</div>
-      <div>🏷 <b>对话自动标题</b>：新对话聊完自动取一个贴切的标题。</div>
-      <div>🧩 <b>内置常用 App 知识</b>：微信/快手/抖音/小红书/淘宝等位置直接会用。</div>
+    <p class="tsub">这一版带来的新东西。</p>
+    <div class="news">
+      <div class="ni"><p><b>注册送 20 万钻石</b>：新用户赠送钻石翻倍（10 万 → 20 万），无需自备 Key 直接用。</p></div>
+      <div class="ni"><p><b>脚本化执行、秒级完成</b>：一句话任务，AI 一次写好脚本、手机本地连续执行；同样的任务第二次几乎零等待。</p></div>
+      <div class="ni"><p><b>会“看屏幕”</b>：遇到不认识的图标/符号，自动截屏识别，不再瞎点。</p></div>
+      <div class="ni"><p><b>思考过程可见</b>：先思考再回答，思路实时展示，可展开可收起。</p></div>
+      <div class="ni"><p><b>写文件全能</b>：txt / md / csv / json / html / svg 都能写，点一下直接打开。</p></div>
+      <div class="ni"><p><b>会发文件、发图片</b>：让它写文档、发截图，聊天里直接给你。</p></div>
+      <div class="ni"><p><b>自动朗读</b>：一键开启，AI 每次回复自动念出来。</p></div>
+      <div class="ni"><p><b>对话自动标题</b>：新对话聊完自动取一个贴切的标题。</p></div>
+      <div class="ni"><p><b>内置常用 App 知识</b>：微信/快手/抖音/小红书/淘宝等位置直接会用。</p></div>
     </div>
   </div>
 </section>
 
 <section id="promo" style="background:var(--bg2);border-top:1px solid var(--bd)">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">DEMO</div>
     <h2 class="t">实际效果</h2>
     <p class="tsub">跑起来是什么样？用真实录屏看一下——装之前先感受感受。</p>
     <div class="vwrap">
@@ -344,35 +400,38 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </section>
 
 <section id="features">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">FEATURES</div>
     <h2 class="t">它能做什么</h2>
     <p class="tsub">聊天只是起点，真正的作用是让它替你动手。</p>
     <div class="grid g3">
-      <div class="card"><div class="ico">📱</div><h3>自动操作手机</h3><p>打开应用、点击、滑动、输入、读屏——帮你完成重复操作，解放双手。</p></div>
-      <div class="card"><div class="ico">🔐</div><h3>系统权限随心配</h3><p>无障碍、悬浮窗、文件、麦克风逐项开关。想要完全控制还是只聊天，你说了算。</p></div>
-      <div class="card"><div class="ico">🧠</div><h3>越用越懂你</h3><p>记得住你的偏好和上下文，长期记忆可以自己加、自己改。</p></div>
-      <div class="card"><div class="ico">🧩</div><h3>技能无限扩展</h3><p>内置 20+ 技能（资讯/学习/办公/金融/媒体/开发/生活/系统），也能自己写一个。</p></div>
-      <div class="card"><div class="ico">🔑</div><h3>自己的模型随便选</h3><p>智谱、DeepSeek、通义、豆包、Kimi、文心、星火、混元，或任意 OpenAI 兼容接口。数据直连厂商。</p></div>
-      <div class="card"><div class="ico">🪙</div><h3>没 Key 也能用</h3><p>注册送 10 万钻石，1 token = 1 钻石；用完可充值，也可以随时切回自己的 Key。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg></span><h3>自动操作手机</h3><p>打开应用、点击、滑动、输入、读屏——帮你完成重复操作，解放双手。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="10.5" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14.5v2.5"/></svg></span><h3>系统权限随心配</h3><p>无障碍、悬浮窗、文件、麦克风逐项开关。想要完全控制还是只聊天，你说了算。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4a6.5 6.5 0 0 0-6.5 6.5c0 2.5 1.2 4.3 3 5.7V19a1.5 1.5 0 0 0 1.5 1.5h4A1.5 1.5 0 0 0 15.5 19v-2.8c1.8-1.4 3-3.2 3-5.7A6.5 6.5 0 0 0 12 4z"/><path d="M10 20.5h4"/></svg></span><h3>越用越懂你</h3><p>记得住你的偏好和上下文，长期记忆可以自己加、自己改。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 6.5a2 2 0 1 1 2-2M14.5 6.5 9 12m5.5-5.5a2 2 0 1 0 2 2M9 12l-4.8 4.8a2 2 0 1 0 2.8 2.8L12 14.5M9 12a2 2 0 1 0-2-2"/></svg></span><h3>技能无限扩展</h3><p>内置 20+ 技能（资讯/学习/办公/金融/媒体/开发/生活/系统），也能自己写一个。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4.5"/><path d="M11 12 20 3m-4.5 1.5L18 7m-6 1 2.5 2.5"/></svg></span><h3>自己的模型随便选</h3><p>智谱、DeepSeek、通义、豆包、Kimi、文心、星火、混元，或任意 OpenAI 兼容接口。数据直连厂商。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M15 9.5c-.5-1-1.7-1.6-3-1.6-1.7 0-3 .9-3 2.1 0 2.9 6 1.4 6 4.2 0 1.2-1.3 2.1-3 2.1-1.3 0-2.5-.6-3-1.6M12 6.2v11.6"/></svg></span><h3>没 Key 也能用</h3><p>注册送 10 万钻石，1 token = 1 钻石；用完可充值，也可以随时切回自己的 Key。</p></div>
     </div>
   </div>
 </section>
 
 <section id="forum" style="background:var(--bg2);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">COMMUNITY</div>
     <h2 class="t">广场（社区）</h2>
     <p class="tsub">不只是聊天：在广场发帖、互动、分享，和别的用户一起玩。</p>
     <div class="grid g2">
-      <div class="card"><div class="ico">📝</div><h3>发帖分享</h3><p>标题、正文，可加图片 / 视频 / 文件；还能选版块（闲聊 / 求助 / 分享 / 公告）、标记位置、勾选自主声明。</p></div>
-      <div class="card"><div class="ico">💬</div><h3>点赞与回复</h3><p>喜欢就点赞，有话就回复（回复也能带图）；支持关键词搜索，也能只看自己的帖子。</p></div>
-      <div class="card"><div class="ico">🔔</div><h3>互动提醒</h3><p>帖子被点赞、被回复时，软件右上角会出现提醒，点开就知道是谁。</p></div>
-      <div class="card"><div class="ico">🛡</div><h3>文明社区</h3><p>发现违规内容可一键举报，管理员审核处理后，会把结果自动通知你。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h14a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 17H9l-4.5 4V5.5A1.5 1.5 0 0 1 5 4z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span><h3>发帖分享</h3><p>标题、正文，可加图片 / 视频 / 文件；还能选版块（闲聊 / 求助 / 分享 / 公告）、标记位置、勾选自主声明。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20.3S4 15 4 9.6C4 6.9 6.1 5 8.6 5c1.5 0 2.7.7 3.4 1.8C12.7 5.7 13.9 5 15.4 5 17.9 5 20 6.9 20 9.6c0 5.4-8 10.7-8 10.7z"/></svg></span><h3>点赞与回复</h3><p>喜欢就点赞，有话就回复（回复也能带图）；支持关键词搜索，也能只看自己的帖子。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10 19a2 2 0 0 0 4 0"/></svg></span><h3>互动提醒</h3><p>帖子被点赞、被回复时，软件右上角会出现提醒，点开就知道是谁。</p></div>
+      <div class="card"><span class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8 7.5 9.5 4.3-1.5 7.5-4.9 7.5-9.5V6L12 3z"/><path d="M9 11.8l2.2 2.2 4-4.2"/></svg></span><h3>文明社区</h3><p>发现违规内容可一键举报，管理员审核处理后，会把结果自动通知你。</p></div>
     </div>
   </div>
 </section>
 
 <section id="changelog" style="background:var(--bg2)">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">CHANGELOG</div>
     <h2 class="t">更新日志</h2>
     <p class="tsub">每次修复与更新都会记录；软件内可自动更新到最新版。</p>
     <div class="log" id="log" data-noi18n><div class="row"><div class="v">—</div><p>正在读取…</p></div></div>
@@ -383,7 +442,8 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </section>
 
 <section id="faq">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">FAQ</div>
     <h2 class="t">常见问题</h2>
     <p class="tsub">关于 MRClaw 的常见问题解答。没找到答案？右上角咨询客服。</p>
     <div class="faq">
@@ -399,7 +459,8 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </section>
 
 <section id="reviews" style="background:var(--bg2)">
-  <div class="wrap">
+  <div class="wrap rv">
+    <div class="eyebrow">REVIEWS</div>
     <h2 class="t">好评墙</h2>
     <p class="tsub">来自真实用户的评价 · 平均 <b id="rv-avg">—</b> 星 · 共 <b id="rv-n">0</b> 条</p>
     <div class="wall">
@@ -410,7 +471,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 </section>
 
 <section id="subscribe" style="background:var(--bg2)">
-  <div class="wrap">
+  <div class="wrap rv">
     <div class="subs">
       <h3>订阅更新</h3>
       <p>第一时间获取新功能和玩法。放心，不会发垃圾邮件。</p>
@@ -437,7 +498,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
       <div>
         <b>支持</b>
         <a href="#" onclick="Support.open();return false">咨询客服</a>
-        <a href="#" onclick="pay();return false">充值钻石 💎</a>
+        <a href="#" onclick="pay();return false">充值钻石</a>
         <a href="fixlog.html" target="_blank" rel="noopener">修复日志</a>
       </div>
       <div>
@@ -455,7 +516,7 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
 
 <div id="wxtip" onclick="this.className=''">
   <div class="wxbox" onclick="event.stopPropagation()">
-    <div class="arrow">☝</div>
+    <div class="arrow"><svg viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></svg></div>
     <h3>微信暂不支持下载软件</h3>
     <p>请点击右上角 <b>···</b>（三个点）→ 选择 <b>「在浏览器打开」</b>，在浏览器里再点下载即可。</p>
     <p style="color:var(--muted2);font-size:13px">安卓安装时若提示风险，选择「仍要安装 / 允许安装未知应用」即可。</p>
@@ -474,14 +535,18 @@ footer{border-top:1px solid var(--bd);padding:36px 0 48px;color:var(--muted2);fo
   </div>
 </aside>
 <audio id="bgm" loop preload="auto"></audio>
-<button id="bgm-btn" onclick="Bgm.toggle()" title="音乐">🔊 音乐</button>
-<div id="bgm-hint" class="hide" onclick="Bgm.toggle()">🎵 点这里有音乐</div>
+<button id="bgm-btn" onclick="Bgm.toggle()" title="音乐">
+  <span class="eq"><i></i><i></i><i></i></span>
+  <svg class="spk" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
+  <span id="bgm-label">音乐</span>
+</button>
+<div id="bgm-hint" class="hide" onclick="Bgm.toggle()">点这里有音乐</div>
 
 <div id="toast"></div>
 
 <script>
 /* ===== 官网中英文切换（用户评价等动态内容保持原样） ===== */
-const I18N_EN = {"安装": "Install", "功能": "Features", "更新日志": "Changelog", "常见问题": "FAQ", "好评墙": "Reviews", "订阅更新": "Subscribe", "更多作品": "More apps", "咨询客服": "Support", "充值钻石 💎": "Top up", "立即开始": "Get started", "复制": "Copy", "下载安卓版": "Download for Android", "读取版本信息…": "Reading version…", "订阅": "Subscribe", "支持": "Support", "修复日志": "Fix log", "MR工作室": "MR Studio", "官网首页": "Main site", "我知道了": "Got it", "关闭": "Close", "发送": "Send", "已发布": "released", "查看完整修复日志": "View full fix log", "正在读取…": "Loading…", "真正会做事的": "Actually gets things done", "装在你手机里的助手：处理消息、整理文件、跑任务、替你点屏幕——直接在手机里搞定。": "An assistant inside your phone: handle messages, tidy up files, run tasks, tap the screen — all done right on your phone.", "没填 API Key 也能用（注册送 10 万钻石）；也可以接自己的模型。管理员密钥只存在服务端，绝不下发到手机。": "Works without an API key (100,000 points on sign-up); you can also plug in your own model. Admin keys live server-side only and are never sent to your phone.", "它能做什么": "What it can do", "聊天只是起点，真正的作用是让它替你动手。": "Chat is only the start — the point is letting it act for you.", "自动操作手机": "Automate your phone", "打开应用、点击、滑动、输入、读屏——帮你完成重复操作，解放双手。": "Open apps, tap, swipe, type, read the screen — it handles the repetitive work for you.", "系统权限随心配": "Permissions on your terms", "无障碍、悬浮窗、文件、麦克风逐项开关。想要完全控制还是只聊天，你说了算。": "Toggle accessibility, overlay, files and mic one by one. Full control or chat-only — your call.", "越用越懂你": "Learns you over time", "记得住你的偏好和上下文，长期记忆可以自己加、自己改。": "Remembers your preferences and context, with long-term memory you can add to and edit.", "技能无限扩展": "Unlimited skills", "内置 20+ 技能（资讯/学习/办公/金融/媒体/开发/生活/系统），也能自己写一个。": "20+ built-in skills (news / study / office / finance / media / dev / life / system) — or write your own.", "自己的模型随便选": "Bring your own model", "智谱、DeepSeek、通义、豆包、Kimi、文心、星火、混元，或任意 OpenAI 兼容接口。数据直连厂商。": "Zhipu, DeepSeek, Qwen, Doubao, Kimi, ERNIE, Spark, Hunyuan, or any OpenAI-compatible endpoint. Data goes straight to the vendor.", "没 Key 也能用": "Works without a key", "注册送 10 万钻石，1 token = 1 钻石；用完可充值，也可以随时切回自己的 Key。": "100,000 points on sign-up, 1 token = 1 point; top up when they run out, or switch back to your own key anytime.", "每次修复与更新都会记录；软件内可自动更新到最新版。": "Every fix and update is logged; the app auto-updates to the latest version.", "关于 MRClaw 的常见问题解答。没找到答案？右上角咨询客服。": "FAQ about MRClaw. No answer? Tap Support in the top right.", "MRClaw 是什么？": "What is MRClaw?", "一个装在安卓手机上的 AI 助手。打开就是聊天界面，可以用钻石或自己的 API Key 对话；开启无障碍权限后，还能让 AI 替你操作手机。": "An AI assistant for Android. Open it and you get a chat screen — talk with points or your own API key; grant accessibility and it can operate your phone for you.", "怎么安装 MRClaw？": "How do I install MRClaw?", "点页面上的「下载安卓版」，安装时允许「安装未知应用」即可。安卓 8.0 及以上。若在微信里打开，请点右上角 ··· 选择「在浏览器打开」再下载。": "Tap “Download for Android” and allow “install unknown apps”. Android 8.0+. If you opened this in WeChat, tap ··· in the top right and choose “Open in browser” first.", "支持哪些 AI 模型？": "Which AI models are supported?", "内置智谱、DeepSeek、通义千问、豆包、Kimi、文心一言、讯飞星火、腾讯混元，也可以填任意 OpenAI 兼容接口。": "Zhipu, DeepSeek, Qwen, Doubao, Kimi, ERNIE, iFlytek Spark and Tencent Hunyuan are built in — or use any OpenAI-compatible endpoint.", "不填 API Key 能用吗？": "Can I use it without an API key?", "可以。注册送 10 万钻石，直接用钻石聊天（1 token = 1 钻石）。钻石用完可以充值，也可以填自己的 Key。": "Yes. You get 100,000 points on sign-up and can chat with points (1 token = 1 point). Top up when they run out, or add your own key.", "运行 MRClaw 要花多少钱？": "How much does MRClaw cost?", "软件本身免费。用钻石模式按量消耗钻石（可充值）；用自己的 Key 则只付给模型厂商，我们不参与计费。": "The app itself is free. Points mode consumes points by usage (toppable); with your own key you only pay the model vendor — we're not involved in billing.", "我的数据安全吗？": "Is my data safe?", "用自己 Key 时对话直连模型厂商；钻石模式走的是我们的服务端中转，服务端密钥绝不下发到手机。账号与配置存在云端，仅用于同步。": "With your own key, chats go straight to the vendor; points mode relays through our server, and the server key never reaches your phone. Account and settings are stored in the cloud for sync only.", "来自真实用户的评价 · 平均": "Reviews from real users · avg", "星 · 共": "stars · total", "条": "reviews", "第一时间获取新功能和玩法。放心，不会发垃圾邮件。": "Be the first to hear about new features and ideas. No spam, promise.", "MRClaw · MR工作室制作": "MRClaw · Made by MR Studio", "微信暂不支持下载软件": "WeChat can't download apps", "请点击右上角": "Tap the top-right", "（三个点）→ 选择": "(three dots) → choose", "「在浏览器打开」": "“Open in browser”", "，在浏览器里再点下载即可。": ", then tap download in the browser.", "安卓安装时若提示风险，选择「仍要安装 / 允许安装未知应用」即可。": "If Android warns you, choose “Install anyway / Allow unknown apps”.", "切换主题": "Switch theme", "输入你的问题…": "Type your question…", "音乐": "Music", "已复制": "Copied", "复制失败": "Copy failed", "版本 v": "Version v", "下载 v": "Download v", "下载慢？试试：": "Slow? Try: ", "版本信息读取失败，可直接下载最新版": "Couldn't read version info — you can still download the latest build", "暂时读不到日志，可点下方按钮查看完整修复日志。": "Can't load the log right now — use the button below for the full fix log.", "请输入邮箱": "Please enter your email", "订阅成功，感谢关注！": "Subscribed — thanks for following!", "订阅成功": "Subscribed", "这个邮箱已经订阅过了。": "This email is already subscribed.", "已订阅过": "Already subscribed", "订阅失败，请稍后再试。": "Subscription failed, try again later.", "邮箱格式不正确。": "Invalid email format.", "还没有评价，欢迎在 App 里第一个留下评价。": "No reviews yet — be the first in the app.", "暂时读不到评价。": "Can't load reviews right now.", "会话 ID：": "Session ID: ", "（管理员回复会自动出现）": " (admin replies appear here automatically)", "发送失败，请稍后再试": "Send failed, try again later", "已发送，管理员会尽快回复": "Sent — the admin will reply soon", "广场": "Community", "广场（社区）": "Community Square", "不只是聊天：在广场发帖、互动、分享，和别的用户一起玩。": "More than chat: post, interact and share with other users in the Community Square.", "发帖分享": "Post & share", "标题、正文，可加图片 / 视频 / 文件；还能选版块（闲聊 / 求助 / 分享 / 公告）、标记位置、勾选自主声明。": "Title and body, plus images / videos / files; pick a board (chat / help / share / notice), tag a location and tick the declaration.", "点赞与回复": "Likes & replies", "喜欢就点赞，有话就回复（回复也能带图）；支持关键词搜索，也能只看自己的帖子。": "Like what you enjoy and reply when you have something to say (replies can include images too); search by keyword, or view just your own posts.", "互动提醒": "Notifications", "帖子被点赞、被回复时，软件右上角会出现提醒，点开就知道是谁。": "When your post is liked or replied to, a notice appears at the top right of the app showing who it was.", "文明社区": "A civil community", "发现违规内容可一键举报，管理员审核处理后，会把结果自动通知你。": "Report anything inappropriate in one tap — an admin reviews it and you're notified of the result automatically.", "广场是什么？": "What is the Community Square?", "MRClaw 内置的社区。可以发帖（标题 / 正文 / 图片视频 / 版块 / 位置 / 自主声明）、回复、点赞、搜索「我的帖子」，被点赞或被回复会在软件右上角提醒；违规内容可一键举报，管理员审核后自动通知结果。": "MRClaw's built-in community. Post (title / body / images & videos / board / location / declaration), reply, like, and search your own posts; likes and replies show up as notices at the top right of the app. Inappropriate content can be reported in one tap and you'll be notified once an admin reviews it.", "正式版": "Official release", "🔊 音乐": "🔊 Music", "🔇 音乐": "🔇 Music", "关闭背景音乐": "Turn off music", "播放背景音乐": "Play music", "实际效果": "See it in action", "跑起来是什么样？用真实录屏看一下——装之前先感受感受。": "What does it look like in action? A real screen recording — see it before you install.", "更多内容和作品，进广场看看": "More content and community work", "您的浏览器不支持视频播放。": "Your browser can't play this video.", "效果": "Demo", "🎵 点这里有音乐": "🎵 Tap for music", "官方公众号": "Official account", "微信扫码关注 · MR工作室": "Scan with WeChat · MR Studio", "长按二维码可直接识别": "Long-press the QR code to follow", "关闭": "Close", "MR工作室 公众号二维码": "MR Studio official account QR code", "具体内容以软件内为准": "Details are subject to the in-app version"};
+const I18N_EN = {"安装": "Install", "功能": "Features", "更新日志": "Changelog", "常见问题": "FAQ", "好评墙": "Reviews", "订阅更新": "Subscribe", "更多作品": "More apps", "咨询客服": "Support", "充值钻石": "Top up", "立即开始": "Get started", "复制": "Copy", "下载安卓版": "Download for Android", "读取版本信息…": "Reading version…", "订阅": "Subscribe", "支持": "Support", "修复日志": "Fix log", "MR工作室": "MR Studio", "官网首页": "Main site", "我知道了": "Got it", "关闭": "Close", "发送": "Send", "已发布": "released", "查看完整修复日志": "View full fix log", "正在读取…": "Loading…", "真正会做事的": "Actually gets things done", "装在你手机里的助手：处理消息、整理文件、跑任务、替你点屏幕——直接在手机里搞定。": "An assistant inside your phone: handle messages, tidy up files, run tasks, tap the screen — all done right on your phone.", "没填 API Key 也能用（注册送 10 万钻石）；也可以接自己的模型。管理员密钥只存在服务端，绝不下发到手机。": "Works without an API key (100,000 points on sign-up); you can also plug in your own model. Admin keys live server-side only and are never sent to your phone.", "它能做什么": "What it can do", "聊天只是起点，真正的作用是让它替你动手。": "Chat is only the start — the point is letting it act for you.", "自动操作手机": "Automate your phone", "打开应用、点击、滑动、输入、读屏——帮你完成重复操作，解放双手。": "Open apps, tap, swipe, type, read the screen — it handles the repetitive work for you.", "系统权限随心配": "Permissions on your terms", "无障碍、悬浮窗、文件、麦克风逐项开关。想要完全控制还是只聊天，你说了算。": "Toggle accessibility, overlay, files and mic one by one. Full control or chat-only — your call.", "越用越懂你": "Learns you over time", "记得住你的偏好和上下文，长期记忆可以自己加、自己改。": "Remembers your preferences and context, with long-term memory you can add to and edit.", "技能无限扩展": "Unlimited skills", "内置 20+ 技能（资讯/学习/办公/金融/媒体/开发/生活/系统），也能自己写一个。": "20+ built-in skills (news / study / office / finance / media / dev / life / system) — or write your own.", "自己的模型随便选": "Bring your own model", "智谱、DeepSeek、通义、豆包、Kimi、文心、星火、混元，或任意 OpenAI 兼容接口。数据直连厂商。": "Zhipu, DeepSeek, Qwen, Doubao, Kimi, ERNIE, Spark, Hunyuan, or any OpenAI-compatible endpoint. Data goes straight to the vendor.", "没 Key 也能用": "Works without a key", "注册送 10 万钻石，1 token = 1 钻石；用完可充值，也可以随时切回自己的 Key。": "100,000 points on sign-up, 1 token = 1 point; top up when they run out, or switch back to your own key anytime.", "每次修复与更新都会记录；软件内可自动更新到最新版。": "Every fix and update is logged; the app auto-updates to the latest version.", "关于 MRClaw 的常见问题解答。没找到答案？右上角咨询客服。": "FAQ about MRClaw. No answer? Tap Support in the top right.", "MRClaw 是什么？": "What is MRClaw?", "一个装在安卓手机上的 AI 助手。打开就是聊天界面，可以用钻石或自己的 API Key 对话；开启无障碍权限后，还能让 AI 替你操作手机。": "An AI assistant for Android. Open it and you get a chat screen — talk with points or your own API key; grant accessibility and it can operate your phone for you.", "怎么安装 MRClaw？": "How do I install MRClaw?", "点页面上的「下载安卓版」，安装时允许「安装未知应用」即可。安卓 8.0 及以上。若在微信里打开，请点右上角 ··· 选择「在浏览器打开」再下载。": "Tap “Download for Android” and allow “install unknown apps”. Android 8.0+. If you opened this in WeChat, tap ··· in the top right and choose “Open in browser” first.", "支持哪些 AI 模型？": "Which AI models are supported?", "内置智谱、DeepSeek、通义千问、豆包、Kimi、文心一言、讯飞星火、腾讯混元，也可以填任意 OpenAI 兼容接口。": "Zhipu, DeepSeek, Qwen, Doubao, Kimi, ERNIE, iFlytek Spark and Tencent Hunyuan are built in — or use any OpenAI-compatible endpoint.", "不填 API Key 能用吗？": "Can I use it without an API key?", "可以。注册送 10 万钻石，直接用钻石聊天（1 token = 1 钻石）。钻石用完可以充值，也可以填自己的 Key。": "Yes. You get 100,000 points on sign-up and can chat with points (1 token = 1 point). Top up when they run out, or add your own key.", "运行 MRClaw 要花多少钱？": "How much does MRClaw cost?", "软件本身免费。用钻石模式按量消耗钻石（可充值）；用自己的 Key 则只付给模型厂商，我们不参与计费。": "The app itself is free. Points mode consumes points by usage (toppable); with your own key you only pay the model vendor — we're not involved in billing.", "我的数据安全吗？": "Is my data safe?", "用自己 Key 时对话直连模型厂商；钻石模式走的是我们的服务端中转，服务端密钥绝不下发到手机。账号与配置存在云端，仅用于同步。": "With your own key, chats go straight to the vendor; points mode relays through our server, and the server key never reaches your phone. Account and settings are stored in the cloud for sync only.", "来自真实用户的评价 · 平均": "Reviews from real users · avg", "星 · 共": "stars · total", "条": "reviews", "第一时间获取新功能和玩法。放心，不会发垃圾邮件。": "Be the first to hear about new features and ideas. No spam, promise.", "MRClaw · MR工作室制作": "MRClaw · Made by MR Studio", "微信暂不支持下载软件": "WeChat can't download apps", "请点击右上角": "Tap the top-right", "（三个点）→ 选择": "(three dots) → choose", "「在浏览器打开」": "“Open in browser”", "，在浏览器里再点下载即可。": ", then tap download in the browser.", "安卓安装时若提示风险，选择「仍要安装 / 允许安装未知应用」即可。": "If Android warns you, choose “Install anyway / Allow unknown apps”.", "切换主题": "Switch theme", "输入你的问题…": "Type your question…", "音乐": "Music", "已复制": "Copied", "复制失败": "Copy failed", "版本 v": "Version v", "下载 v": "Download v", "下载慢？试试：": "Slow? Try: ", "版本信息读取失败，可直接下载最新版": "Couldn't read version info — you can still download the latest build", "暂时读不到日志，可点下方按钮查看完整修复日志。": "Can't load the log right now — use the button below for the full fix log.", "请输入邮箱": "Please enter your email", "订阅成功，感谢关注！": "Subscribed — thanks for following!", "订阅成功": "Subscribed", "这个邮箱已经订阅过了。": "This email is already subscribed.", "已订阅过": "Already subscribed", "订阅失败，请稍后再试。": "Subscription failed, try again later.", "邮箱格式不正确。": "Invalid email format.", "还没有评价，欢迎在 App 里第一个留下评价。": "No reviews yet — be the first in the app.", "暂时读不到评价。": "Can't load reviews right now.", "会话 ID：": "Session ID: ", "（管理员回复会自动出现）": " (admin replies appear here automatically)", "发送失败，请稍后再试": "Send failed, try again later", "已发送，管理员会尽快回复": "Sent — the admin will reply soon", "广场": "Community", "广场（社区）": "Community Square", "不只是聊天：在广场发帖、互动、分享，和别的用户一起玩。": "More than chat: post, interact and share with other users in the Community Square.", "发帖分享": "Post & share", "标题、正文，可加图片 / 视频 / 文件；还能选版块（闲聊 / 求助 / 分享 / 公告）、标记位置、勾选自主声明。": "Title and body, plus images / videos / files; pick a board (chat / help / share / notice), tag a location and tick the declaration.", "点赞与回复": "Likes & replies", "喜欢就点赞，有话就回复（回复也能带图）；支持关键词搜索，也能只看自己的帖子。": "Like what you enjoy and reply when you have something to say (replies can include images too); search by keyword, or view just your own posts.", "互动提醒": "Notifications", "帖子被点赞、被回复时，软件右上角会出现提醒，点开就知道是谁。": "When your post is liked or replied to, a notice appears at the top right of the app showing who it was.", "文明社区": "A civil community", "发现违规内容可一键举报，管理员审核处理后，会把结果自动通知你。": "Report anything inappropriate in one tap — an admin reviews it and you're notified of the result automatically.", "广场是什么？": "What is the Community Square?", "MRClaw 内置的社区。可以发帖（标题 / 正文 / 图片视频 / 版块 / 位置 / 自主声明）、回复、点赞、搜索「我的帖子」，被点赞或被回复会在软件右上角提醒；违规内容可一键举报，管理员审核后自动通知结果。": "MRClaw's built-in community. Post (title / body / images & videos / board / location / declaration), reply, like, and search your own posts; likes and replies show up as notices at the top right of the app. Inappropriate content can be reported in one tap and you'll be notified once an admin reviews it.", "正式版": "Official release", "音乐": "Music", "关闭背景音乐": "Turn off music", "播放背景音乐": "Play music", "实际效果": "See it in action", "跑起来是什么样？用真实录屏看一下——装之前先感受感受。": "What does it look like in action? A real screen recording — see it before you install.", "更多内容和作品，进广场看看": "More content and community work", "您的浏览器不支持视频播放。": "Your browser can't play this video.", "效果": "Demo", "点这里有音乐": "Tap for music", "官方公众号": "Official account", "微信扫码关注 · MR工作室": "Scan with WeChat · MR Studio", "长按二维码可直接识别": "Long-press the QR code to follow", "关闭": "Close", "MR工作室 公众号二维码": "MR Studio official account QR code", "具体内容以软件内为准": "Details are subject to the in-app version"};
 let SITE_LANG = "zh";
 const _I18O = new WeakMap();
 let _i18busy = false;
@@ -830,7 +895,9 @@ const Bgm = {
     if(Bgm.el && !Bgm.el.paused && h) h.classList.add("hide");
     if(!b) return;
     const playing = Bgm.el && !Bgm.el.paused;
-    b.textContent = playing ? T("🔊 音乐") : T("🔇 音乐");
+    b.classList.toggle("playing", !!playing);
+    const lab = document.getElementById("bgm-label");
+    if(lab) lab.textContent = T("音乐");
     b.title = playing ? T("关闭背景音乐") : T("播放背景音乐");
   }
 };
@@ -970,9 +1037,24 @@ function attachHtml(list){
     String(a.mime||"").indexOf("image") === 0
       ? "<a href='" + esc(a.url) + "' target='_blank'><img src='" + esc(a.url) +
         "' style='max-width:170px;border-radius:10px;display:block'></a>"
-      : "<a href='" + esc(a.url) + "' target='_blank' style='color:#8FB4FF'>📄 " + esc(a.name) + "</a>"
+      : "<a href='" + esc(a.url) + "' target='_blank' style='color:#8FB4FF'>" + esc(a.name) + "</a>"
   ).join("") + "</div>";
 }
+
+/* 区块入场：fade-up 一次 */
+(function(){
+  const els = document.querySelectorAll(".rv");
+  if(!("IntersectionObserver" in window) ||
+     window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    els.forEach(function(e){ e.classList.add("in"); }); return;
+  }
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
+    });
+  }, { threshold: .12 });
+  els.forEach(function(e){ io.observe(e); });
+})();
 </script>
 </body>
 </html>
