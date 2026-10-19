@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MR实时识物 Live Lens - 安卓实时视频AI识物软件，免费下载">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>MR实时识物 Live Lens - 官方下载 | MR工作室</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: #0B0F13;
+  color: #E8EDF2;
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+/* 背景网格 */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,220,140,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,220,140,.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* 顶部 */
+header {
+  padding: 64px 0 40px;
+  text-align: center;
+  position: relative;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 14px; color: #6B7684; letter-spacing: 2px;
+}
+.brand svg { width: 16px; height: 16px; }
+
+.hero {
+  margin-top: 28px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 28px; flex-wrap: wrap;
+}
+.hero img {
+  width: 128px; height: 128px; border-radius: 28px;
+  box-shadow: 0 18px 50px rgba(0,220,140,.18), 0 4px 18px rgba(0,0,0,.5);
+}
+.hero h1 {
+  font-size: clamp(34px, 7vw, 56px);
+  font-weight: 800; letter-spacing: 1px;
+  text-align: left;
+}
+.hero .sub {
+  color: #8B98A6; font-size: clamp(14px, 2.6vw, 17px); margin-top: 6px;
+  text-align: left;
+}
+.hero .sub b { color: #00DC8C; font-weight: 600; }
+
+.badge-row {
+  margin-top: 22px;
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+}
+.badge {
+  font-size: 13px; color: #9AA8B5;
+  border: 1px solid #223039; background: #10171e;
+  padding: 5px 14px; border-radius: 999px;
+}
+.badge b { color: #00DC8C; font-weight: 600; }
+
+/* 下载按钮 */
+.dl-area { margin-top: 34px; }
+.btn-dl {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, #00DC8C, #00B877);
+  color: #04120C; font-size: 19px; font-weight: 700;
+  padding: 17px 46px; border-radius: 16px;
+  text-decoration: none;
+  box-shadow: 0 12px 34px rgba(0,220,140,.32);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-dl:hover { transform: translateY(-2px); box-shadow: 0 16px 42px rgba(0,220,140,.42); }
+.btn-dl svg { width: 22px; height: 22px; }
+.dl-meta { margin-top: 12px; font-size: 13px; color: #6B7684; }
+.dl-meta a { color: #4ECF9E; text-decoration: none; }
+.dl-meta a:hover { text-decoration: underline; }
+
+/* 分区 */
+section { padding: 34px 0; position: relative; }
+h2 {
+  font-size: 22px; font-weight: 700; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 10px;
+}
+h2::before {
+  content: ""; width: 5px; height: 22px; border-radius: 3px;
+  background: #00DC8C; display: inline-block;
+}
+
+/* 功能卡片 */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.card {
+  background: #10171e; border: 1px solid #1B2530;
+  border-radius: 16px; padding: 20px 22px;
+  transition: border-color .15s ease;
+}
+.card:hover { border-color: rgba(0,220,140,.45); }
+.card .ic {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: rgba(0,220,140,.1);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+.card .ic svg { width: 22px; height: 22px; stroke: #00DC8C; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { font-size: 16px; margin-bottom: 6px; }
+.card p { font-size: 13.5px; color: #8B98A6; }
+
+/* 更新日志 */
+.log { border-left: 2px solid #1B2530; margin-left: 8px; padding-left: 24px; }
+.log .item { position: relative; padding-bottom: 26px; }
+.log .item:last-child { padding-bottom: 0; }
+.log .item::before {
+  content: ""; position: absolute; left: -31px; top: 7px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #00DC8C; box-shadow: 0 0 0 4px rgba(0,220,140,.15);
+}
+.log .ver { font-weight: 700; font-size: 15.5px; }
+.log .ver span { color: #6B7684; font-weight: 400; font-size: 12.5px; margin-left: 8px; }
+.log .item p { font-size: 13.5px; color: #8B98A6; margin-top: 4px; }
+.log .new {
+  font-size: 11px; color: #04120C; background: #00DC8C;
+  border-radius: 999px; padding: 1px 9px; margin-left: 8px;
+  font-weight: 700; vertical-align: 2px;
+}
+
+/* 安装步骤 */
+.steps { counter-reset: step; }
+.step {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: #10171e; border: 1px solid #1B2530;
+  border-radius: 16px; padding: 18px 22px; margin-bottom: 12px;
+}
+.step .n {
+  counter-increment: step;
+  flex: 0 0 34px; height: 34px; border-radius: 50%;
+  background: rgba(0,220,140,.12); color: #00DC8C;
+  font-weight: 800; display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.step .n::before { content: counter(step); }
+.step h3 { font-size: 15.5px; margin-bottom: 3px; }
+.step p { font-size: 13.5px; color: #8B98A6; }
+
+footer {
+  padding: 40px 0 46px; text-align: center;
+  color: #55636F; font-size: 13px;
+  border-top: 1px solid #141C24; margin-top: 30px;
+}
+footer b { color: #8B98A6; }
+@media (max-width: 560px) {
+  .hero { gap: 18px; }
+  .hero img { width: 96px; height: 96px; border-radius: 22px; }
+  .hero h1, .hero .sub { text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#00DC8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.5"/></svg>
+    MR工作室 · ANDROID APP
+  </div>
+  <div class="hero">
+    <img src="icon.png" alt="MR实时识物图标">
+    <div>
+      <h1>MR实时识物</h1>
+      <div class="sub">打开相机，<b>绿色方框</b>实时框住物体，上方显示 <b>AI 中文介绍</b></div>
+    </div>
+  </div>
+  <div class="badge-row">
+    <span class="badge">版本 <b id="ver">v1.0.2</b></span>
+    <span class="badge">安卓 <b>5.0+</b></span>
+    <span class="badge">大小 <b id="size">45.9 MB</b></span>
+    <span class="badge">完全<b>免费</b></span>
+  </div>
+  <div class="dl-area">
+    <a class="btn-dl" id="dl" href="LiveLens-v1.0.2.apk" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/></svg>
+      下载安卓版
+    </a>
+    <div class="dl-meta">下载后直接安装 · 需允许「未知来源应用」 · <a id="dl2" href="LiveLens-v1.0.2.apk">备用线路</a></div>
+  </div>
+</header>
+
+<section>
+  <h2>软件功能</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="3"/></svg></div>
+      <h3>真·实时识别</h3>
+      <p>相机连续视频流逐帧检测，200ms~1.2s 频率可调，不是拍照识图。</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+      <h3>方框 + AI 介绍</h3>
+      <p>绿色方框稳定跟住物体（带跟踪 ID），框上方实时显示一句中文介绍。</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></div>
+      <h3>语音自动播报</h3>
+      <p>识别到新物体自动朗读介绍，可一键开关。</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></svg></div>
+      <h3>识物记录</h3>
+      <p>所有识别结果自动保存在本机，随时翻看，可一键清空。</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></div>
+      <h3>全部免费</h3>
+      <p>本地检测 ML Kit 免费，在线介绍智谱 GLM-4V-Flash 官方免费模型。</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14 0"/><path d="M2 8.82a16 16 0 0 1 20 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg></div>
+      <h3>无需谷歌服务</h3>
+      <p>检测模型内置 APK，离线可用，国产手机开箱即用。</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>更新日志</h2>
+  <div class="log">
+    <div class="item">
+      <div class="ver">v1.0.2 <span id="date2">2026-10-19</span><span class="new">最新</span></div>
+      <p id="notes2">修复打开闪退问题；新增应用内更新：以后新版本直接在软件里下载安装，无需重新找安装包。</p>
+    </div>
+    <div class="item">
+      <div class="ver">v1.0.1 <span>2026-10-19</span></div>
+      <p>最低兼容降到安卓 5.0，修复部分手机「解析包出现问题」；文件名改英文防传输损坏。</p>
+    </div>
+    <div class="item">
+      <div class="ver">v1.0.0 <span>2026-10-18</span></div>
+      <p>首个版本：实时视频流识物、方框 + AI 介绍、语音播报、识物记录、设置页。</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>安装步骤</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="n"></div>
+      <div><h3>点击下载</h3><p>点上方绿色按钮下载 APK（约 46MB），或用手机直接访问本页下载。</p></div>
+    </div>
+    <div class="step">
+      <div class="n"></div>
+      <div><h3>允许安装</h3><p>安装时若提示「未知来源应用」，选择允许本来源安装。</p></div>
+    </div>
+    <div class="step">
+      <div class="n"></div>
+      <div><h3>打开使用</h3><p>打开软件，允许相机权限，对准任何物体即可实时识别。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <b>MR工作室</b> 制作 · 2026<br>
+  实时视频 AI 识物 · 本地检测离线可用 · AI 介绍全免费
+</footer>
+
+</div>
+<script>
+(function () {
+  fetch('version.json?t=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (v) {
+      if (!v || !v.versionName) return;
+      var file = (v.url || '').split('/').pop() || ('LiveLens-v' + v.versionName + '.apk');
+      document.getElementById('ver').textContent = 'v' + v.versionName;
+      document.getElementById('dl').href = file;
+      document.getElementById('dl2').href = file;
+      if (v.size) document.getElementById('size').textContent = (v.size / 1048576).toFixed(1) + ' MB';
+      if (v.notes) document.getElementById('notes2').textContent = v.notes;
+    })
+    .catch(function () { /* 保持静态默认值 */ });
+})();
+</script>
+</body>
+</html>
