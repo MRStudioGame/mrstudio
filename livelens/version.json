@@ -1,7 +1,12 @@
 {
- "versionCode": 3,
- "versionName": "1.0.2",
- "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.0.2.apk",
- "size": 48133607,
- "notes": "修复打开闪退问题；新增应用内更新：以后新版本直接在软件里下载安装，无需重新找安装包"
+ "versionCode": 4,
+ "versionName": "1.0.3",
+ "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.0.3.apk",
+ "mirror": "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.0.3.apk",
+ "mirrors": [
+  "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.0.3.apk",
+  "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.0.3.apk"
+ ],
+ "size": 48137703,
+ "notes": "下载全面提速：应用内更新与官网下载均走加速线路（约650KB/s），多线路自动切换"
 }

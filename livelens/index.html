@@ -194,11 +194,14 @@ footer b { color: #8B98A6; }
     <span class="badge">完全<b>免费</b></span>
   </div>
   <div class="dl-area">
-    <a class="btn-dl" id="dl" href="LiveLens-v1.0.2.apk" download>
+    <a class="btn-dl" id="dl" href="https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.0.2.apk" download>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/></svg>
       下载安卓版
     </a>
-    <div class="dl-meta">下载后直接安装 · 需允许「未知来源应用」 · <a id="dl2" href="LiveLens-v1.0.2.apk">备用线路</a></div>
+    <div class="dl-meta">默认走加速线路（约 650KB/s）· 下载失败自动换线 ·
+      <a id="dl2" href="LiveLens-v1.0.2.apk">官方直连</a> ·
+      <a id="dl3" href="https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.0.2.apk">备用加速</a>
+    </div>
   </div>
 </header>
 
@@ -282,13 +285,16 @@ footer b { color: #8B98A6; }
 </div>
 <script>
 (function () {
+  var RAW = 'https://github.com/MRStudioGame/mrstudio/raw/main/livelens/';
   fetch('version.json?t=' + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (v) {
       if (!v || !v.versionName) return;
       var file = (v.url || '').split('/').pop() || ('LiveLens-v' + v.versionName + '.apk');
       document.getElementById('ver').textContent = 'v' + v.versionName;
-      document.getElementById('dl').href = file;
+      // 主按钮 = 最快加速线路；备用 = 次加速 + 官方直连
+      document.getElementById('dl').href = 'https://gh-proxy.com/' + RAW + file;
+      document.getElementById('dl3').href = 'https://ghfast.top/' + RAW + file;
       document.getElementById('dl2').href = file;
       if (v.size) document.getElementById('size').textContent = (v.size / 1048576).toFixed(1) + ' MB';
       if (v.notes) document.getElementById('notes2').textContent = v.notes;
