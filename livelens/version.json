@@ -1,0 +1,7 @@
+{
+ "versionCode": 3,
+ "versionName": "1.0.2",
+ "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.0.2.apk",
+ "size": 48133607,
+ "notes": "修复打开闪退问题；新增应用内更新：以后新版本直接在软件里下载安装，无需重新找安装包"
+}
