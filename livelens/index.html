@@ -245,8 +245,16 @@ footer b { color: #8B98A6; }
   <h2>更新日志</h2>
   <div class="log">
     <div class="item">
-      <div class="ver">v1.0.2 <span id="date2">2026-10-19</span><span class="new">最新</span></div>
-      <p id="notes2">修复打开闪退问题；新增应用内更新：以后新版本直接在软件里下载安装，无需重新找安装包。</p>
+      <div class="ver">v1.1.0 <span id="date2">2026-10-19</span><span class="new">最新</span></div>
+      <p id="notes2">识别引擎大升级：改用相机原生出图（任何机型都能识别）+ 分析分辨率提升到 720p；全新 HUD 界面（四角括号框 + 准星 + 目标统计横幅 + 近/远标注）；新增切换镜头、诊断模式。</p>
+    </div>
+    <div class="item">
+      <div class="ver">v1.0.3 <span>2026-10-19</span></div>
+      <p>下载全面提速：应用内更新与官网下载均走加速线路（约650KB/s），多线路自动切换。</p>
+    </div>
+    <div class="item">
+      <div class="ver">v1.0.2 <span>2026-10-19</span></div>
+      <p>修复打开闪退问题；新增应用内更新：以后新版本直接在软件里下载安装，无需重新找安装包。</p>
     </div>
     <div class="item">
       <div class="ver">v1.0.1 <span>2026-10-19</span></div>
@@ -300,7 +308,6 @@ footer b { color: #8B98A6; }
       if (v.notes) document.getElementById('notes2').textContent = v.notes;
     })
     .catch(function () { /* 保持静态默认值 */ });
-})();
-</script>
+})();</script>
 </body>
 </html>
