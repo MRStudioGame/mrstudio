@@ -1,0 +1,328 @@
+{
+  "version": "2026.10.20-1",
+  "source": "https://mrstudiogame.github.io/mrstudio/mrclaw/skills.json",
+  "skills": [
+    {
+      "id": "hot",
+      "cat": "news",
+      "icon": "🔥",
+      "zh": [
+        "今日热搜",
+        "汇总各平台今日热搜榜"
+      ],
+      "en": [
+        "Trending today",
+        "Top trending across platforms"
+      ],
+      "prompt": "用户想看热搜时，先确认浏览器状态，打开 tophub.today，汇总前 10 条标题。"
+    },
+    {
+      "id": "technews",
+      "cat": "news",
+      "icon": "📰",
+      "zh": [
+        "科技资讯",
+        "科技与互联网要闻速览"
+      ],
+      "en": [
+        "Tech news",
+        "Daily tech headlines"
+      ],
+      "prompt": "用户要科技新闻时，搜索当日科技要闻并列出 5 条，附上标题原文。"
+    },
+    {
+      "id": "weather",
+      "cat": "news",
+      "icon": "🌤",
+      "zh": [
+        "天气查询",
+        "查当天与明日天气"
+      ],
+      "en": [
+        "Weather",
+        "Today and tomorrow"
+      ],
+      "prompt": "用户问天气时：没说城市就先询问；然后必须调用 weather 工具查询真实天气（不要说自己开应用查），再把温度、天气、降水概率和穿衣/带伞建议讲清楚。"
+    },
+    {
+      "id": "word",
+      "cat": "study",
+      "icon": "📚",
+      "zh": [
+        "单词打卡",
+        "每天背 10 个单词"
+      ],
+      "en": [
+        "Vocab drill",
+        "10 words a day"
+      ],
+      "prompt": "用户说背单词时，给 10 个单词（英文+词性+中文+例句），并把今天学的记入记忆。"
+    },
+    {
+      "id": "english",
+      "cat": "study",
+      "icon": "🔤",
+      "zh": [
+        "英语陪练",
+        "用英语对话并纠错"
+      ],
+      "en": [
+        "English tutor",
+        "Chat and correct"
+      ],
+      "prompt": "用户想练英语时，用简单英文回复，并在末尾用中文指出错误与更自然的说法。"
+    },
+    {
+      "id": "explain",
+      "cat": "study",
+      "icon": "💡",
+      "zh": [
+        "知识讲解",
+        "把复杂概念讲明白"
+      ],
+      "en": [
+        "Explain",
+        "Simplify concepts"
+      ],
+      "prompt": "用户问概念时，先一句话结论，再给 3 个要点，最后给一个生活化类比。"
+    },
+    {
+      "id": "note",
+      "cat": "work",
+      "icon": "📝",
+      "zh": [
+        "备忘录",
+        "记录与读取待办"
+      ],
+      "en": [
+        "Notes",
+        "Save and read to-dos"
+      ],
+      "prompt": "用户说记一下或查待办时，写入或读取记忆，并在回复中列出当前待办清单。"
+    },
+    {
+      "id": "todo",
+      "cat": "work",
+      "icon": "✅",
+      "zh": [
+        "任务拆解",
+        "把目标拆成可执行步骤"
+      ],
+      "en": [
+        "Task breakdown",
+        "Turn goals into steps"
+      ],
+      "prompt": "用户给一个目标时，拆成 3-6 个可执行步骤，逐步执行并在每步后回报进度。"
+    },
+    {
+      "id": "stock",
+      "cat": "money",
+      "icon": "📈",
+      "zh": [
+        "股票行情",
+        "查个股价格与涨跌"
+      ],
+      "en": [
+        "Stock quotes",
+        "Price and change"
+      ],
+      "prompt": "用户问股价时，说明数据仅供参考，打开行情页面读取屏幕内容后汇报最新价与涨跌幅。"
+    },
+    {
+      "id": "fx",
+      "cat": "money",
+      "icon": "💱",
+      "zh": [
+        "汇率换算",
+        "实时汇率计算"
+      ],
+      "en": [
+        "Currency",
+        "Live FX conversion"
+      ],
+      "prompt": "用户要换算汇率时，查询当前汇率并给出换算结果。"
+    },
+    {
+      "id": "music",
+      "cat": "media",
+      "icon": "🎵",
+      "zh": [
+        "音乐播放",
+        "搜索并播放歌曲"
+      ],
+      "en": [
+        "Play music",
+        "Search and play songs"
+      ],
+      "prompt": "用户要听歌时，先确认目标应用，打开它→搜索歌名→点击播放，并在关键步骤后确认当前界面。"
+    },
+    {
+      "id": "video",
+      "cat": "media",
+      "icon": "🎬",
+      "zh": [
+        "视频搜索",
+        "找视频并打开"
+      ],
+      "en": [
+        "Find video",
+        "Search and open"
+      ],
+      "prompt": "用户要找视频时，打开视频应用搜索关键词并打开第一个结果。"
+    },
+    {
+      "id": "ocr",
+      "cat": "media",
+      "icon": "🔍",
+      "zh": [
+        "截屏取字",
+        "读出屏幕上的文字"
+      ],
+      "en": [
+        "Screen text",
+        "Read text on screen"
+      ],
+      "prompt": "用户要取屏幕文字时，用 screen 读取当前界面文本并整理成可复制的段落。"
+    },
+    {
+      "id": "code",
+      "cat": "dev",
+      "icon": "💻",
+      "zh": [
+        "代码解释",
+        "逐段讲解代码"
+      ],
+      "en": [
+        "Explain code",
+        "Walk through code"
+      ],
+      "prompt": "用户给代码时，逐段解释作用、指出潜在问题，并给出改进后的写法。"
+    },
+    {
+      "id": "regex",
+      "cat": "dev",
+      "icon": "🧩",
+      "zh": [
+        "正则生成",
+        "按需求写正则"
+      ],
+      "en": [
+        "Regex",
+        "Build a regex"
+      ],
+      "prompt": "用户要正则时，给出正则、逐部分说明含义，并用 2 个通过 + 1 个不通过的例子验证。"
+    },
+    {
+      "id": "bug",
+      "cat": "dev",
+      "icon": "🐞",
+      "zh": [
+        "报错排查",
+        "根据报错定位问题"
+      ],
+      "en": [
+        "Debug",
+        "Diagnose errors"
+      ],
+      "prompt": "用户贴报错时，先给最可能的原因（前三），再给具体修改建议。"
+    },
+    {
+      "id": "express",
+      "cat": "life",
+      "icon": "📦",
+      "zh": [
+        "快递查询",
+        "查快递物流进度"
+      ],
+      "en": [
+        "Parcel",
+        "Track deliveries"
+      ],
+      "prompt": "用户要查快递时，打开快递 App 或搜索单号，汇报最新物流节点。"
+    },
+    {
+      "id": "food",
+      "cat": "life",
+      "icon": "🍜",
+      "zh": [
+        "菜谱推荐",
+        "按现有食材给做法"
+      ],
+      "en": [
+        "Recipes",
+        "Cook with what you have"
+      ],
+      "prompt": "用户给食材时，推荐 3 道家常菜，每道给用料与 3-5 步简做法。"
+    },
+    {
+      "id": "translate",
+      "cat": "life",
+      "icon": "🌐",
+      "zh": [
+        "翻译助手",
+        "中英互译并润色"
+      ],
+      "en": [
+        "Translate",
+        "CN/EN with polish"
+      ],
+      "prompt": "用户要翻译时，先给直译，再给更自然的意译，专有名词保留原文或音译。"
+    },
+    {
+      "id": "app",
+      "cat": "sys",
+      "icon": "📱",
+      "zh": [
+        "打开应用",
+        "让 AI 打开指定 App"
+      ],
+      "en": [
+        "Open apps",
+        "Launch an app"
+      ],
+      "prompt": "用户要求打开某个 App 时，确认名称后用 open_app 打开，并确认是否成功。"
+    },
+    {
+      "id": "tap",
+      "cat": "sys",
+      "icon": "👆",
+      "zh": [
+        "屏幕操作",
+        "点击 / 滑动 / 输入"
+      ],
+      "en": [
+        "Screen control",
+        "Tap / swipe / type"
+      ],
+      "prompt": "需要操作界面时，先用 screen 看当前内容，再精准点击或输入，每步确认结果。"
+    },
+    {
+      "id": "battery",
+      "cat": "sys",
+      "icon": "🔋",
+      "zh": [
+        "手机状态",
+        "电量 / 存储 / 网络"
+      ],
+      "en": [
+        "Device status",
+        "Battery / storage / network"
+      ],
+      "prompt": "用户问手机状态时，读取电量、存储与网络情况并汇报。"
+    },
+    {
+      "id": "files",
+      "cat": "sys",
+      "icon": "📁",
+      "zh": [
+        "文件整理",
+        "查找与整理文件"
+      ],
+      "en": [
+        "Files",
+        "Find and tidy files"
+      ],
+      "prompt": "用户要操作文件时，先说明路径再执行读写，涉及删除必须先征得用户同意。"
+    }
+  ]
+}
