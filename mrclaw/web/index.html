@@ -649,9 +649,9 @@ zh:{
   mode_tip:"点一下切换：用钻石 或 用自己的 Key",
   task_mode_on:"做任务", task_mode_off:"仅聊天",
   task_mode_on_txt:"做任务", task_mode_off_txt:"仅聊天",
-  task_mode_tip:"点一下切换：仅聊天（不需权限）/ 做任务（需权限）",
-  mode_task_on:"已切到「做任务」，需要开启权限才能操控手机",
-  mode_chat_on:"已切到「仅聊天」，不需要任何权限",
+  task_mode_tip:"点一下切换：仅聊天（智谱·免费）/ 做任务（操控手机·用 DeepSeek）",
+  mode_task_on:"已切到「做任务」：操控手机，使用 DeepSeek",
+  mode_chat_on:"已切到「仅聊天」：日常对话，使用智谱（免费）",
   loading:"加载中…",
   nav_gc:"广场", nav_adm:"管理", back:"返回",
   gc_search:"搜索帖子…", gc_mine:"我的帖子", gc_all:"全部帖子", gc_new:"发帖",
@@ -719,11 +719,10 @@ zh:{
   redeem_ph:"粘贴兑换码，可一次多个", redeem_scan:"开始识别",
   redeem_tiers:"在淘宝下单后，把收到的卡密粘到这里兑换。（日常用免费，无需购买）",
   welfare_title:"日常用免费",
-  welfare_sub:"简单思考日常免费开放，随时可用",
+  welfare_sub:"日常聊天免费开放，随时可用；操控手机自动切换 DeepSeek",
   welfare_until:"",
   welfare_svc:"咨询客服", welfare_redeem:"输入兑换码", welfare_ok:"知道啦",
-  think_simple:"简单思考", think_deep:"深度思考", think_title:"选择思考模式",
-  think_simple_sub:"适合日常聊天·免费", think_deep_sub:"适合处理复杂任务·消耗钻石",
+  /* 模型跟随场景：做任务→DeepSeek，仅聊天→智谱（不再有深度/简单选择） */
   redeem_none:"未识别到有效卡密", redeem_found:"识别到 {0} 个卡密，是否全部兑换？",
   redeem_ok:"兑换成功，+{0} 钻石，当前余额 {1}",
   cost_free_now:"本次不消耗钻石 · 余额 {0}",
@@ -738,7 +737,6 @@ zh:{
   support_fail:"发送失败，请重试", cloud_syncing:"正在同步…",
   official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"上传图片", attach_file:"上传文件",
   attach_title:"要发送什么？",
-  think_menu:"思考模式：{0}",
   uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
   no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
   attach_only:"（附件）", remove:"移除"
@@ -818,9 +816,9 @@ en:{
   mode_tip:"Tap to switch: use points or your own key",
   task_mode_on:"Task", task_mode_off:"Chat",
   task_mode_on_txt:"Task", task_mode_off_txt:"Chat",
-  task_mode_tip:"Tap to switch: Chat only (no permissions) / Task (permissions needed)",
-  mode_task_on:"Task mode on – permissions are required",
-  mode_chat_on:"Chat-only mode on – no permissions needed",
+  task_mode_tip:"Tap to switch: Chat (Zhipu, free) / Task (control phone, DeepSeek)",
+  mode_task_on:"Task mode: control your phone with DeepSeek",
+  mode_chat_on:"Chat mode: everyday talk with Zhipu (free)",
   loading:"Loading…",
   nav_gc:"Square", nav_adm:"Admin", back:"Back",
   gc_search:"Search posts…", gc_mine:"My posts", gc_all:"All posts", gc_new:"Post",
@@ -890,11 +888,10 @@ en:{
   redeem_ph:"Paste codes, multiple allowed", redeem_scan:"Scan",
   redeem_tiers:"After ordering on Taobao, paste the code(s) here. (Daily use is free)",
   welfare_title:"Free for daily use",
-  welfare_sub:"Simple thinking is free, available anytime",
+  welfare_sub:"Chat is free, anytime; phone control auto-switches to DeepSeek",
   welfare_until:"",
   welfare_svc:"Contact support", welfare_redeem:"Enter a code", welfare_ok:"Got it",
-  think_simple:"Simple thinking", think_deep:"Deep thinking", think_title:"Thinking mode",
-  think_simple_sub:"For everyday chat · free", think_deep_sub:"For complex tasks · costs diamonds",
+  /* Model follows scene: task→DeepSeek, chat→Zhipu */
   redeem_none:"No valid code found", redeem_found:"Found {0} code(s). Redeem all?",
   redeem_ok:"Redeemed +{0} points, balance {1}",
   cost_free_now:"No diamonds used this time · balance {0}",
@@ -911,7 +908,6 @@ en:{
   support_fail:"Send failed, please retry", cloud_syncing:"Syncing…",
   official_site:"Official website", attach:"Add image/file", attach_img:"Upload image", attach_file:"Upload file",
   attach_title:"What to send?",
-  think_menu:"Thinking mode: {0}",
   uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
   no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
   attach_only:"(attachment)", remove:"Remove"
@@ -2117,7 +2113,7 @@ const Chat = {
     }catch(e){}
     rpc("mrclaw_ai_start", {
       p_user: S.user.name,
-      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 }
+      p_body: { model:"deepseek-chat", messages: msgs, tools: chatTools(), tool_choice: fileAsk ? "required" : "auto", think: ThinkMode.thinkForScene(false), stream:false, max_tokens: 1024 }
     }).then(function(st){
       if(!st || st.__err){ Chat.ptsFail(bubble, (st && st.__err) || "net"); return; }
       if(st.err === "no_points"){ Chat.ptsEnd(bubble, true); return; }
@@ -2165,7 +2161,7 @@ const Chat = {
             try{ Chat.paint(bubble); }catch(e){}
             try{ Native.toast(LANG === "en" ? "Model issue, switched to DeepSeek" : "模型出现问题，已切换模型至 deepseek"); }catch(e){}
             const cc2 = Chat.cur();
-            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc2 ? cc2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st5){
+            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc2 ? cc2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.thinkForScene(false), stream:false, max_tokens: 1024 } }).then(function(st5){
               if(!st5 || st5.__err || st5.err){
                 Chat.busy = false; Chat.syncSendBtn(); Chat.ptsEnd(bubble, true); return;
               }
@@ -2185,7 +2181,7 @@ const Chat = {
               Chat.callTool(fn.name, fn.arguments, function(res){
                 const c2 = Chat.cur();
                 if(c2){ c2.msgs.push(msg0); c2.msgs.push({ role:"tool", tool_call_id: tc.id || "c1", content: String(res).slice(0, 2000) }); }
-                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st2){
+                rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c2 ? c2.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.thinkForScene(false), stream:false, max_tokens: 1024 } }).then(function(st2){
                   if(!st2 || st2.__err || st2.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                   Chat.pollPts(bubble, st2.id, 0);
                 });
@@ -2200,7 +2196,7 @@ const Chat = {
           if(ob && ob.error && !bubble._retried){
             bubble._retried = true;
             const cc = Chat.cur();
-            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc ? cc.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens: 1024 } }).then(function(st4){
+            rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: cc ? cc.msgs : [], tools: chatTools(), tool_choice:"auto", think: ThinkMode.thinkForScene(false), stream:false, max_tokens: 1024 } }).then(function(st4){
               if(!st4 || st4.__err || st4.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
               Chat.pollPts(bubble, st4.id, 0);
             });
@@ -2216,7 +2212,7 @@ const Chat = {
             const c3 = Chat.cur();
             if(c3){
               c3.msgs.push({ role:"system", content:"请直接调用工具来完成（make_file 生成文件 / send_image 发图），不要在回答里写工具名，也不要描述步骤。" });
-              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", think: ThinkMode.get(), stream:false, max_tokens:1024 } }).then(function(st3){
+              rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: { model:"deepseek-chat", messages: c3.msgs, tools: chatTools(), tool_choice:"auto", think: ThinkMode.thinkForScene(false), stream:false, max_tokens:1024 } }).then(function(st3){
                 if(!st3 || st3.__err || st3.err){ Chat.busy = false; Chat.ptsEnd(bubble, true); return; }
                 Chat.pollPts(bubble, st3.id, 0);
               });
@@ -2710,7 +2706,7 @@ const Chat = {
       }
       if(step === 1) msgs.push({ role: "system", content: "需要实时或准确信息时，直接调用工具拿真实数据，禁止让用户自己去别处查：\n· 天气 → weather 工具\n· 今天日期/时间 → get_time 工具\n· 其他实时信息（汇率、股价、新闻、百科等）→ fetch_url 工具抓取对应网页/接口\n拿到结果后用自然语言回答。" });
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
-        model: "deepseek-chat", messages: msgs, tools: toolsForNative(), think: ThinkMode.get(),
+        model: "deepseek-chat", messages: msgs, tools: toolsForNative(), think: ThinkMode.thinkForScene(true),
         tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
         if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
@@ -3673,14 +3669,9 @@ const Attach = {
       { label: Icon("img", 14) + " " + t("attach_img"), value: "image" },
       { label: Icon("doc", 14) + " " + t("attach_file"), value: "file" }
     ];
-    /* 聊天输入框的「＋」顺带收纳思考模式（工具行按钮太多会被挤出去） */
-    if(Attach._target === "chat"){
-      items.push({ label: Icon("brain", 14) + " " + t("think_menu", ThinkMode.label()), value: "think" });
-    }
     uiSheet(t("attach_title"), items).then(function(v){
       if(v === "image") native.pickFile("image", true);
       else if(v === "file") native.pickFile("any", true);
-      else if(v === "think") ThinkMode.pick();
     });
   },
   pick(kind, forSupport, target){
@@ -4790,52 +4781,19 @@ function chatTools(){
     return base.concat([TOOL_MAKE_FILE, TOOL_SEND_IMAGE, TOOL_RESEARCH]);
   }catch(e){ return []; }
 }
-/* 思考模式：简单（智谱·免费）/ 深度（DeepSeek·消耗钻石） */
+/* 模型跟随使用场景：做任务（操控手机）→ 服务端走 DeepSeek；仅聊天 → 服务端走智谱。
+   think 参数即服务端分流开关（mrclaw_ai_start: deep→DeepSeek / simple→智谱），
+   不再提供"深度/简单"手动选择。实际模型名由服务端配置决定（mrclaw_secrets.deep_model / free_model）。 */
 const ThinkMode = {
-  KEY: "mrclaw_think_v1",
-  /* 深度思考的实际模型由服务端决定（mrclaw_secrets.deep_model，默认 deepseek-v4-flash）。
-     客户端只负责展示与扣费提示；此处与服务端默认值保持一致，改服务端配置后同步改这里。 */
-  DEEP_MODEL_LABEL: "DeepSeek V4 Flash",
-  get(){ try{ return LS.get(this.KEY) === "deep" ? "deep" : "simple"; }catch(e){ return "simple"; } },
-  set(v){ try{ LS.set(this.KEY, v === "deep" ? "deep" : "simple"); }catch(e){} },
-  /* 展示用短名（与 mrclaw_secrets.deep_model 对应） */
-  modelShort(){
-    if(this.get() !== "deep") return null;
-    return this.DEEP_MODEL_LABEL;
+  /* 场景→服务端分流参数：操控手机用 DeepSeek，日常聊天用智谱 */
+  thinkForScene(taskMode){
+    return taskMode ? "deep" : "simple";
   },
-  label(){ return this.get() === "deep" ? t("think_deep") : t("think_simple"); },
-  short(){ return this.get() === "deep" ? (LANG === "en" ? "Deep" : "深度") : (LANG === "en" ? "Simple" : "简单"); },
-  pick(){
-    const self = this;
-    const cur = this.get();
-    uiSheet(t("think_title"), [
-      { label: (cur === "simple" ? "✅ " : "") + t("think_simple") + " · " + t("think_simple_sub"), value: "simple" },
-      { label: (cur === "deep" ? "✅ " : "") + t("think_deep") + " · " + t("think_deep_sub"), value: "deep" }
-    ]).then(function(v){
-      if(v === null || v === undefined) return;
-      self.set(v); self.paint();
-      Native.toast(self.label());
-      try{ Chat.render(); }catch(e){}
-    });
+  /* 当前场景实际生效的模型（展示用，与服务端配置对应） */
+  activeLabel(){
+    return Mode.on() ? "DeepSeek" : "智谱 GLM";
   },
-  paint(){
-    try{
-      const b = el("think-btn");
-      if(!b) return;
-      const txt = el("think-txt");
-      if(this.get() === "deep"){
-        const m = this.modelShort();
-        const label = (LANG === "en" ? "Deep" : "深度") + " · " + m;
-        if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
-        b.title = (LANG === "en" ? "Deep thinking uses " : "深度思考使用 ") + this.DEEP_MODEL_LABEL
-                + (LANG === "en" ? " (costs diamonds)" : "（消耗钻石）");
-      } else {
-        const label = (LANG === "en" ? "Simple" : "简单");
-        if(txt) txt.textContent = label; else b.innerHTML = Icon("brain", 14) + " " + esc(label);
-        b.title = t("think_title");
-      }
-    }catch(e){}
-  }
+  label(){ return this.activeLabel(); }
 };
 
 /* ===================== 每日签到 / 抽奖 ===================== */
@@ -5493,10 +5451,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.8";
+const WEB_VERSION = "1.2.9";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 152;
+const WEB_CODE = 153;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -5783,7 +5741,7 @@ function paintStatic(){
   el("stop-btn").textContent = t("stop_btn");
   el("att-btn").textContent = "＋";
   el("att-btn").title = t("attach");
-  try{ SpeakAuto.paint(); }catch(e){}; try{ ThinkMode.paint(); }catch(e){}
+  try{ SpeakAuto.paint(); }catch(e){};
   try{ CheckIn.paint(); }catch(e){}
   el("bc-in").textContent = "";
   try{ Mode.paint(); }catch(e){}
