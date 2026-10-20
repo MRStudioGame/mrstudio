@@ -737,6 +737,7 @@ zh:{
   support_fail:"发送失败，请重试", cloud_syncing:"正在同步…",
   official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"上传图片", attach_file:"上传文件",
   attach_title:"要发送什么？",
+  reviewing:"正在复检中",
   uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
   no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
   attach_only:"（附件）", remove:"移除"
@@ -908,6 +909,7 @@ en:{
   support_fail:"Send failed, please retry", cloud_syncing:"Syncing…",
   official_site:"Official website", attach:"Add image/file", attach_img:"Upload image", attach_file:"Upload file",
   attach_title:"What to send?",
+  reviewing:"Reviewing the reply…",
   uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
   no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
   attach_only:"(attachment)", remove:"Remove"
@@ -1798,7 +1800,8 @@ const Chat = {
   busyStatus(x){
     const secs = x._t0 ? ((Date.now() - x._t0) / 1000) : 0;
     const en = LANG === "en";
-    // 自愈状态优先：已切换模型 / 正在重连
+    // 自愈状态优先：复检中 / 已切换模型 / 正在重连
+    if(x && x._reviewing){ return en ? Icon("eye",13) + " Reviewing the reply…" : Icon("eye",13) + " 正在复检中"; }
     if(x && x._switched){ return en ? Icon("warn",13) + " Model issue, switched to DeepSeek" : Icon("warn",13) + " 模型出现问题，已切换模型至 deepseek"; }
     if(x && x._reconnecting){ return en ? "⟳ No reply, reconnecting…" : "⟳ 模型未回复，正在重新连接"; }
     const th = (x._think || []);
@@ -2689,6 +2692,38 @@ const Chat = {
       self.afterReply();
       SpeakAuto.say(txt);
     };
+    /* 收尾复检：宣布完成前，把 AI 准备输出的话再交给模型检查一遍，
+       有问题就让它改；复检期间气泡显示「正在复检中」。
+       finalText: 待定的最终答复；ok(修正后的文字)：复检通过后回调 */
+    const reviewThen = function(finalText, ok){
+      if(bubble._reviewed || self._pcancel){ ok(finalText); return; }
+      bubble._reviewed = true;
+      bubble._reviewing = true;                     // 驱动「正在复检中」状态
+      try{ bubble._statusLast = t("reviewing"); Chat.paint(bubble); }catch(e){}
+      const reviewMsgs = msgs.slice(0, -1).concat([
+        { role: "assistant", content: finalText },
+        { role: "user", content: (LANG === "en"
+          ? "Before I send this reply to the user, review it: correct factual errors, wrong claims of success (no real evidence), leaked tool names, or duplicate file cards. Fix them and output ONLY the corrected reply. If it is already fine, output it unchanged. No explanations."
+          : "这条回复马上要发给用户了，请复查一遍：事实错误、没有真实证据就说完成、泄漏工具名、重复的文件卡片，这些都要改。只输出修改后的回复本身；如果原本就没问题，原样输出。不要任何解释。") }
+      ]);
+      rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
+        model: "deepseek-chat", messages: reviewMsgs, think: ThinkMode.thinkForScene(Mode.on()),
+        stream: false, max_tokens: 1024 } }).then(function(st){
+        if(!st || st.__err || st.err){ bubble._reviewing = false; ok(finalText); return; }   // 复检失败就用原稿
+        self.pollAgent(st.id, function(pp){
+          bubble._reviewing = false;
+          let fixed = finalText;
+          try{
+            const o = JSON.parse(pp.body || "{}");
+            const m0 = o.choices && o.choices[0] && o.choices[0].message;
+            const t0 = String((m0 && m0.content) || "").trim();
+            // 模型返回了非空且不同于原稿的文本才采纳（防止空转）
+            if(t0 && t0 !== finalText && t0.length >= 2) fixed = t0;
+          }catch(e){}
+          ok(fixed);
+        }, function(){ bubble._reviewing = false; ok(finalText); });
+      }).catch(function(){ bubble._reviewing = false; ok(finalText); });
+    };
     const tick = function(){
       if(self._pcancel){ finish(t("stop_t"), "stop"); return; }
       step++; guard++;
@@ -2761,7 +2796,7 @@ const Chat = {
                   try{ ScriptMem.remember(Chat._taskText || "", fa.steps, fa.note); }catch(e){}
                   const say = (m.content && String(m.content).trim()) ? String(m.content).trim()
                              : (LANG === "en" ? "Done." : "已完成。");
-                  finish(say, "done");
+                  reviewThen(say, function(finalText){ finish(finalText, "done"); });
                   return;
                 }
                 if(fn.name === "run_script" && fa.done === true && (!_verified || sres.indexOf("✗") >= 0)){
@@ -2787,7 +2822,7 @@ const Chat = {
               return;
             }
             if(verifyThen()) return;
-            finish(txt, "done");
+            reviewThen(txt, function(finalText){ finish(finalText, "done"); });
           }
         }, function(e){ finish(t("exec_fail") + e, "err"); });
       });
@@ -5451,10 +5486,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.2.9";
+const WEB_VERSION = "1.3.0";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 153;
+const WEB_CODE = 154;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
