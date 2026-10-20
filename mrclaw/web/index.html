@@ -738,6 +738,8 @@ zh:{
   official_site:"跳转至官网", attach:"添加图片/文件", attach_img:"上传图片", attach_file:"上传文件",
   attach_title:"要发送什么？",
   reviewing:"正在复检中",
+  skill_no_prompt:"该技能没有可执行内容",
+  busy_try_later:"AI 正在忙，稍后再试",
   uploading:"上传中…", upload_fail:"上传失败", pick_fail:"未选择任何内容",
   no_vision:"当前模型不支持看图，图片已上传但 AI 看不到（建议用我的Key + 智谱 GLM-4V）",
   attach_only:"（附件）", remove:"移除"
@@ -910,6 +912,8 @@ en:{
   official_site:"Official website", attach:"Add image/file", attach_img:"Upload image", attach_file:"Upload file",
   attach_title:"What to send?",
   reviewing:"Reviewing the reply…",
+  skill_no_prompt:"This skill has no runnable action",
+  busy_try_later:"AI is busy, try again later",
   uploading:"Uploading…", upload_fail:"Upload failed", pick_fail:"Nothing selected",
   no_vision:"This model cannot see images; they were uploaded but the AI cannot view them (use My key + GLM-4V)",
   attach_only:"(attachment)", remove:"Remove"
@@ -3207,6 +3211,41 @@ const Skill = {
     a[i].on = !a[i].on;
     saveSkills(); this.paint(); Cloud.push(true);
   },
+  /* 技能库在线更新：从 GitHub Pages 拉取 skills.json，远程优先合并（保留本地开关状态）。
+     没有实际功能的条目（缺 prompt）会被过滤，保证技能列表里每一项都能真正执行。 */
+  loadRemote(){
+    try{
+      httpReq("GET", "https://mrstudiogame.github.io/mrstudio/mrclaw/skills.json", {}, "").then(function(raw){
+        try{
+          if(!raw || String(raw).indexOf("ERR:") === 0) return;
+          const j = JSON.parse(raw);
+          if(!j || !Array.isArray(j.skills) || !j.skills.length) return;
+          if(String(j.version || "") !== "" && String(j.version) === String(S.skillVer || "")) return;
+          const remote = j.skills.filter(function(s){
+            return s && s.id && (Array.isArray(s.zh) || s.name) && s.prompt && String(s.prompt).trim();
+          });
+          if(!remote.length) return;
+          const oldById = {};
+          (S.skills || []).forEach(function(s){ if(s && s.id) oldById[s.id] = s; });
+          const custom = (S.skills || []).filter(function(s){ return s && s.builtin === false && s.name; });
+          S.skills = remote.map(function(s){
+            const o = oldById[String(s.id)] || {};
+            const zh = Array.isArray(s.zh) ? s.zh : [String(s.zh || s.name || s.id), String(s.desc || "")];
+            const en = Array.isArray(s.en) ? s.en : (s.en ? [String(s.en), String(s.desc || "")] : null);
+            return {
+              id: String(s.id), cat: String(s.cat || "sys"), icon: String(s.icon || ""),
+              zh: zh, en: en, prompt: String(s.prompt),
+              builtin: true,
+              on: (o.on !== undefined) ? !!o.on : (SKILL_DEFAULT_ON.indexOf(String(s.id)) >= 0)
+            };
+          }).concat(custom);
+          S.skillVer = String(j.version || "");
+          saveSkills();
+          try{ if(S.tab === "skill" || el("sk-list")){ Skill.render(); Skill.paint(); } }catch(e){}
+        }catch(e){}
+      });
+    }catch(e){}
+  },
   async detail(i){
     const s = this.all()[i];
     if(!s) return;
@@ -3217,9 +3256,15 @@ const Skill = {
     ]);
     if(act === "toggle"){ s.on = !s.on; saveSkills(); this.paint(); }
     else if(act === "run"){
+      /* 真正运行技能：直接把技能指令作为用户消息发送执行 */
+      const cmd = Skill.prompt(s);
+      if(!cmd){ Native.toast(t("skill_no_prompt")); return; }
+      if(Chat.busy || Chat.sending){ Native.toast(t("busy_try_later")); return; }
       App.tab("chat");
-      el("ta").value = (LANG === "en" ? "[Skill] " : "【技能】") + Skill.name(s) + "\n";
+      if(!S.user){ Chat.openLoginGate(); return; }
+      el("ta").value = cmd;
       Chat.syncSendBtn();
+      Chat.send();
     } else if(act === "del"){
       if(s.builtin){ Native.toast(t("skill_no_del")); return; }
       const ok = await uiAsk(t("skill_del_q"), null, { input:false });
@@ -5486,10 +5531,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.3.0";
+const WEB_VERSION = "1.3.1";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 154;
+const WEB_CODE = 155;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -5818,6 +5863,7 @@ setTimeout(function(){ var sp = el("splash"); if(sp){ sp.classList.add("off"); s
   }
   }catch(e){}
   setTimeout(function(){ Upd.check(); }, 1200);
+  setTimeout(function(){ try{ Skill.loadRemote(); }catch(e){} }, 2600);
   setTimeout(function(){ try{ Upd.autoApk(); }catch(e){} }, 2600);   // 老版本进入自动更新 APK
   setTimeout(function(){
     if(!capOk()){ try{ Upd.noBridge(); }catch(e){} }
