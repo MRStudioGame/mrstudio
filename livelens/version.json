@@ -1,12 +1,12 @@
 {
- "versionCode": 5,
- "versionName": "1.1.0",
- "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.1.0.apk",
- "mirror": "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.0.apk",
+ "versionCode": 6,
+ "versionName": "1.1.1",
+ "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.1.1.apk",
+ "mirror": "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk",
  "mirrors": [
-  "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.0.apk",
-  "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.0.apk"
+  "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk",
+  "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk"
  ],
- "size": 48137703,
- "notes": "识别引擎大升级：改用相机原生出图（任何机型都能识别）+ 分析分辨率提升到 720p；全新 HUD 界面（四角括号框 + 准星 + 目标统计横幅 + 近/远标注）；新增切换镜头、诊断模式"
+ "size": 48141799,
+ "notes": "修复 AI 介绍无响应：错误现在会直接显示在框上（网络/Key/模型问题一目了然）；新增模型自动切换与重试、老安卓 TLS 兼容；设置页新增「测试 AI 接口」一键自检"
 }
