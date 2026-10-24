@@ -1,12 +1,12 @@
 {
- "versionCode": 6,
- "versionName": "1.1.1",
- "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.1.1.apk",
- "mirror": "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk",
+ "versionCode": 7,
+ "versionName": "1.1.2",
+ "url": "https://mrstudiogame.github.io/mrstudio/livelens/LiveLens-v1.1.2.apk",
+ "mirror": "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.2.apk",
  "mirrors": [
-  "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk",
-  "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.1.apk"
+  "https://gh-proxy.com/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.2.apk",
+  "https://ghfast.top/https://github.com/MRStudioGame/mrstudio/raw/main/livelens/LiveLens-v1.1.2.apk"
  ],
  "size": 48141799,
- "notes": "修复 AI 介绍无响应：错误现在会直接显示在框上（网络/Key/模型问题一目了然）；新增模型自动切换与重试、老安卓 TLS 兼容；设置页新增「测试 AI 接口」一键自检"
+ "notes": "修复 AI 回话显示不出来：改用位置指纹匹配（不再依赖每帧变化的跟踪ID）；新增底部常驻 AI 回话条——AI 说什么一定看得见；检测不到目标时自动整帧描述；诊断模式现在显示帧数/检测次数/AI请求与成功数，一眼定位卡在哪一步"
 }
