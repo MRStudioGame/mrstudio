@@ -2,18 +2,18 @@
   "app": "rider-sim",
   "name": "外卖骑手模拟器",
   "package": "com.yg.rider",
-  "versionCode": 2,
-  "versionName": "1.3.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.3.0.apk?v=2",
-  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.3.0.apk",
+  "versionCode": 3,
+  "versionName": "1.4.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.4.0.apk?v=3",
+  "mirror": "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.4.0.apk",
   "mirrors": [
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.3.0.apk",
-    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/rider-sim/rider-sim-1.3.0.apk",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.3.0.apk",
-    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.3.0.apk?v=2"
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.4.0.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/rider-sim/rider-sim-1.4.0.apk",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.4.0.apk",
+    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.4.0.apk?v=3"
   ],
-  "size": 115559,
+  "size": 28477120,
   "force": false,
-  "note": "新增应用内自动更新模块；地图 UI 重做（路网降84%、配色收敛87%）；全矢量图标；屏幕自适应；秒开优化",
-  "updated": "2026-10-28 21:34:30"
+  "note": "UI 全面重做：5 档字号层次（原来所有字一样大）、区域比例 HUD7%/地图70%/面板20%、Tab 不再比内容区还大；高德地图 SDK 完整打包（27MB，含 arm64+armv7 native so），无 Key 时自动降级自绘引擎",
+  "updated": "2026-10-28 22:39:09"
 }
