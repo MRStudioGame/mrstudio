@@ -2,17 +2,17 @@
   "app": "rider-sim",
   "name": "外卖骑手模拟器",
   "package": "com.yg.rider",
-  "versionCode": 3,
-  "versionName": "1.4.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.4.0.apk?v=3",
-  "mirror": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.4.0.apk?v=3",
+  "versionCode": 4,
+  "versionName": "1.5.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
+  "mirror": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
   "mirrors": [
-    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.4.0.apk?v=3",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.4.0.apk",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.4.0.apk"
+    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.5.0.apk",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.5.0.apk"
   ],
   "size": 28477120,
   "force": false,
-  "note": "UI 全面重做：5 档字号层次、区域比例 HUD7%/地图70%/面板20%；高德地图 SDK 完整打包，无 Key 自动降级自绘",
-  "updated": "2026-10-28 22:41:05"
+  "note": "重做排版系统：字号与行距解耦改为从字号推导（Type.nextBaseline），修复 HUD 首行被状态栏遮挡 8px、第一二行重叠 8px 的问题；新增 LayoutAudit 数学审计，所有行间距>=6px 零重叠；字号定为 24/30/38/46/60 五档（最大最小比 2.5）",
+  "updated": "2026-10-29 22:42:53"
 }
