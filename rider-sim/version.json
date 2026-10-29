@@ -2,17 +2,19 @@
   "app": "rider-sim",
   "name": "外卖骑手模拟器",
   "package": "com.yg.rider",
-  "versionCode": 4,
-  "versionName": "1.5.0",
-  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
-  "mirror": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
+  "versionCode": 5,
+  "versionName": "1.6.0",
+  "url": "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.6.0.apk?v=5",
+  "mirror": "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.6.0.apk",
   "mirrors": [
-    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.5.0.apk?v=4",
-    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.5.0.apk",
-    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.5.0.apk"
+    "https://ghfast.top/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.6.0.apk",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.6.0.apk",
+    "https://mrstudiogame.github.io/mrstudio/rider-sim/rider-sim-1.6.0.apk?v=5",
+    "https://ghproxy.net/https://raw.githubusercontent.com/MRStudioGame/mrstudio/main/rider-sim/rider-sim-1.6.0.apk",
+    "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/rider-sim/rider-sim-1.6.0.apk"
   ],
-  "size": 28477120,
+  "size": 10569322,
   "force": false,
-  "note": "重做排版系统：字号与行距解耦改为从字号推导（Type.nextBaseline），修复 HUD 首行被状态栏遮挡 8px、第一二行重叠 8px 的问题；新增 LayoutAudit 数学审计，所有行间距>=6px 零重叠；字号定为 24/30/38/46/60 五档（最大最小比 2.5）",
-  "updated": "2026-10-29 22:42:53"
+  "note": "更新包 27MB到10MB（so 仅 arm64 + zip 压缩），通道按实测重排",
+  "updated": "2026-10-29 23:27:13"
 }
