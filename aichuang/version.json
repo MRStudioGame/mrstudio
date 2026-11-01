@@ -1,15 +1,15 @@
 {
   "name": "爱创",
   "package": "com.aichuang.app",
-  "version": "1.0.10",
-  "versionCode": 11,
-  "size": 2047272,
+  "version": "1.0.11",
+  "versionCode": 12,
+  "size": 2047596,
   "sizeText": "1.95 MB",
-  "md5": "0b0ab016054abd08d060c825ad014d73",
-  "sha256": "9dcf30e25ef3ef51bef66b53dc28523f140d5819eb0be1241497cb76a404ec1f",
-  "apkPages": "https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.10-release.apk",
-  "apkCdn": "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.10-release.apk",
-  "apkCdnAlt": "https://cdn.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.10-release.apk",
+  "md5": "b2ce0b70f5342b55f0397414065a99f1",
+  "sha256": "9eb71a945c09b04ba1b1da13d3afb798b877bc6dc8fd04fede02a888027f06fc",
+  "apkPages": "https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.11-release.apk",
+  "apkCdn": "https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.11-release.apk",
+  "apkCdnAlt": "https://cdn.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.11-release.apk",
   "site": "https://mrstudiogame.github.io/mrstudio/aichuang/",
   "updated": "2026-11-01"
 }
