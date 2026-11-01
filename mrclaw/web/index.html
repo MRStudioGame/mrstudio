@@ -337,6 +337,8 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
   margin:10px 12px 0;padding:10px 14px;border-radius:12px;font-size:13.5px;
   background:var(--tip-bg);border:1px solid var(--tip-bd);color:var(--tip-fg)}
 #updbar .btn.mini{flex:0 0 auto}
+#offbar{margin:8px 12px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;
+  background:rgba(255,176,32,.14);border:1px solid rgba(255,176,32,.38);color:#f0b34a}
 #bc{overflow:hidden;background:var(--tip-bg);border-bottom:1px solid var(--tip-bd);padding:7px 0}
 #bc .bcin{display:inline-block;white-space:nowrap;padding-left:100%;color:var(--tip-fg);
   font-size:13px;animation-name:bcroll;animation-timing-function:linear;
@@ -505,6 +507,7 @@ body{background:radial-gradient(1100px 520px at 50% -12%,rgba(47,107,255,.10),tr
 
   <div id="app" class="hide">
     <div id="updbar" class="hide"></div>
+    <div id="offbar" class="hide"><span id="offbar-txt"></span></div>
     <div id="bc" class="hide"><div class="bcin" id="bc-in"></div></div>
     <div id="top">
       <button class="mbtn" id="menu-btn" onclick="Conv.open()" aria-label="menu"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -630,6 +633,9 @@ zh:{
   p_root_n:"是否有 Root", p_root_w:"有 Root 时 AI 可以执行更高级的系统命令；没有就只用无障碍。",
   chat_empty:"说点什么", need_login:"请先登录", new_chat:"新对话",
   rate_limited:"请求太频繁了，请稍等一会儿再试",
+  server_down:"服务器正在维护，该功能暂不可用",
+  offline_banner:"服务器维护中 · 本地模式（聊天请先填写自己的 API Key）",
+  offline_ask:"服务器暂时连不上。是否用本地模式继续？本地模式只能用自己的 API Key 聊天，钻石、广场、客服暂不可用。",
   home_sub:"你的随叫随到智能体",
   home_seg_chat:"对话", home_seg_task:"工作",
   home_hint_chat:"日常聊天 · 智谱模型，快速回答",
@@ -809,6 +815,9 @@ en:{
   p_root_w:"With root the AI can run advanced system commands; without it, accessibility only.",
   chat_empty:"Say something", need_login:"Please sign in first", new_chat:"New chat",
   rate_limited:"Too many requests, please try again shortly",
+  server_down:"Server under maintenance, this feature is unavailable",
+  offline_banner:"Server maintenance · local mode (add your own API key to chat)",
+  offline_ask:"The server is unreachable. Continue in local mode? Local mode only works with your own API key; diamonds, community and support are unavailable.",
   home_sub:"Your always-ready agent",
   home_seg_chat:"Chat", home_seg_task:"Work",
   home_hint_chat:"Everyday chat · Zhipu, quick answers",
@@ -1401,7 +1410,10 @@ const Auth = {
       rpc("mrclaw_register", { p_user: u, p_salt: salt, p_hash: Native.hash(salt + p) })
         .then(function(r){
           done();
-          if(r && r.__err){ return self.msg(tb("reg_fail") + String(r.__err).slice(0, 110)); }
+          if(r && r.__err){
+            if(/ERR:|ENOTFOUND|Timeout|network|net/i.test(String(r.__err))) return self.offlineOffer(u);
+            return self.msg(tb("reg_fail") + String(r.__err).slice(0, 110));
+          }
           if(r && r.err === "rate_limited"){ return self.msg(t("rate_limited")); }
           if(r === "EXISTS"){ return self.msg(tb("user_exists")); }
           if(r !== "OK"){ return self.msg(tb("reg_fail") + JSON.stringify(r).slice(0, 110)); }
@@ -1410,17 +1422,38 @@ const Auth = {
     } else {
       this.msg(tb("logining"));
       rpc("mrclaw_salt", { p_user: u }).then(function(salt){
-        if(salt && salt.__err){ done(); return self.msg(tb("net_err") + String(salt.__err).slice(0, 110)); }
+        if(salt && salt.__err){
+          done();
+          if(/ERR:|ENOTFOUND|Timeout|network|net/i.test(String(salt.__err))) return self.offlineOffer(u);
+          return self.msg(tb("net_err") + String(salt.__err).slice(0, 110));
+        }
         if(!salt || typeof salt !== "string"){ done(); return self.msg(tb("no_user")); }
         rpc("mrclaw_login", { p_user: u, p_hash: Native.hash(salt + p) }).then(function(ok){
           done();
-          if(ok && ok.__err){ return self.msg(tb("net_err") + String(ok.__err).slice(0, 110)); }
+          if(ok && ok.__err){
+            if(/ERR:|ENOTFOUND|Timeout|network|net/i.test(String(ok.__err))) return self.offlineOffer(u);
+            return self.msg(tb("net_err") + String(ok.__err).slice(0, 110));
+          }
           if(ok && ok.err === "rate_limited"){ return self.msg(t("rate_limited")); }
           if(ok === true) self.enter(u);
           else self.msg(tb("bad_pwd"));
         });
       });
     }
+  },
+  /* 服务器连不上时的降级：本地模式（数据存本机，聊天用自己的 Key） */
+  offlineOffer(u){
+    const self = this;
+    if(S._offlineAsked) return;
+    S._offlineAsked = true;
+    uiAsk(t("offline_ask"), null, { input: false }).then(function(ok){
+      if(ok !== true){ S._offlineAsked = false; return; }
+      S.cfg.offline = true; saveCfg();
+      App.health.checked = true; App.health.ok = false;
+      self.enter(u);
+      try{ App.offlineUI(true); }catch(e){}
+      if(!S.cfg.apiKey){ try{ Native.toast(t("offline_banner")); }catch(e){} }
+    });
   },
   enter(u){
     S.user = { name: u, t: nowMs() };
@@ -1479,7 +1512,39 @@ const Cloud = {
 
 /* ================= 界面 ================= */
 const App = {
+  /* 后端可用性：启动时探测一次；不可用则进入本地模式，保证 App 还能用 */
+  health: { checked: false, ok: true },
+  checkServer(){
+    httpReq("GET", SB_URL + "/rest/v1/", {}, "").then(function(raw){
+      const bad = (!raw) || String(raw).indexOf("ERR:") === 0;
+      App.health.checked = true; App.health.ok = !bad;
+      try{ App.offlineUI(!bad); }catch(e){}
+    }).catch(function(){ App.health.checked = true; App.health.ok = false; try{ App.offlineUI(true); }catch(e){} });
+  },
+  offlineUI(isDown){
+    S.cfg.offline = !!isDown; saveCfg();
+    const b = el("offbar");
+    if(b){
+      const tx = el("offbar-txt");
+      if(tx) tx.textContent = t("offline_banner");
+      b.classList.toggle("hide", !isDown);
+    }
+    if(isDown && S.user && Acc.data.mode === "points"){
+      // 本地模式只能用自己的 Key
+      Acc.data.mode = S.cfg.apiKey ? "own" : "points";
+      try{ Acc.paint(); }catch(e){}
+    }
+  },
+  needServer(){
+    if(App.health.checked && App.health.ok === false){
+      Native.toast(t("server_down"));
+      return false;
+    }
+    return true;
+  },
   tab(x){
+    if(x === "gc" && !App.needServer()) return;
+    if(x === "adm" && !App.needServer()) return;
     S.tab = x;
     document.querySelectorAll("#nav button").forEach(function(b){
       b.classList.toggle("act", b.getAttribute("data-tab") === x);
@@ -2086,6 +2151,8 @@ const Chat = {
     this._chatTools = 0; this._chatNudged = false;
     const self = this;
     const keep = function(){ self.sending = false; };
+    // 服务器维护中：只能用自己的 Key 聊天
+    if(S.cfg.offline && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ keep(); Guide.key(); return; }
     if(Acc.banned()){ keep(); Show.ban(); return; }
     const useOwn = (Acc.data.mode === "own");
     if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ keep(); Guide.key(); return; }
@@ -5030,6 +5097,7 @@ const CheckIn = {
   /* ---------- 弹窗 ---------- */
   open(){
     if(!S.user || !S.user.name) return Chat.openLoginGate();
+    if(!App.needServer()) return;
     const o = this.state();
     const b = el("redeem");
     if(!b) return;
@@ -5618,10 +5686,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.3.5";
+const WEB_VERSION = "1.3.6";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 159;
+const WEB_CODE = 160;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
@@ -5669,8 +5737,8 @@ const Acc = {
   },
   paint(){
     const c = el("pts-chip");
-    if(c) c.innerHTML = Icon("gem", 13) + " " + esc(Acc.data.ready
-      ? this.shortPts(Acc.data.points) : t("loading"));
+    if(c) c.innerHTML = Icon("gem", 13) + " " + esc(S.cfg.offline ? "—"
+      : (Acc.data.ready ? this.shortPts(Acc.data.points) : t("loading")));
     const b = el("mode-btn");
     if(b){
       const own = Acc.data.mode === "own";
@@ -5755,6 +5823,7 @@ const Show = {
 const Redeem = {
   open(){
     if(!S.user) return Chat.openLoginGate();
+    if(!App.needServer()) return;
     const b = el("redeem");
     b.classList.remove("hide");
     b.innerHTML = "<div class='rw'><div class='gt'><b>" + t("redeem_title") + "</b></div>" +
@@ -5801,6 +5870,7 @@ const Support = {
   timer:null,
   open(){
     if(!S.user) return Chat.openLoginGate();
+    if(!App.needServer()) return;
     SupUnread.seen();
     Support.msgs = [];
     Attach.supPending = [];
@@ -5962,6 +6032,7 @@ setTimeout(function(){ var sp = el("splash"); if(sp){ sp.classList.add("off"); s
   }
   }catch(e){}
   setTimeout(function(){ Upd.check(); }, 1200);
+  setTimeout(function(){ try{ App.checkServer(); }catch(e){} }, 1500);
   setTimeout(function(){ try{ Skill.loadRemote(); }catch(e){} }, 2600);
   setTimeout(function(){ try{ Upd.autoApk(); }catch(e){} }, 2600);   // 老版本进入自动更新 APK
   setTimeout(function(){
