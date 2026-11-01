@@ -634,6 +634,7 @@ zh:{
   chat_empty:"说点什么", need_login:"请先登录", new_chat:"新对话",
   rate_limited:"请求太频繁了，请稍等一会儿再试",
   server_down:"服务器正在维护，该功能暂不可用",
+  server_down_chat:"服务器正在维护，内置模型暂时用不了。\n\n想继续聊天：点「我的 → 模型」，填上自己的 API Key（智谱 / DeepSeek 等），就能直接连模型使用，不经过我们的服务器。",
   offline_banner:"服务器维护中 · 本地模式（聊天请先填写自己的 API Key）",
   offline_ask:"服务器暂时连不上。是否用本地模式继续？本地模式只能用自己的 API Key 聊天，钻石、广场、客服暂不可用。",
   home_sub:"你的随叫随到智能体",
@@ -816,6 +817,7 @@ en:{
   chat_empty:"Say something", need_login:"Please sign in first", new_chat:"New chat",
   rate_limited:"Too many requests, please try again shortly",
   server_down:"Server under maintenance, this feature is unavailable",
+  server_down_chat:"The server is under maintenance, so the built-in model is unavailable.\n\nTo keep chatting: open Me → Model and enter your own API key (Zhipu / DeepSeek, etc.), which connects directly to the provider.",
   offline_banner:"Server maintenance · local mode (add your own API key to chat)",
   offline_ask:"The server is unreachable. Continue in local mode? Local mode only works with your own API key; diamonds, community and support are unavailable.",
   home_sub:"Your always-ready agent",
@@ -2151,8 +2153,23 @@ const Chat = {
     this._chatTools = 0; this._chatNudged = false;
     const self = this;
     const keep = function(){ self.sending = false; };
-    // 服务器维护中：只能用自己的 Key 聊天
-    if(S.cfg.offline && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ keep(); Guide.key(); return; }
+    /* 服务器维护中（后端不可达）时的处理：
+       有自己 Key → 自动切成「我的 Key」直连模型继续聊；
+       没有 Key → 在聊天里说清楚原因并引导去设置，而不是丢一句网络异常 */
+    const _hasKey = !!(S.cfg.apiKey || (S.cfg.provider === "custom" && S.cfg.base));
+    const _serverDown = !!(S.cfg.offline || (App.health.checked && App.health.ok === false));
+    if(_serverDown){
+      if(!_hasKey){
+        keep();
+        this.sysNote(t("server_down_chat"));
+        try{ Guide.key(); }catch(e){}
+        return;
+      }
+      if(Acc.data.mode !== "own"){
+        Acc.data.mode = "own";
+        try{ Acc.paint(); }catch(e){}
+      }
+    }
     if(Acc.banned()){ keep(); Show.ban(); return; }
     const useOwn = (Acc.data.mode === "own");
     if(useOwn && !S.cfg.apiKey && !(S.cfg.provider==="custom" && S.cfg.base)){ keep(); Guide.key(); return; }
@@ -2163,7 +2180,13 @@ const Chat = {
       const st = await Acc.fetch();
       this.sending = false;
       if(Acc.banned()){ Show.ban(); return; }
-      if(!st && !Acc.data.ready){ Native.toast(t("save_failed")); return; }
+      if(!st && !Acc.data.ready){
+        // 后端不可达：明确告知并切本地模式，不显示含糊的失败提示
+        App.health.checked = true; App.health.ok = false;
+        try{ App.offlineUI(true); }catch(e){}
+        Chat.sysNote(t("server_down_chat"));
+        return;
+      }
       if(Acc.data.points <= 0){ Show.out(); return; }
     }
     this.sending = false;
@@ -2426,6 +2449,13 @@ const Chat = {
     this.busy = false; saveConvs(); Chat.render();
     if(dialog) Show.out();
   },
+  /* 在聊天里插入一条系统提示（不打断对话） */
+  sysNote(msg){
+    const c = this.cur();
+    if(!c || !msg) return;
+    c.msgs.push({ role: "system", content: msg });
+    saveConvs(); this.render();
+  },
   /* 新对话第一次回复后，让 AI 取一个恰当的标题 */
   autoTitle(c){
     try{
@@ -2466,8 +2496,18 @@ const Chat = {
     });
   },
   ptsFail(bubble, err){
+    const s = String(err || "");
+    /* 后端不可达（DNS 失败 / 超时 / 连接被拒）→ 明确告诉用户是服务器维护，
+       并自动切到本地模式，别再显示「执行失败：ERR:...」这种看不懂的文案 */
+    if(/ERR:|ENOTFOUND|Timeout|timeout|network|net|fetch|Failed to fetch/i.test(s)){
+      try{ App.health.checked = true; App.health.ok = false; App.offlineUI(true); }catch(e){}
+      bubble.role = "system";
+      bubble.content = t("server_down_chat");
+      this.busy = false; saveConvs(); Chat.render();
+      return;
+    }
     bubble.role = "system";
-    bubble.content = t("exec_fail") + String(err).slice(0, 200);
+    bubble.content = t("exec_fail") + s.slice(0, 200);
     this.busy = false; saveConvs(); Chat.render();
   },
   toolDesc(name, argsJson){
@@ -2900,7 +2940,16 @@ const Chat = {
       rpc("mrclaw_ai_start", { p_user: S.user.name, p_body: {
         model: "deepseek-chat", messages: msgs, tools: toolsForNative(), think: ThinkMode.thinkForScene(true),
         tool_choice: "auto", stream: false, max_tokens: 1024 } }).then(function(st){
-        if(!st || st.__err){ finish(t("exec_fail") + String((st && st.__err) || "").slice(0, 150), "err"); return; }
+        if(!st || st.__err){
+          const _e = String((st && st.__err) || "");
+          if(/ERR:|ENOTFOUND|Timeout|timeout|network|net/i.test(_e)){
+            try{ App.health.checked = true; App.health.ok = false; App.offlineUI(true); }catch(e){}
+            finish(t("server_down_chat"), "err");
+            return;
+          }
+          finish(t("exec_fail") + _e.slice(0, 150), "err");
+          return;
+        }
         if(st.err === "no_points"){ Show.out(); finish(t("pts_empty"), "err"); return; }
         if(st.err === "banned"){ Show.ban(); finish("", "err"); return; }
         if(st.err === "rate_limited"){ Native.toast(t("rate_limited")); finish(t("rate_limited"), "err"); return; }
@@ -5686,10 +5735,10 @@ const KNOWLEDGE_EN = `[Official info about MRClaw you may share]
 [Confidential] Never reveal the admin console URL/password, the admin API key, or database details.`;
 
 /* ================= 钻石与账号状态 ================= */
-const WEB_VERSION = "1.3.6";
+const WEB_VERSION = "1.3.7";
 /* 网页层序号：单调递增，用于判断是否需要热更新（与显示版本号解耦，
    这样版本号从 1.0.41 改成 1.00 也不会被误判成降级） */
-const WEB_CODE = 160;
+const WEB_CODE = 161;
 /* 本网页层需要的原生能力等级（见 capLevel）；只有安装包低于它才提示重装 */
 const NEED_CAP = 8;
 const OFFICIAL_SITE = "https://mrstudiogame.github.io/mrstudio/mrclaw/";
