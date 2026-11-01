@@ -224,6 +224,18 @@ img{ max-width:100%; display:block }
 
 /* ================= 首屏 ================= */
 .hero{ padding:clamp(56px,7.5vw,108px) 0 clamp(50px,7vw,92px); position:relative }
+/* 空间感：顶部一层极淡天光，底部略微压暗 */
+.hero::before{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(92% 46% at 50% 0%, rgba(138,162,204,.055), transparent 64%),
+    linear-gradient(180deg, transparent 64%, rgba(0,0,0,.09));
+}
+html[data-theme="light"] .hero::before{
+  background:
+    radial-gradient(92% 46% at 50% 0%, rgba(120,146,192,.065), transparent 64%),
+    linear-gradient(180deg, transparent 68%, rgba(20,28,42,.03));
+}
 .hero-grid{
   display:grid; grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
   gap:clamp(34px,5vw,70px); align-items:center;
@@ -258,7 +270,17 @@ h1 .grad{
 /* ---------- 3D 产品层 ---------- */
 .stage{
   position:relative; justify-self:center; width:100%; max-width:430px; aspect-ratio:1/1.03;
-  perspective:1500px; perspective-origin:50% 42%;
+  perspective:1650px; perspective-origin:50% 36%;
+}
+/* 地面漫反射：模拟实体产品摆放在空间里的环境补光 */
+.stage::after{
+  content:""; position:absolute; left:14%; right:10%; bottom:0.5%; height:44px; z-index:-1;
+  border-radius:50%; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, rgba(138,162,204,.20), transparent 72%);
+  filter:blur(24px); opacity:.9;
+}
+html[data-theme="light"] .stage::after{
+  background:radial-gradient(ellipse at 50% 50%, rgba(88,108,148,.15), transparent 72%);
 }
 .stage-in{
   position:absolute; inset:0; transform-style:preserve-3d;
@@ -267,18 +289,39 @@ h1 .grad{
 @keyframes hover-soft{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(0,-5px,0) } }
 @media (prefers-reduced-motion: reduce){ .stage-in{ animation:none } }
 
+/* 统一光照：主光在左上，投影朝右下；弥散 + 微弱顶面与底面反光 */
 .plate{
   position:absolute; border-radius:var(--r-lg); overflow:hidden;
   border:1px solid var(--line-hi); background:var(--solid);
-  box-shadow:var(--sh-3); transform-style:preserve-3d; will-change:transform;
+  transform-style:preserve-3d; will-change:transform;
+  box-shadow:
+    20px 28px 66px -40px rgba(0,0,0,.56),
+    8px 12px 26px -16px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 -26px 46px -38px rgba(255,255,255,.05);
 }
-.plate-main{ left:8%; top:5%; width:74%; height:82% }
-.plate-agent{ right:0; top:14%; width:56%; height:60%; opacity:.97 }
+html[data-theme="light"] .plate{
+  box-shadow:
+    20px 28px 62px -42px rgba(20,28,42,.28),
+    8px 12px 24px -16px rgba(20,28,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.85),
+    inset 0 -26px 44px -36px rgba(255,255,255,.6);
+}
+/* 三层沿 Z 轴错开：后 -30px / 主体 +34px / 前 +78px */
+.plate-main{
+  left:8%; top:5%; width:74%; height:82%;
+  transform:translate3d(0,0,34px) rotateY(-8.5deg) rotateX(2.2deg);
+}
+.plate-agent{
+  right:0; top:14%; width:56%; height:60%; opacity:.97;
+  transform:translate3d(0,0,-30px) rotateY(-8.5deg) rotateX(2.2deg);
+}
 .plate-chip{
   left:2%; bottom:8%; width:52%; border-radius:var(--r-md);
   background:rgba(24,26,31,.86);
   -webkit-backdrop-filter:blur(18px) saturate(150%);
   backdrop-filter:blur(18px) saturate(150%);
+  transform:translate3d(0,0,78px) rotateY(-8.5deg) rotateX(2.2deg);
 }
 html[data-theme="light"] .plate-chip{ background:rgba(255,255,255,.88) }
 
@@ -503,40 +546,70 @@ footer ul a:hover{ color:var(--accent) }
 .totop:hover{ color:var(--text) }
 
 /* ================= 响应式 ================= */
+/* ---------------- 平板：单列，样机居中 ---------------- */
 @media (max-width: 1000px){
-  .hero-grid{ grid-template-columns:1fr; gap:42px }
-  .stage{ max-width:390px; order:-1 }
+  .hero-grid{ grid-template-columns:1fr; gap:38px }
+  .stage{ max-width:328px; order:-1; margin:0 auto }
   .dl{ grid-template-columns:1fr }
   .dl-side{ border-left:0; border-top:1px solid var(--line) }
   .f-grid{ grid-template-columns:1fr 1fr; gap:28px }
   .f-brand{ grid-column:1/-1 }
 }
+
+/* ---------------- 手机：样机降占高、文字重排、按钮纵向 ---------------- */
 @media (max-width: 760px){
   .nav-links{ display:none }
   .brand .en{ display:none }
-  .hero{ padding-top:38px }
-  .metrics{ gap:20px 30px }
+
+  /* 首屏：样机靠上居中，缩小体量，与标题之间留出空白 */
+  .hero{ padding:28px 0 48px }
+  .hero-grid{ gap:0 }
+  .stage{ max-width:264px; width:66vw; margin:0 auto 32px; perspective:1150px; perspective-origin:50% 34% }
+
+  /* 文字层级：手机重新适配字号与行高 */
+  h1{ font-size:clamp(29px, 8.2vw, 33px); line-height:1.28; letter-spacing:-.026em; margin-top:18px }
+  .lede{ font-size:15.5px; line-height:1.95; margin-top:20px; max-width:none }
+  .tag{ font-size:11.5px }
+
+  /* 数据点：两列，不再横向挤成一排 */
+  .metrics{ display:grid; grid-template-columns:1fr 1fr; gap:20px 24px; margin-top:30px; padding-top:24px }
+  .metrics b{ font-size:16px }
+  .metrics span{ font-size:11.5px; margin-top:3px }
+
+  /* 首屏按钮：纵向排列，各自占满，圆角统一 */
+  .cta{ flex-direction:column; gap:10px; margin-top:30px }
+  .cta .btn{ width:100%; border-radius:14px; min-height:50px; font-size:15.5px }
+
+  /* 通用按钮规格 */
+  .btn{ padding:14px 22px; font-size:15px; min-height:48px }
+  .btn-sm{ padding:10px 18px; font-size:13.5px; min-height:40px }
+
+  /* 下载区：主按钮全宽，次按钮次行 */
+  .btn-hero{ padding:16px 24px; font-size:16px; min-width:0; width:100%; border-radius:14px }
+  .dl-btns{ flex-direction:column; gap:10px }
+  .dl-btns .btn-ghost{ width:100%; min-height:48px; border-radius:14px }
+  .dl-meta{ display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; margin:24px 0 26px }
+
+  /* 长文本 */
+  .sub{ font-size:14.5px; line-height:1.9 }
+  .feat p{ font-size:13.6px; line-height:1.9 }
+  details p{ font-size:13.6px; line-height:1.95 }
+  ul.notes{ font-size:13.2px; line-height:1.9 }
+
   .item .dt{ margin-left:0; width:100%; margin-top:-2px }
   .f-grid{ grid-template-columns:1fr }
   .copy .sp{ margin-left:0 }
-  /* 手机端：按钮不挤压，文字不小于 14px，留白保留 */
-  .btn{ padding:14px 22px; font-size:15px; min-height:48px }
-  .btn-sm{ padding:10px 18px; font-size:13.5px; min-height:40px }
-  .btn-hero{ padding:16px 26px; font-size:16px; min-width:0; width:100% }
-  .dl-btns{ flex-direction:column }
-  .dl-btns .btn-ghost{ width:100%; min-height:46px }
-  .lede{ font-size:15px; line-height:1.9 }
-  .sub{ font-size:14.5px }
-  .feat p{ font-size:13.6px }
-  details p{ font-size:13.6px }
-  ul.notes{ font-size:13.2px }
   .plate-chip{ width:58% }
 }
+
+/* ---------------- 小屏手机 ---------------- */
 @media (max-width: 430px){
-  .stage{ max-width:310px }
+  .stage{ max-width:232px; width:62vw; margin-bottom:28px }
+  h1{ font-size:clamp(26px, 7.9vw, 30px) }
+  .lede{ font-size:15px }
   .ui-body{ gap:6px; padding:9px }
-  .dl-meta{ gap:18px 26px }
   section{ padding:52px 0 }
+  .hero{ padding:24px 0 44px }
 }
 </style>
 </head>
@@ -603,7 +676,7 @@ footer ul a:hover{ color:var(--accent) }
     <div class="stage" id="stage" aria-hidden="true">
       <div class="stage-in" id="stage-in">
 
-        <div class="plate plate-agent" data-depth="0.55">
+        <div class="plate plate-agent" data-depth="0.55" data-z="-30">
           <div class="ag-top">
             <span class="ag-av"></span>
             <div class="ag-meta">
@@ -624,7 +697,7 @@ footer ul a:hover{ color:var(--accent) }
           <div class="ag-inp"><span>说说你想做什么 App…</span><i></i></div>
         </div>
 
-        <div class="plate plate-main" data-depth="1">
+        <div class="plate plate-main" data-depth="1" data-z="34">
           <div class="ui">
             <div class="ui-top">
               <span class="lg"></span>
@@ -649,7 +722,7 @@ footer ul a:hover{ color:var(--accent) }
           </div>
         </div>
 
-        <div class="plate plate-chip" data-depth="1.35">
+        <div class="plate plate-chip" data-depth="1.35" data-z="78">
           <div class="chip-in">
             <span class="pt"></span>
             <div class="tx">
@@ -944,6 +1017,12 @@ footer ul a:hover{ color:var(--accent) }
   var nav = document.getElementById('nav');
   var totop = document.getElementById('totop');
 
+  var narrow = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+  var RY = narrow ? -5.2 : -8.5;      // 手机端倾斜更浅，避免样机变形
+  var RX0 = narrow ? 1.5 : 2.2;
+  var ZF = narrow ? 0.6 : 1;          // 手机端 Z 轴幅度压缩
+  var PAR = narrow ? 0.034 : 0.05;    // 手机端视差更弱
+
   var targetY = 0, curY = 0, running = false;
 
   function frame() {
@@ -953,10 +1032,11 @@ footer ul a:hover{ color:var(--accent) }
     for (var i = 0; i < plates.length; i++) {
       var el = plates[i];
       var d = parseFloat(el.getAttribute('data-depth')) || 1;
-      var ty = curY * -0.05 * d;
-      var rx = 2.4 + curY * 0.0014 * d;
-      el.style.transform = 'translate3d(0,' + ty.toFixed(2) + 'px,0) rotateX('
-        + rx.toFixed(3) + 'deg) rotateY(-8.5deg)';
+      var z = (parseFloat(el.getAttribute('data-z')) || 0) * ZF;
+      var ty = curY * -PAR * d;
+      var rx = RX0 + curY * 0.0011 * d;
+      el.style.transform = 'translate3d(0,' + ty.toFixed(2) + 'px,' + z.toFixed(1) + 'px)'
+        + ' rotateX(' + rx.toFixed(3) + 'deg) rotateY(' + RY + 'deg)';
     }
 
     if (targetY !== curY) requestAnimationFrame(frame);
