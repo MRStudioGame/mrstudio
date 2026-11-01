@@ -438,14 +438,14 @@ footer ul a:hover{ color:var(--accent) }
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="pill"><i class="dot"></i> 最新版本 v1.0.10 · 2026 年 11 月 1 日 发布</span>
+      <span class="pill"><i class="dot"></i> 最新版本 v1.0.11 · 2026 年 11 月 1 日 发布</span>
       <h1>用一句话，<br>造一个 <em>App</em></h1>
       <p class="lede">
         爱创是一个跑在安卓手机上的 AI 开发台。你描述想要的软件，它自己完成需求拆解、界面与逻辑编写、
         实时预览、签名打包，最后交给你一个能装的 APK。
       </p>
       <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href="https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.10-release.apk" rel="noopener">
+        <a class="btn btn-primary btn-lg" href="https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.11-release.apk" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3v11m0 0l4.2-4.2M12 14l-4.2-4.2M4.5 19.5h15"/>
           </svg>
@@ -463,7 +463,7 @@ footer ul a:hover{ color:var(--accent) }
 
     <div class="device" aria-hidden="true">
       <div class="screen">
-        <div class="bar"><i></i><b>爱创</b><em>v1.0.10</em></div>
+        <div class="bar"><i></i><b>爱创</b><em>v1.0.11</em></div>
         <div class="sk hero-blk"></div>
         <div class="sk row"><span class="ic"></span><span class="ln"></span></div>
         <div class="sk row"><span class="ic"></span><span class="ln s"></span></div>
@@ -554,7 +554,8 @@ footer ul a:hover{ color:var(--accent) }
       <p class="sub">每次修复都会自动推送给已安装的用户，重要版本会标记为强制更新。</p>
     </div>
     <div class="log">
-      <div class="item now reveal"><div class="ver"><b>v1.0.10</b><span class="tag">最新</span><span class="date">即将发布</span></div><ul><li>设置页新增「前往官方网站」，一键打开下载站</li><li>内置模型通道继续使用 DeepSeek，代码与界面质量稳定</li><li>修复导出 APK 与本体抢 content provider authority 导致装不上</li><li>修复点「直接安装」无反应：先引导「安装未知应用」权限</li><li>修复预览 iframe 沙箱缺 allow-same-origin 导致的 localStorage 报错</li><li>素材图片在预览里自动转 data URI 内联，不再裂图</li></ul></div>
+      <div class="item now reveal"><div class="ver"><b>v1.0.11</b><span class="tag">最新</span><span class="date">2026-11-01</span></div><ul><li>更新下载器增加三重校验：文件头是否 APK、体积是否正常、MD5 是否一致</li><li>下载到错误页面或损坏文件会当场删除并说明原因，不再出现「解析软件包时出现问题」</li><li>官网正式上线，提供 CDN 与 GitHub 双直链下载</li></ul></div>
+      <div class="item reveal"><div class="ver"><b>v1.0.10</b><span class="date">即将发布</span></div><ul><li>设置页新增「前往官方网站」，一键打开下载站</li><li>内置模型通道继续使用 DeepSeek，代码与界面质量稳定</li><li>修复导出 APK 与本体抢 content provider authority 导致装不上</li><li>修复点「直接安装」无反应：先引导「安装未知应用」权限</li><li>修复预览 iframe 沙箱缺 allow-same-origin 导致的 localStorage 报错</li><li>素材图片在预览里自动转 data URI 内联，不再裂图</li></ul></div>
       <div class="item reveal"><div class="ver"><b>v1.0.9</b><span class="date">2026-11-01</span></div><ul><li>修复导出 APK 安装冲突：authorities 现在跟随包名，可与本体共存</li><li>修复安装与分享时缓存路径不匹配导致拿不到文件</li><li>安装前增加系统「安装未知应用」权限引导</li></ul></div>
       <div class="item reveal"><div class="ver"><b>v1.0.8</b><span class="date">2026-11-01</span></div><ul><li>预览沙箱补 allow-same-origin，localStorage 与按钮交互恢复正常</li><li>预览中的素材图片转 data URI 内联，不再出现裂图</li><li>新增渲染中提示与脚本报错浮条，白屏时能直接看到原因</li><li>缩放改用 transform，80% / 125% 不再挤压布局</li></ul></div>
       <div class="item reveal"><div class="ver"><b>v1.0.7</b><span class="date">2026-11-01</span></div><ul><li>内置模型升级为 DeepSeek，界面与代码质量明显提升</li><li>智谱作为备用通道自动兜底</li><li>写代码阶段输出预算提升到 8000 tokens，输出被截断时自动抢救已生成部分</li></ul></div>
@@ -581,31 +582,31 @@ footer ul a:hover{ color:var(--accent) }
           </span>
           <div>
             <b>Android 版</b>
-            <span>APK · v1.0.10 · 1.95 MB · Android 7.0 及以上</span>
+            <span>APK · v1.0.11 · 1.95 MB · Android 7.0 及以上</span>
           </div>
           <span class="cur"><i class="dot"></i> 最新版</span>
         </div>
 
         <div class="dl-btns">
-          <a class="btn btn-primary" href="https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.10-release.apk" rel="noopener">
+          <a class="btn btn-primary" href="https://gcore.jsdelivr.net/gh/MRStudioGame/mrstudio@main/aichuang/aichuang-v1.0.11-release.apk" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11m0 0l4.2-4.2M12 14l-4.2-4.2M4.5 19.5h15"/></svg>
             CDN 极速下载
           </a>
-          <a class="btn btn-ghost" href="https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.10-release.apk" rel="noopener">GitHub 直链下载</a>
+          <a class="btn btn-ghost" href="https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.11-release.apk" rel="noopener">GitHub 直链下载</a>
         </div>
 
         <p class="dl-note">
           两个按钮是同一个安装包，CDN 那条走 jsDelivr 加速节点，国内一般更快；若 CDN 不通就用直链。
-          下载后建议核对 MD5：<code style="font-family:var(--mono);font-size:12px">0b0ab016054abd08d060c825ad014d73</code>
+          下载后建议核对 MD5：<code style="font-family:var(--mono);font-size:12px">b2ce0b70f5342b55f0397414065a99f1</code>
         </p>
       </div>
 
       <aside class="dl-side">
         <h4>文件信息</h4>
-        <div class="kv"><span>版本</span><b>v1.0.10（versionCode 11）</b></div>
-        <div class="kv"><span>大小</span><b>1.95 MB（2047272 字节）</b></div>
-        <div class="kv"><span>MD5</span><b>0b0ab016054abd08d060c825ad014d73</b></div>
-        <div class="kv"><span>SHA-256</span><b>9dcf30e25ef3ef51bef66b53dc28523f140d5819eb0be1241497cb76a404ec1f</b></div>
+        <div class="kv"><span>版本</span><b>v1.0.11（versionCode 12）</b></div>
+        <div class="kv"><span>大小</span><b>1.95 MB（2047596 字节）</b></div>
+        <div class="kv"><span>MD5</span><b>b2ce0b70f5342b55f0397414065a99f1</b></div>
+        <div class="kv"><span>SHA-256</span><b>9eb71a945c09b04ba1b1da13d3afb798b877bc6dc8fd04fede02a888027f06fc</b></div>
         <div class="kv"><span>签名</span><b>CN=MR Studio（自签，v1+v2）</b></div>
         <div class="kv"><span>发布日期</span><b>2026-11-01</b></div>
         <p class="hint">安装包不包含任何广告与第三方统计 SDK。</p>
@@ -676,14 +677,14 @@ footer ul a:hover{ color:var(--accent) }
         <h5>其他</h5>
         <ul>
           <li><a href="https://mrstudiogame.github.io/mrstudio/" target="_blank" rel="noopener">MR 工作室主页</a></li>
-          <li><a href="https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.10-release.apk" rel="noopener">安装包直链</a></li>
+          <li><a href="https://mrstudiogame.github.io/mrstudio/aichuang/aichuang-v1.0.11-release.apk" rel="noopener">安装包直链</a></li>
           <li><a href="https://github.com/MRStudioGame/mrstudio" target="_blank" rel="noopener">GitHub 仓库</a></li>
         </ul>
       </div>
     </div>
     <div class="copy">
       <span>© 2026 MR Studio · 爱创 aichuang</span>
-      <span>当前版本 v1.0.10</span>
+      <span>当前版本 v1.0.11</span>
       <span class="sp">页面更新于 2026-11-01</span>
     </div>
   </div>
