@@ -320,8 +320,10 @@
       '<div class="box"><div class="k">考试次数</div><div class="v">' + exams.length + "</div></div>" +
       "</div></div>" +
       petHtml +
-      '<div class="card"><div class="h"><div class="t">' + ICON.chart + "成绩走势</div><div class=\"extra\">我 vs 班均</div></div>" +
-      '<div id="trend" class="chart"></div></div>' +
+      (exams.length
+        ? '<div class="card"><div class="h"><div class="t">' + ICON.chart + "成绩走势</div><div class=\"extra\">我 vs 班均</div></div>" +
+          '<div id="trend" class="chart"></div></div>'
+        : "") +
       '<div class="card"><div class="h"><div class="t">' + ICON.list + "我的考试成绩</div><div class=\"extra\">共 " + exams.length + " 场</div></div>" +
       (examCards || '<div class="empty">老师还没发布考试成绩</div>') +
       "</div>" +
@@ -329,12 +331,14 @@
         ? '<div class="card"><div class="h"><div class="t">' + ICON.chart + "最近一场分数段</div><div class=\"extra\">" + esc(lastExam.name) + "</div></div>" +
           '<div id="dist" class="chart" style="height:190px"></div></div>'
         : "") +
-      '<div class="card"><div class="h"><div class="t">' + ICON.swap + "两次考试对比</div></div>" +
-      '<div style="display:flex;gap:8px;align-items:center">' +
-      '<select id="cmpA" class="select" style="flex:1">' + selOpts + "</select>" +
-      '<span style="color:#6b7280;font-size:11px">对比</span>' +
-      '<select id="cmpB" class="select" style="flex:1">' + selOpts + "</select></div>" +
-      '<div id="cmpBody"></div></div>' +
+      (exams.length >= 2
+        ? '<div class="card"><div class="h"><div class="t">' + ICON.swap + "两次考试对比</div></div>" +
+          '<div style="display:flex;gap:8px;align-items:center">' +
+          '<select id="cmpA" class="select" style="flex:1">' + selOpts + "</select>" +
+          '<span style="color:#6b7280;font-size:11px">对比</span>' +
+          '<select id="cmpB" class="select" style="flex:1">' + selOpts + "</select></div>" +
+          '<div id="cmpBody"></div></div>'
+        : "") +
       '<div class="card"><div class="h"><div class="t">' + ICON.clock + "我的加分记录</div><div class=\"extra\">最近 " + myLogs.length + " 条</div></div>" + logRows + "</div>" +
       '<div class="card"><div class="h"><div class="t">' + ICON.star + "班级积分榜</div><div class=\"extra\">按累计获得</div></div>" + rankRows + "</div>" +
       '<div class="footer">数据更新于 ' + esc(DATA.built_at || "") + "<br/>本页只读取发布时的快照，不联网写入</div>" +
@@ -418,7 +422,7 @@
 
     // 对比
     var A = $("cmpA"), B = $("cmpB");
-    if (exams.length) {
+    if (A && B && exams.length >= 2) {
       A.value = exams[Math.max(0, exams.length - 2)].id;
       B.value = exams[exams.length - 1].id;
       A.onchange = renderCmp;
