@@ -21,7 +21,7 @@
 
   var DATA = null;
   var ME = null;
-  var EX = null; // echarts 实例登记
+  var EX = {}; // echarts 实例登记
   var KEY_OK = "xk_site_pass";
   var KEY_ME = "xk_site_me";
 
@@ -227,6 +227,8 @@
     };
   }
 
+  var PET_FILE = { "猫": "cat", "狗": "dog", "仓鼠": "hamster", "龙": "dragon", "企鹅": "penguin", "狐狸": "fox", "兔": "rabbit", "鸭": "duck", "独角兽": "unicorn", "熊猫": "panda", "青蛙": "frog", "小火龙": "charmander" };
+
   /* ---------------- 视图：我的主页 ---------------- */
   function viewHome() {
     var cls = DATA.school || {};
@@ -237,12 +239,15 @@
 
     var petHtml = "";
     if (ME.pet) {
+      var petPic = ME.pet.hatched
+        ? '<img alt="" src="pets/' + esc(PET_FILE[ME.pet.species] || "cat") + '.png" />'
+        : '<svg viewBox="0 0 48 48" fill="none" stroke="#9fb3d9" stroke-width="1.6"><ellipse cx="24" cy="27" rx="13" ry="16"/><path d="M14 18l6 5M34 18l-6 5M19 31h10" stroke-linecap="round"/></svg>';
       petHtml =
         '<div class="card card-tight"><div class="h"><div class="t">' + ICON.paw + '我的宠物</div><div class="extra">Lv ' +
         ME.pet.level + "</div></div>" +
-        '<div class="pet-line"><div class="pic"><img alt="" src="pets/' + esc(ME.pet.species) + '.png" /></div>' +
+        '<div class="pet-line"><div class="pic">' + petPic + "</div>" +
         '<div class="info"><div class="n">' + esc(ME.pet.name) + "</div>" +
-        '<div class="s">' + (ME.pet.hatched ? "已经出生啦" : "还在蛋里") + "</div></div>" +
+        '<div class="s">' + (ME.pet.hatched ? esc(ME.pet.species) + " · 已经出生啦" : "还在蛋里") + "</div></div>" +
         '<div class="val" style="color:#20a87b">Lv ' + ME.pet.level + "</div></div></div>";
     }
 
@@ -334,6 +339,12 @@
       '<div class="card"><div class="h"><div class="t">' + ICON.star + "班级积分榜</div><div class=\"extra\">按累计获得</div></div>" + rankRows + "</div>" +
       '<div class="footer">数据更新于 ' + esc(DATA.built_at || "") + "<br/>本页只读取发布时的快照，不联网写入</div>" +
       "</div>";
+
+    // 换页前把旧图表实例收掉，避免重复 init 报错
+    Object.keys(EX).forEach(function (k) {
+      if (EX[k] && EX[k].dispose) EX[k].dispose();
+    });
+    EX = {};
 
     $("app").innerHTML = html;
 
@@ -448,6 +459,7 @@
       (diff == null ? "有一场缺考" : (diff > 0 ? "+" : "") + diff + " 分") + "</span></div>" +
       '<div class="chart" id="cmpChart" style="height:190px;margin-top:8px"></div>';
 
+    if (EX.cmp && EX.cmp.dispose) EX.cmp.dispose();
     var c = echarts.init($("cmpChart"));
     c.setOption({
       grid: { left: 8, right: 10, top: 26, bottom: 22 },
@@ -473,18 +485,30 @@
   }
 
   /* ---------------- 启动 ---------------- */
+  function renderFail(e) {
+    $("app").innerHTML =
+      '<div class="gate"><div class="logo">' + ICON.lock + "</div><h1>页面出错了</h1>" +
+      '<p class="desc">这不是数据问题，是网页自己算错了。把下面这行发给老师就能修。</p>' +
+      '<div class="err">' + esc((e && e.message) || String(e)) + "</div>" +
+      '<button class="go" onclick="location.reload()">重新加载</button></div>';
+  }
+
   function boot() {
     loadState()
       .then(function () {
-        var passed = sessionStorage.getItem(KEY_OK);
-        var no = sessionStorage.getItem(KEY_ME);
-        if (passed && no) {
-          for (var i = 0; i < DATA.students.length; i++) {
-            if (DATA.students[i].no === no) ME = DATA.students[i];
+        try {
+          var passed = sessionStorage.getItem(KEY_OK);
+          var no = sessionStorage.getItem(KEY_ME);
+          if (passed && no) {
+            for (var i = 0; i < DATA.students.length; i++) {
+              if (DATA.students[i].no === no) ME = DATA.students[i];
+            }
+            if (ME) return viewHome();
           }
-          if (ME) return viewHome();
+          viewGate("");
+        } catch (e) {
+          renderFail(e);
         }
-        viewGate("");
       })
       .catch(function (e) {
         $("app").innerHTML =
