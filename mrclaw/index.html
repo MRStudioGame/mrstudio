@@ -17,64 +17,66 @@
     --accent-2:#8b7cf6;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{font-size:13px;}
   html,body{height:100%;}
   body{
     margin:0;
+    height:100dvh;
     background:
       radial-gradient(1200px 600px at 50% -10%, rgba(110,168,254,.14), transparent 60%),
       radial-gradient(900px 500px at 110% 110%, rgba(139,124,246,.12), transparent 55%),
       var(--bg);
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;
-    line-height:1.8;
+    line-height:1.6;
     -webkit-font-smoothing:antialiased;
-    padding:calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 28px);
+    padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 8px);
     display:flex;
     justify-content:center;
-    align-items:flex-start;
-    overflow-x:hidden;
+    align-items:center;
+    overflow:hidden;
   }
   .wrap{width:100%;max-width:600px;}
   .card{
     background:linear-gradient(180deg,var(--card-2),var(--card));
     border:1px solid var(--line);
-    border-radius:20px;
-    padding:28px 22px 24px;
+    border-radius:1.23rem;
+    padding:1.38rem 1.23rem 1.23rem;
     box-shadow:0 24px 60px rgba(0,0,0,.45);
   }
-  .brand{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .brand{display:flex;align-items:center;gap:.62rem;margin-bottom:.85rem;}
   .mark{
-    width:38px;height:38px;border-radius:11px;
+    width:2.31rem;height:2.31rem;border-radius:.69rem;
     display:block;object-fit:cover;
     border:1px solid rgba(255,255,255,.16);
     box-shadow:0 6px 18px rgba(20,60,160,.45), 0 0 0 3px rgba(110,168,254,.06);
   }
-  .brand-name{font-size:14px;color:var(--text-dim);letter-spacing:.4px;}
+  .brand-name{font-size:.96rem;color:var(--text-dim);letter-spacing:.4px;}
   .tag{
     display:inline-block;
-    font-size:12px;letter-spacing:.5px;
+    font-size:.85rem;letter-spacing:.4px;
     color:var(--accent);
     border:1px solid rgba(110,168,254,.35);
     background:rgba(110,168,254,.08);
-    padding:3px 10px;border-radius:999px;
-    margin-bottom:14px;
+    padding:.15rem .69rem;border-radius:999px;
+    margin-bottom:.69rem;
   }
   h1{
-    font-size:24px;line-height:1.45;margin:0 0 10px;
+    font-size:1.54rem;line-height:1.34;margin:0 0 .46rem;
     font-weight:700;letter-spacing:.2px;
   }
   .sub{
-    color:var(--text-dim);font-size:14.5px;margin:0 0 20px;
+    color:var(--text-dim);font-size:.96rem;margin:0 0 .85rem;
   }
-  hr{border:0;border-top:1px solid var(--line);margin:0 0 20px;}
-  .body p{margin:0 0 15px;font-size:15px;color:#cfd6e4;}
+  hr{border:0;border-top:1px solid var(--line);margin:0 0 .85rem;}
+  .body p{margin:0 0 .62rem;font-size:1rem;line-height:1.6;color:#cfd6e4;}
   .body p.strong{color:var(--text);font-weight:600;}
-  .sign{margin-top:22px;text-align:right;color:var(--text-dim);font-size:14px;}
-  .actions{display:flex;flex-direction:column;gap:10px;margin-top:26px;}
+  .sign{margin-top:.77rem;text-align:right;color:var(--text-dim);font-size:.92rem;}
+  .actions{display:flex;flex-direction:column;gap:.62rem;margin-top:1rem;}
   .btn{
     appearance:none;border:0;cursor:pointer;
-    font-family:inherit;font-size:15.5px;font-weight:600;
-    padding:14px 18px;border-radius:12px;
+    font-family:inherit;font-size:1.08rem;font-weight:600;
+    padding:.85rem 1.23rem;border-radius:.85rem;
     transition:transform .12s ease,opacity .12s ease;
     width:100%;
   }
@@ -89,26 +91,27 @@
     background:rgba(255,255,255,.06);
     border:1px solid var(--line);
   }
-  .foot{margin-top:18px;text-align:center;color:#5d6577;font-size:12.5px;line-height:1.7;}
+  .foot{margin-top:.69rem;text-align:center;color:#5d6577;font-size:.85rem;line-height:1.55;}
   .foot a{color:#7f8798;text-decoration:none;}
   /* 退出层 */
   .exit{
     position:fixed;inset:0;display:none;
     flex-direction:column;align-items:center;justify-content:center;
-    gap:14px;background:var(--bg);
+    gap:1.08rem;background:var(--bg);
     text-align:center;padding:24px;
     z-index:99;
   }
   .exit .dot{
-    width:46px;height:46px;border-radius:50%;
+    width:2.6rem;height:2.6rem;border-radius:50%;
     border:1px solid var(--line);
-    display:grid;place-items:center;color:var(--text-dim);font-size:20px;
+    display:grid;place-items:center;color:var(--text-dim);font-size:1.1rem;
   }
-  .exit h2{margin:0;font-size:17px;font-weight:600;}
-  .exit p{margin:0;color:var(--text-dim);font-size:13.5px;max-width:300px;}
+  .exit h2{margin:0;font-size:1.31rem;font-weight:600;}
+  .exit p{margin:0;color:var(--text-dim);font-size:1.04rem;max-width:20rem;}
   @media (min-width:560px){
-    h1{font-size:27px;}
-    .card{padding:34px 30px 28px;}
+    h1{font-size:1.85rem;}
+    .card{padding:1.85rem 1.85rem 1.54rem;}
+    .body p{font-size:1.08rem;}
     .actions{flex-direction:row-reverse;}
     .btn{width:auto;flex:1;}
   }
@@ -250,6 +253,52 @@
       window.history.replaceState(null, "", location.pathname);
     }
   } catch (e) {}
+
+  /* ===== 自适应字号：宽度永远铺满，只调字号与间距，保证整页一屏看完 ===== */
+  var wrap = document.querySelector(".wrap");
+  var rootEl = document.documentElement;
+  var BASE_MAX = 13;   // 字体基准（px）
+  var BASE_MIN = 8.5;  // 可读性下限
+
+  function availH() {
+    var cs = window.getComputedStyle(document.body);
+    var padT = parseFloat(cs.paddingTop) || 0;
+    var padB = parseFloat(cs.paddingBottom) || 0;
+    return (window.innerHeight || rootEl.clientHeight) - padT - padB;
+  }
+
+  function setBase(px) { rootEl.style.fontSize = px + "px"; }
+
+  function measure() { return wrap.getBoundingClientRect().height; }
+
+  function fitView() {
+    if (!wrap) { return; }
+
+    var avail = availH();
+    if (avail <= 0) { return; }
+
+    // 先按最大字号量一次；放得下就直接用
+    setBase(BASE_MAX);
+    var hMax = measure();
+    if (hMax <= avail) { return; }
+
+    // 放不下就用二分查找，找"能塞进一屏的最大字号"
+    var lo = BASE_MIN, hi = BASE_MAX, best = BASE_MIN;
+    for (var i = 0; i < 7; i++) {
+      var mid = (lo + hi) / 2;
+      setBase(mid);
+      var hh = measure();
+      if (hh <= avail) { best = mid; lo = mid; } else { hi = mid; }
+    }
+    setBase(best);
+  }
+
+  fitView();
+  window.addEventListener("load", fitView);
+  setTimeout(fitView, 120);
+  setTimeout(fitView, 600);
+  window.addEventListener("resize", fitView);
+  window.addEventListener("orientationchange", function () { setTimeout(fitView, 300); });
 })();
 </script>
 
